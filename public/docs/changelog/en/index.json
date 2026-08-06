@@ -1,0 +1,166 @@
+{
+  "versions": [
+    {
+      "version": "3.19.1",
+      "date": "2026-07-31",
+      "isPreRelease": false,
+      "summary": "The through-line of this release is **tying off the loose ends of the last one**: three Chinese Codex gateways have been confirmed to support the Responses API natively, so **local routing takeover is no longer required** — the DeepSeek and Volcengine Ark Coding Plan presets move from routed to direct, and the newly added Tencent Hunyuan TokenHub is direct from the start. Four failures you could hit in daily use are fixed: **Claude Desktop usage has been counted twice since v3.18.0** (the historical numbers correct themselves after upgrading, but there is a 30-day window — see \"Upgrade Notes\"), switching back to the official Codex provider left you stuck on a 401 with no login screen, upgrading Grok Build from Settings failed with nothing but `os error 2`, and enabling takeover on Grok Build returned a straight 404. On top of that, eight models that had been billed at $0 gain built-in pricing, and 39 interface strings have their language problem fixed. This release has **no database migration**, and it is the first release in this project's history that deletes more than it adds."
+    },
+    {
+      "version": "3.19.0",
+      "date": "2026-07-30",
+      "isPreRelease": false,
+      "summary": "The through-line of this release is **peace of mind**: a concentrated wave of security hardening — Skill installation, `ccswitch://` import confirmations, SQL backup imports, common-config merging, and terminal launching are all tightened, and two of those items are worth a minute of your attention — the Gemini common-config credential leak is fixed and scrubbed automatically after upgrading (**you need to rotate your keys**), and the `ccswitch://` MCP import confirmation could previously fail to show the command it was about to write (**if you have ever opened an import link of unknown origin, it is worth a check**); both are covered under \"Upgrade Notes\". Alongside them is one major proxy correctness fix — **reading images through the proxy no longer blows up your context** (a single screenshot used to eat 100,000+ tokens, and two or three were enough to jam a Codex session on 400s). The convenience side is just as substantial: **model pricing can be handed over to models.dev to maintain automatically**, usage from Grok CLI's official login mode and the SuperGrok subscription balance finally reach the dashboard, and **in-app updates now go through the `dl.ccswitch.io` mirror** — so upgrading works even when GitHub is hard to reach."
+    },
+    {
+      "version": "3.18.0",
+      "date": "2026-07-21",
+      "isPreRelease": false,
+      "summary": "This release lets you do two brand-new things: **hand xAI's Grok CLI (Grok Build) over to CC Switch** — it becomes the eighth managed app, with one-click provider switching, MCP / Skills sync, proxy takeover, and usage statistics all included; and **connect Grok to Claude Code, Claude Desktop, and Codex** — either by signing in with your xAI Grok account directly (device-code authorization, no API key, running on your Grok subscription, with a strict-gateway compatibility layer on the Codex side so codex 0.142+ works too), or with an xAI API key (Codex gets a native Responses direct-connection preset; Claude Code can go through local routing). Just as important is a wave of fixes: the **Codex usage double count introduced in v3.17.0 is fixed**, with an automatic data rebuild after upgrading so the dashboard numbers become real again; **codex 0.144.5+ failing to start because of the model catalog is fixed**; and switching providers on Windows no longer flashes a console window or freezes the UI. Diagnostic logs also move from \"wiped on every startup\" to persistent across restarts, size-rotated, and fully redacted — and a UI crash now leaves an on-disk report instead of just a blank white window."
+    },
+    {
+      "version": "3.17.0",
+      "date": "2026-07-13",
+      "isPreRelease": false,
+      "summary": "This release brings a long-awaited capability: **one-click \"Projects\" switching** — save your current provider, MCP, Skills, and memory files as a single named snapshot, swap the whole set for another one from the title bar or tray with a single click, and have the state of the project you're leaving automatically saved back on the way out. The Codex side gets plenty too: **your official ChatGPT subscription account can now route through the local proxy as well**, getting the same routing and usage statistics as third-party providers; the GPT-5.6 family's context window and Sol / Terra / Luna three-tier pricing land in one step; and a native Anthropic Messages upstream format is added — is Claude Code banned at your company but the Claude API isn't? You can now **use Claude-family models directly inside Codex**. On top of that comes a big wave of correctness fixes: upstream failures no longer turn into \"empty replies\", cache-write tokens are no longer double-billed, deleted MCP servers no longer come back from the dead, and Kimi For Coding's 256K window finally takes effect for real."
+    },
+    {
+      "version": "3.16.5",
+      "date": "2026-07-01",
+      "isPreRelease": false,
+      "summary": "The centerpiece of this release is **getting native-Responses direct-connect properly adapted for domestic (Chinese) model providers** — generating Codex model catalogs for providers with native Responses endpoints (Xiaomi MiMo, Volcengine Doubao, Qwen3-Coder, Meituan LongCat, MiniMax) so the Codex desktop app can actually see these models and their built-in tools work, and automatically disabling `web_search` for the few domestic gateways that reject it so requests are no longer hard-rejected. Two other important improvements: when you switch providers, the plugins, environment variables, etc. you added inside the app are **automatically written back to the common config and carried over to the next provider**; and Linux (Wayland + NVIDIA) users hitting the \"title bar clicks, page is dead, black screen on resize\" problem now have an environment-variable escape hatch. This release also brings Claude Sonnet 5 pricing and a default-tier bump, a two-level grouped session view, and a batch of credential-safety and platform-compatibility fixes."
+    },
+    {
+      "version": "3.16.4",
+      "date": "2026-06-27",
+      "isPreRelease": false,
+      "summary": "🎉 **CC Switch is now in the global top 100 on GitHub by stars!** > Thank you to every user, contributor, and Star — you brought it here. 🙏"
+    },
+    {
+      "version": "3.16.3",
+      "date": "2026-06-14",
+      "isPreRelease": false,
+      "summary": "🎉 **CC Switch has passed 100,000 Stars!** > Thank you to every user, contributor, and Star — you are the reason it has come this far. 🙏"
+    },
+    {
+      "version": "3.16.2",
+      "date": "2026-06-07",
+      "isPreRelease": false,
+      "summary": "Following the v3.16.1 Codex stability patch, this release mainly broadens data portability and usage observability — adding S3-compatible cloud sync, OpenCode session usage sync, and an official-subscription quota template — while continuing to harden Codex's Chat Completions routing for third-party providers, fixing a batch of Windows / macOS platform issues, adding the CherryIN and ZenMux providers, and fully refreshing the trilingual user manual."
+    },
+    {
+      "version": "3.16.1",
+      "date": "2026-06-01",
+      "isPreRelease": false,
+      "summary": "Codex stability patch: because some users did not want CC Switch to change how Codex config files are written, Codex App Enhancements now has a switch and is off by default. After enabling it, you can keep using Codex mobile remote control, official plugins, and other official-app features while using third-party APIs; this release also includes a series of stability fixes."
+    },
+    {
+      "version": "3.16.0",
+      "date": "2026-05-29",
+      "isPreRelease": false,
+      "summary": "Chat Completions → Responses format conversion for Codex (you can now use DeepSeek, Kimi, GLM in Codex!), unified Codex provider identity and history, an all-around upgraded app management surface, partner preset expansion, default model / pricing matrix upgraded to GPT-5.5 and Claude Opus 4.8, and proxy / format-conversion robustness hardening"
+    },
+    {
+      "version": "3.15.0",
+      "date": "2026-05-16",
+      "isPreRelease": false,
+      "summary": "Claude Desktop becomes a first-class managed surface with third-party provider switching via proxy gateway, role-based model mapping, major reverse-proxy hardening, Codex OAuth live model discovery, and a filter-driven usage dashboard Hero card"
+    },
+    {
+      "version": "3.14.1",
+      "date": "2026-04-23",
+      "isPreRelease": false,
+      "summary": "Tray usage visibility, Codex OAuth stability fixes, Skills import/install reliability, and removal of the Hermes config health scanner"
+    },
+    {
+      "version": "3.14.0",
+      "date": "2026-04-21",
+      "isPreRelease": false,
+      "summary": "Hermes Agent becomes the 6th managed app, Claude Opus 4.7 rolls out across the preset matrix, Gemini Native API proxy, \"Local Routing\" rename, and application-level window controls"
+    },
+    {
+      "version": "3.13.0",
+      "date": "2026-04-10",
+      "isPreRelease": false,
+      "summary": "Lightweight Mode, Quota & Balance Visibility, Provider Model Auto-Fetch, Codex OAuth Reverse Proxy, and Tray Per-App Submenus"
+    },
+    {
+      "version": "3.12.3",
+      "date": "2026-03-24",
+      "isPreRelease": false,
+      "summary": "GitHub Copilot Reverse Proxy, macOS Code Signing & Notarization, Reasoning Effort Mapping, OpenCode SQLite Backend"
+    },
+    {
+      "version": "3.12.2",
+      "date": "2026-03-12",
+      "isPreRelease": false,
+      "summary": "Common Config Protection During Proxy Takeover, Snippet Lifecycle Stability, Section-Aware Codex TOML Editing"
+    },
+    {
+      "version": "3.12.1",
+      "date": "2026-03-12",
+      "isPreRelease": false,
+      "summary": "Stability Fixes, StepFun Presets, OpenClaw authHeader, and New Sponsor Partners"
+    },
+    {
+      "version": "3.12.0",
+      "date": "2026-03-09",
+      "isPreRelease": false,
+      "summary": "Stream Check Returns, OpenAI Responses API Arrives, and OpenClaw / WebDAV Get a Major Upgrade"
+    },
+    {
+      "version": "3.11.1",
+      "date": "2026-02-28",
+      "isPreRelease": false,
+      "summary": "Revert Partial Key-Field Merging, Restore Common Config Snippet & Bug Fixes"
+    },
+    {
+      "version": "3.11.0",
+      "date": "2026-02-26",
+      "isPreRelease": false,
+      "summary": "OpenClaw Support, Session Manager, Backup Management & 50+ Improvements"
+    },
+    {
+      "version": "3.10.0",
+      "date": "2026-01-21",
+      "isPreRelease": false,
+      "summary": "OpenCode Support, Global Proxy, Claude Rectifier & Multi-App Experience Enhancements"
+    },
+    {
+      "version": "3.9.0",
+      "date": "2026-01-07",
+      "isPreRelease": false,
+      "summary": "Local API Proxy, Auto Failover, Universal Provider, and a more complete multi-app workflow"
+    },
+    {
+      "version": "3.8.0",
+      "date": "2025-11-28",
+      "isPreRelease": false,
+      "summary": "Persistence Architecture Upgrade, Laying the Foundation for Cloud Sync"
+    },
+    {
+      "version": "3.7.1",
+      "date": "2025-11-22",
+      "isPreRelease": false,
+      "summary": "Stability Enhancements and User Experience Improvements"
+    },
+    {
+      "version": "3.7.0",
+      "date": "2025-11-19",
+      "isPreRelease": false,
+      "summary": "From Provider Switcher to All-in-One AI CLI Management Platform"
+    },
+    {
+      "version": "3.6.1",
+      "date": "1970-01-01",
+      "isPreRelease": false,
+      "summary": "Stability improvements and user experience optimization (based on v3.6.0)"
+    },
+    {
+      "version": "3.6.0",
+      "date": "2025-11-07",
+      "isPreRelease": false,
+      "summary": ""
+    }
+  ]
+}

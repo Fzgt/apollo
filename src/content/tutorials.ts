@@ -1,0 +1,492 @@
+import type { Language } from '@/i18n/translations';
+import claudeApiIcon from '@/assets/icons/sponsors/claudeapi.png';
+
+export type LocalizedText = Record<Language, string>;
+
+export type TutorialCategory =
+  | 'getting-started'
+  | 'practice'
+  | 'integration'
+  | 'troubleshooting'
+  | 'video';
+
+export type TutorialSource = 'official' | 'community';
+
+export interface TutorialAuthor {
+  name: string;
+  avatar?: string;
+  url?: string;
+}
+
+export interface TutorialCoverIcon {
+  src: string;
+  alt: string;
+}
+
+export interface Tutorial {
+  /** URL slug. Also the markdown filename for in-site articles. */
+  slug: string;
+  title: LocalizedText;
+  summary: LocalizedText;
+  author: TutorialAuthor;
+  /** Publish date in YYYY-MM-DD. */
+  date: string;
+  category: TutorialCategory;
+  source: TutorialSource;
+  /** Estimated reading time in minutes. */
+  readMinutes: number;
+  /**
+   * If set, the card links out and there's no in-site detail page.
+   * Otherwise the article is hosted at public/docs/tutorials/<lang>/<slug>.md.
+   */
+  externalUrl?: string;
+  /** Languages this article is available in (when hosted in-site). */
+  languages?: Language[];
+  /** Optional accent color token for the card cover. */
+  accent?: 'blue' | 'purple' | 'amber' | 'emerald' | 'rose';
+  /** Optional icon pair/group shown on the card cover. */
+  coverIcons?: TutorialCoverIcon[];
+  /** Optional emoji shown on the card cover when no image is provided. */
+  emoji?: string;
+  featured?: boolean;
+}
+
+const tutorialIcons = {
+  ccSwitch: { src: '/docs/assets/tutorial-icons/cc-switch.png', alt: 'CC Switch' },
+  claude: { src: '/docs/assets/tutorial-icons/claude.svg', alt: 'Claude' },
+  claudeApi: { src: claudeApiIcon, alt: 'Claude API' },
+  codex: { src: '/docs/assets/tutorial-icons/codex.svg', alt: 'Codex' },
+  deepseek: { src: '/docs/assets/tutorial-icons/deepseek.svg', alt: 'DeepSeek' },
+  kimi: { src: '/docs/assets/tutorial-icons/kimi.svg', alt: 'Kimi' },
+  minimax: { src: '/docs/assets/tutorial-icons/minimax.svg', alt: 'MiniMax' },
+  siliconflow: { src: '/docs/assets/tutorial-icons/siliconflow.svg', alt: 'SiliconFlow' },
+  zhipu: { src: '/docs/assets/tutorial-icons/zhipu.svg', alt: 'Zhipu GLM' },
+} satisfies Record<string, TutorialCoverIcon>;
+
+export const tutorials: Tutorial[] = [
+  {
+    slug: 'claude-codex-routing-guide',
+    title: {
+      zh: '通过 CC Switch 在 Claude Code 中使用 GPT 模型',
+      en: 'Using GPT Models in Claude Code with CC Switch',
+      ja: 'CC Switch を使って Claude Code で GPT モデルを利用する',
+    },
+    summary: {
+      zh: '官方实战攻略：Claude Code 使用 Anthropic Messages 协议，而 GPT / Codex 上游使用 OpenAI Responses。本文演示如何通过本地路由完成协议转换，同时支持第三方 API Key 和 ChatGPT 订阅的 Codex OAuth。',
+      en: 'Official hands-on guide for converting Claude Code\'s Anthropic Messages requests to OpenAI Responses through local routing, with both third-party API keys and ChatGPT subscription Codex OAuth covered.',
+      ja: 'Claude Code の Anthropic Messages リクエストをローカルルーティングで OpenAI Responses に変換する公式実践ガイド。サードパーティ API Key と ChatGPT サブスクリプションの Codex OAuth の両方を解説します。',
+    },
+    author: { name: 'CC Switch Team', url: 'https://github.com/farion1231/cc-switch/blob/main/docs/guides/claude-codex-routing-guide-zh.md' },
+    date: '2026-07-21',
+    category: 'practice',
+    source: 'official',
+    readMinutes: 8,
+    accent: 'blue',
+    coverIcons: [tutorialIcons.claude, tutorialIcons.codex],
+    featured: true,
+  },
+  {
+    slug: 'codex-claude-routing-guide',
+    title: {
+      zh: '通过 CC Switch 在 Codex 中使用 Claude 模型',
+      en: 'Using Claude Models in Codex with CC Switch',
+      ja: 'CC Switch を使って Codex で Claude モデルを利用する',
+    },
+    summary: {
+      zh: '官方实战攻略：Codex 使用 OpenAI Responses，而 Claude 网关使用 Anthropic Messages。本文演示如何选择 Anthropic 上游格式并启用本地路由，让 Claude 系列模型在 Codex 中正常工作。',
+      en: 'Official hands-on guide for connecting Codex to Claude-family gateways through the Anthropic Messages upstream format and local routing, including tool calls and multimodal requests.',
+      ja: 'Anthropic Messages 上流形式とローカルルーティングを使い、Codex を Claude 系ゲートウェイへ接続する公式実践ガイド。ツール呼び出しやマルチモーダルリクエストも扱います。',
+    },
+    author: { name: 'CC Switch Team', url: 'https://github.com/farion1231/cc-switch/blob/main/docs/guides/codex-claude-routing-guide-zh.md' },
+    date: '2026-07-13',
+    category: 'practice',
+    source: 'official',
+    readMinutes: 7,
+    accent: 'amber',
+    coverIcons: [tutorialIcons.codex, tutorialIcons.claude],
+    featured: true,
+  },
+  {
+    slug: 'codex-kimi-routing-guide',
+    title: {
+      zh: '在 Codex 中使用 Kimi：本地路由实战攻略',
+      en: 'Use Kimi in Codex with Local Routing',
+      ja: 'Codex で Kimi を使う: ローカルルーティング実践ガイド',
+    },
+    summary: {
+      zh: '官方实战攻略：Kimi 开放平台与 Kimi For Coding 都是 OpenAI Chat Completions 接口，官方并不支持 Codex。本文演示用 CC Switch 本地路由完成协议转换，把 Kimi 接入 Codex 并验证请求转发。',
+      en: 'Official hands-on guide: both the Kimi Open Platform and Kimi For Coding expose OpenAI Chat Completions APIs without official Codex support. Learn how CC Switch Local Routing converts the protocol so Kimi works inside Codex.',
+      ja: 'Kimi オープンプラットフォームと Kimi For Coding はいずれも OpenAI Chat Completions 形式で、公式には Codex に対応していません。CC Switch のローカルルーティングでプロトコル変換し、Codex で Kimi を使う手順を解説する公式実践ガイドです。',
+    },
+    author: { name: 'CC Switch Team', url: 'https://github.com/farion1231/cc-switch/blob/main/docs/guides/codex-kimi-routing-guide-zh.md' },
+    date: '2026-07-07',
+    category: 'practice',
+    source: 'official',
+    readMinutes: 6,
+    accent: 'purple',
+    coverIcons: [tutorialIcons.kimi, tutorialIcons.codex],
+    featured: true,
+  },
+  {
+    slug: 'kimi-code-codex-cc-switch-guide',
+    title: {
+      zh: '通过 CC Switch 在 Codex 中使用 Kimi For Coding',
+      en: 'Use Kimi For Coding in Codex with CC Switch',
+      ja: 'CC Switch で Codex から Kimi For Coding を使う',
+    },
+    summary: {
+      zh: 'Kimi Code 官方文档，介绍如何通过 CC Switch 本地路由将 Codex CLI 接入 Kimi For Coding，配置 Kimi K3 / K2.7 Code 模型、上下文窗口与思考等级，并排查常见连接问题。',
+      en: 'Official Kimi Code documentation for connecting Codex CLI to Kimi For Coding through CC Switch local routing, configuring Kimi K3 / K2.7 Code models, context windows, reasoning effort, and troubleshooting.',
+      ja: 'Kimi Code 公式ドキュメント。CC Switch のローカルルーティングで Codex CLI を Kimi For Coding に接続し、Kimi K3 / K2.7 Code、コンテキストウィンドウ、思考レベル、トラブルシュートを解説します。',
+    },
+    author: { name: 'Kimi Code', url: 'https://www.kimi.com/code/docs/' },
+    date: '2026-07-22',
+    category: 'integration',
+    source: 'community',
+    readMinutes: 8,
+    externalUrl: 'https://www.kimi.com/code/docs/third-party-tools/codex.html',
+    accent: 'purple',
+    coverIcons: [tutorialIcons.kimi, tutorialIcons.codex, tutorialIcons.ccSwitch],
+    featured: true,
+  },
+  {
+    slug: 'cc-switch-cli-headless-guide',
+    title: {
+      zh: '在无图形界面的服务器上用好 cc-switch',
+      en: 'Using cc-switch on Headless Servers: TUI + CLI Guide',
+      ja: 'ヘッドレスサーバーで cc-switch を使いこなす',
+    },
+    summary: {
+      zh: '社区实战攻略：在 SSH / Docker / WSL 等没有桌面环境的地方，用 cc-switch CLI 版的 TUI 全屏界面和 CLI 命令行两种模式管理供应商、同步 WebDAV、检查环境冲突，与桌面 GUI 版无缝配合。',
+      en: 'A community guide covering cc-switch CLI on headless servers (SSH / Docker / WSL): TUI interactive mode, CLI subcommands, WebDAV sync, env checks, and how the CLI branch complements the desktop GUI.',
+      ja: 'SSH / Docker / WSL などデスクトップ環境がないサーバーで、cc-switch CLI の TUI と CLI の両モードを使い、Provider 管理、WebDAV 同期、環境チェックを行うコミュニティガイドです。',
+    },
+    author: { name: 'saladday', url: 'https://github.com/SaladDay' },
+    date: '2026-06-06',
+    category: 'practice',
+    source: 'community',
+    readMinutes: 12,
+    accent: 'emerald',
+    emoji: '🖥️',
+  },
+  {
+    slug: 'codex-desktop-custom-model-visibility',
+    title: {
+      zh: 'Codex 桌面应用里看不到自定义模型？',
+      en: "Can't See Custom Models in the Codex Desktop App?",
+      ja: 'Codex デスクトップアプリでカスタムモデルが見えない？',
+    },
+    summary: {
+      zh: '官方 FAQ：解释为什么 Codex 桌面应用的模型选择器可能隐藏第三方 / 自定义模型，以及如何通过保留官方登录态让自定义模型重新出现。',
+      en: 'Official FAQ explaining why the Codex desktop app model picker may hide third-party / custom models, and how preserving the official login state can make them visible again.',
+      ja: 'Codex デスクトップアプリのモデルセレクタでサードパーティ / カスタムモデルが隠れる理由と、公式ログイン状態を保持して再表示させる方法を説明する公式 FAQ です。',
+    },
+    author: { name: 'CC Switch Team', url: 'https://github.com/farion1231/cc-switch/blob/main/docs/guides/codex-desktop-custom-model-visibility-zh.md' },
+    date: '2026-06-27',
+    category: 'troubleshooting',
+    source: 'official',
+    readMinutes: 4,
+    accent: 'rose',
+    coverIcons: [tutorialIcons.codex, tutorialIcons.ccSwitch],
+    featured: true,
+  },
+  {
+    slug: 'codex-official-auth-preservation-guide',
+    title: {
+      zh: '使用第三方 API 时保留 Codex 远程操作和官方插件',
+      en: 'Keep Codex Remote Control and Official Plugins with Third-party APIs',
+      ja: 'サードパーティ API 利用時に Codex の公式機能を保持する',
+    },
+    summary: {
+      zh: '官方配置攻略：先完成 Codex 官方登录，再开启 Codex 应用增强，让官方登录态留在 auth.json，同时把模型流量切到 DeepSeek、Kimi、GLM、MiniMax 等第三方 API。',
+      en: 'Official setup guide for signing in to Codex first, enabling Codex App Enhancements, preserving official auth.json state, and routing model traffic to third-party APIs such as DeepSeek, Kimi, GLM, and MiniMax.',
+      ja: 'Codex に公式ログインしたあと Codex アプリ拡張を有効化し、auth.json の公式ログイン状態を保持しながら、モデル通信を DeepSeek / Kimi / GLM / MiniMax などのサードパーティ API に切り替える公式ガイドです。',
+    },
+    author: { name: 'CC Switch Team', url: 'https://github.com/farion1231/cc-switch/blob/main/docs/guides/codex-official-auth-preservation-guide-zh.md' },
+    date: '2026-06-01',
+    category: 'practice',
+    source: 'official',
+    readMinutes: 9,
+    accent: 'blue',
+    coverIcons: [tutorialIcons.codex, tutorialIcons.ccSwitch],
+    featured: true,
+  },
+  {
+    slug: 'codex-unified-session-history-guide',
+    title: {
+      zh: '统一 Codex 会话历史：功能介绍与使用攻略',
+      en: 'Unified Codex Session History: Feature Overview and Usage Guide',
+      ja: 'Codex セッション履歴の統一：機能紹介と利用ガイド',
+    },
+    summary: {
+      zh: '官方深度攻略：解释“统一 Codex 会话历史”如何合并官方与第三方会话列表，涵盖开启、迁移、自动备份、精确还原、跨供应商续聊风险与会话自查。',
+      en: 'An official in-depth guide to unifying official and third-party Codex session lists, covering enablement, migration, automatic backups, precise restoration, cross-provider resume risks, and session verification.',
+      ja: '公式の詳細ガイド。Codex の公式・サードパーティセッション一覧を統合する仕組みと、有効化、移行、自動バックアップ、正確な復元、プロバイダーをまたぐ再開のリスク、セッション確認を解説します。',
+    },
+    author: { name: 'CC Switch Team', url: 'https://github.com/farion1231/cc-switch/blob/main/docs/guides/codex-unified-session-history-guide-zh.md' },
+    date: '2026-06-15',
+    category: 'practice',
+    source: 'official',
+    readMinutes: 18,
+    accent: 'blue',
+    coverIcons: [tutorialIcons.codex, tutorialIcons.ccSwitch],
+    featured: true,
+  },
+  {
+    slug: 'codex-deepseek-routing-guide',
+    title: {
+      zh: '在 Codex 中使用 DeepSeek 这类 Chat 格式 API',
+      en: 'Use DeepSeek-Style Chat APIs in Codex',
+      ja: 'Codex で DeepSeek などの Chat 形式 API を使う',
+    },
+    summary: {
+      zh: '官方实战攻略：先判断供应商是否仍需路由，再按需将 Responses 转换为 Chat Completions；同时说明 3.19.1 后 DeepSeek 原生直连、旧配置与 deepseek-v4-pro 的处理方式。',
+      en: 'Official hands-on guide for identifying providers that still need Responses-to-Chat routing, plus the native DeepSeek path introduced in 3.19.1 and handling for older configurations and deepseek-v4-pro.',
+      ja: 'Responses から Chat へのルーティングが必要なプロバイダーの見分け方と、3.19.1 以降の DeepSeek ネイティブ接続、既存設定、deepseek-v4-pro の扱いを解説する公式実践ガイドです。',
+    },
+    author: { name: 'CC Switch Team', url: 'https://github.com/farion1231/cc-switch/blob/main/docs/guides/codex-deepseek-routing-guide-zh.md' },
+    date: '2026-05-29',
+    category: 'practice',
+    source: 'official',
+    readMinutes: 8,
+    accent: 'amber',
+    coverIcons: [tutorialIcons.deepseek, tutorialIcons.codex],
+    featured: true,
+  },
+  {
+    slug: 'claude-desktop-provider-management',
+    title: {
+      zh: '使用 CC Switch 一键配置、管理和切换 Claude 桌面版供应商',
+      en: 'Configure, Manage, and Switch Claude Desktop Providers with CC Switch',
+      ja: 'CC Switch で Claude Desktop の Provider を設定・管理・切り替える',
+    },
+    summary: {
+      zh: 'Jason Young 的实操帖，介绍如何用 CC Switch 管理 Claude Desktop 的多个供应商配置，并快速完成配置、切换和日常维护。',
+      en: 'A hands-on post by Jason Young showing how to manage multiple Claude Desktop provider configurations with CC Switch, including setup, switching, and day-to-day maintenance.',
+      ja: 'Jason Young による実践メモ。CC Switch で Claude Desktop の複数 Provider 設定を管理し、セットアップ、切り替え、日常運用を行う方法を紹介します。',
+    },
+    author: { name: 'Jason Young', url: 'https://x.com/Jason_Young1231' },
+    date: '2026-05-16',
+    category: 'practice',
+    source: 'official',
+    readMinutes: 3,
+    externalUrl: 'https://x.com/Jason_Young1231/status/2055610762257949105',
+    accent: 'blue',
+    coverIcons: [tutorialIcons.claude, tutorialIcons.ccSwitch],
+    featured: true,
+  },
+  {
+    slug: 'codex-oauth-claude-code-local-routing',
+    title: {
+      zh: '用本地路由把 Codex 模型接到 Claude Code',
+      en: 'Use Local Routing to Run Codex Models in Claude Code',
+      ja: 'Local Routing で Codex モデルを Claude Code から使う',
+    },
+    summary: {
+      zh: '基于 GitHub issue #1997 的社区讨论，梳理 Codex OAuth 反向代理、本地路由、Claude 路由接管、全局终端启动和常见报错排查。',
+      en: 'A practical guide based on GitHub issue #1997 covering Codex OAuth reverse proxy, Local Routing, Claude routing takeover, launching from a normal terminal, and common pitfalls.',
+      ja: 'GitHub issue #1997 の議論をもとに、Codex OAuth リバースプロキシ、Local Routing、Claude ルーティング、通常のターミナル起動、よくある落とし穴を整理します。',
+    },
+    author: { name: 'CC Switch Team', url: 'https://github.com/farion1231/cc-switch/issues/1997' },
+    date: '2026-05-06',
+    category: 'practice',
+    source: 'official',
+    readMinutes: 11,
+    languages: ['zh'],
+    accent: 'amber',
+    coverIcons: [tutorialIcons.codex, tutorialIcons.claude],
+    featured: true,
+  },
+  {
+    slug: 'khazix-agent-model-switching',
+    title: {
+      zh: '这个 51K 星标的开源神器，让任何 Agent 都能一键切换所有模型',
+      en: 'A 51K-star Open Source Tool for Switching Models Across Any Agent',
+      ja: '51K スターの OSS ツールで、あらゆる Agent のモデルをワンクリック切り替え',
+    },
+    summary: {
+      zh: '数字生命卡兹克的社区长文，系统介绍 CC Switch 的安装、供应商配置、热切换、用量追踪和本地路由故障转移。',
+      en: 'A community long-form guide by Khazix covering CC Switch installation, provider setup, hot switching, usage tracking, and local routing failover.',
+      ja: 'Khazix によるコミュニティ記事。CC Switch のインストール、Provider 設定、ホットスイッチ、使用量追跡、Local Routing のフェイルオーバーを紹介。',
+    },
+    author: { name: '数字生命卡兹克', url: 'https://x.com/Khazix0918' },
+    date: '2026-04-28',
+    category: 'getting-started',
+    source: 'community',
+    readMinutes: 15,
+    externalUrl: 'https://x.com/Khazix0918/article/2048983462942789978',
+    accent: 'emerald',
+    coverIcons: [tutorialIcons.ccSwitch, tutorialIcons.claude, tutorialIcons.codex],
+    featured: true,
+  },
+  {
+    slug: 'siliconflow-cc-switch-guide',
+    title: {
+      zh: 'CC Switch - SiliconFlow',
+      en: 'CC Switch - SiliconFlow',
+      ja: 'CC Switch - SiliconFlow',
+    },
+    summary: {
+      zh: 'SiliconFlow 官方文档，介绍如何下载安装 CC Switch、获取 SiliconFlow API Key、为 Claude Code / OpenClaw 添加 SiliconFlow 供应商，并使用托盘切换、MCP、用量统计等进阶功能。',
+      en: 'SiliconFlow official documentation covering CC Switch installation, SiliconFlow API key setup, Claude Code / OpenClaw provider configuration, tray switching, MCP, usage tracking, and advanced workflows.',
+      ja: 'SiliconFlow 公式ドキュメント。CC Switch のインストール、SiliconFlow API Key、Claude Code / OpenClaw の Provider 設定、トレイ切替、MCP、使用量統計などを紹介します。',
+    },
+    author: { name: 'SiliconFlow', url: 'https://www.siliconflow.cn/' },
+    date: '2026-04-15',
+    category: 'integration',
+    source: 'community',
+    readMinutes: 8,
+    externalUrl: 'https://docs.siliconflow.cn/cn/usercases/use-siliconcloud-in-ccswitch',
+    accent: 'purple',
+    coverIcons: [tutorialIcons.siliconflow, tutorialIcons.ccSwitch],
+    featured: true,
+  },
+  {
+    slug: 'minimax-ai-coding-tools',
+    title: {
+      zh: '通过 CC Switch 将 MiniMax 接入 Claude Code',
+      en: 'Use MiniMax with AI Coding Tools',
+      ja: 'AI コーディングツールで MiniMax を使う',
+    },
+    summary: {
+      zh: 'MiniMax 开放平台文档，介绍 MiniMax-M2.7 与 MiniMax-M2.7-highspeed 如何通过 OpenAI / Anthropic 兼容接口接入 Claude Code、Codex、Cursor、OpenCode、OpenClaw、Zed 等 AI 编程工具。',
+      en: 'MiniMax official documentation for connecting MiniMax-M2.7 and MiniMax-M2.7-highspeed to AI coding tools such as Claude Code, Codex, Cursor, OpenCode, OpenClaw, and Zed through OpenAI / Anthropic compatible APIs.',
+      ja: 'MiniMax 公式ドキュメント。MiniMax-M2.7 / MiniMax-M2.7-highspeed を OpenAI / Anthropic 互換 API 経由で Claude Code、Codex、Cursor、OpenCode、OpenClaw、Zed などに接続する方法を紹介します。',
+    },
+    author: { name: 'MiniMax', url: 'https://platform.minimaxi.com/' },
+    date: '2026-05-06',
+    category: 'integration',
+    source: 'community',
+    readMinutes: 14,
+    externalUrl: 'https://platform.minimaxi.com/docs/guides/text-ai-coding-tools',
+    accent: 'rose',
+    coverIcons: [tutorialIcons.minimax, tutorialIcons.claude, tutorialIcons.codex],
+    featured: true,
+  },
+  {
+    slug: 'deepseek-v4-pro-claude-code-bilibili',
+    title: {
+      zh: '使用 CC Switch 将 DeepSeek-V4-pro 接入 Claude Code 教程',
+      en: 'Connect DeepSeek V4 Pro to Claude Code',
+      ja: 'DeepSeek V4 Pro を Claude Code に接続するチュートリアル',
+    },
+    summary: {
+      zh: '小陈同学c_z 的 B 站视频攻略，演示通过 CC Switch 将 DeepSeek V4 Pro 接入 Claude Code，覆盖安装、API Key 创建、供应商配置、模型切换、1M 上下文、Max 思考等级和真实任务测试。',
+      en: 'A Bilibili video guide by 小陈同学c_z showing how to connect DeepSeek V4 Pro to Claude Code with CC Switch, covering installation, API key setup, provider configuration, model switching, 1M context, Max thinking level, and real task testing.',
+      ja: '小陈同学c_z による Bilibili 動画ガイド。CC Switch で DeepSeek V4 Pro を Claude Code に接続し、インストール、API Key、Provider 設定、モデル切替、1M コンテキスト、Max 思考レベル、実タスク検証を紹介します。',
+    },
+    author: { name: '小陈同学c_z', url: 'https://space.bilibili.com/243917657' },
+    date: '2026-05-01',
+    category: 'video',
+    source: 'community',
+    readMinutes: 10,
+    externalUrl: 'https://www.bilibili.com/video/BV1pQRNBsEGs/',
+    accent: 'emerald',
+    coverIcons: [tutorialIcons.deepseek, tutorialIcons.claude],
+    featured: true,
+  },
+  {
+    slug: 'claude-code-cc-switch-apito-guide',
+    title: {
+      zh: 'Claude API × CC Switch：Claude Code 一键接入与切换教程',
+      en: 'Claude API × CC Switch: Connect and Switch Claude Code APIs',
+      ja: 'Claude API × CC Switch: Claude Code の接続・切り替えガイド',
+    },
+    summary: {
+      zh: 'Claude API 的中文入门教程，介绍如何安装 CC Switch、导入 ClaudeAPI 配置、切换供应商、启动 Claude Code，并测试 API 连通性与查看用量。',
+      en: 'A Chinese getting-started guide from Claude API covering CC Switch installation, ClaudeAPI configuration import, provider switching, launching Claude Code, connectivity testing, and usage checks.',
+      ja: 'Claude API による中国語の入門ガイド。CC Switch のインストール、ClaudeAPI 設定のインポート、Provider の切り替え、Claude Code の起動、接続テスト、使用量確認を紹介します。',
+    },
+    author: { name: 'Claude API', url: 'https://apito.ai/zh/blog/' },
+    date: '2026-04-05',
+    category: 'getting-started',
+    source: 'community',
+    readMinutes: 8,
+    externalUrl: 'https://apito.ai/zh/blog/getting-started/claude-code-cc-switch-tutorial/',
+    accent: 'amber',
+    coverIcons: [tutorialIcons.claudeApi, tutorialIcons.ccSwitch],
+    featured: true,
+  },
+  {
+    slug: 'yinmin-cc-switch-claude-code-getting-started',
+    title: {
+      zh: '使用 CC-Switch，一键配置你的 Claude Code',
+      en: 'Use CC Switch to Configure Claude Code in One Click',
+      ja: 'CC Switch で Claude Code をワンクリック設定',
+    },
+    summary: {
+      zh: '尹珉的 CC Switch 入门教程，介绍如何统一管理 Claude Code、Codex、Gemini CLI、OpenCode、OpenClaw 的 Provider 配置，并接入 Kimi、GLM 等模型。',
+      en: 'A getting-started guide by Yin Min covering provider management for Claude Code, Codex, Gemini CLI, OpenCode, and OpenClaw, including Kimi and GLM setup.',
+      ja: '尹珉による入門ガイド。Claude Code、Codex、Gemini CLI、OpenCode、OpenClaw の Provider 設定を統一管理し、Kimi や GLM を接続する方法を紹介します。',
+    },
+    author: { name: '尹珉', url: 'https://x.com/yinmin1987' },
+    date: '2026-03-10',
+    category: 'getting-started',
+    source: 'community',
+    readMinutes: 8,
+    externalUrl: 'https://x.com/yinmin1987/article/2031182350433059032',
+    accent: 'purple',
+    coverIcons: [tutorialIcons.claude, tutorialIcons.kimi, tutorialIcons.zhipu],
+    featured: true,
+  },
+  {
+    slug: 'isolated-claude-terminal-providers',
+    title: {
+      zh: '如何在不同的 Claude Code 终端使用不同的供应商',
+      en: 'Use Different Providers in Different Claude Code Terminals',
+      ja: 'Claude Code の複数ターミナルで別々の Provider を使う',
+    },
+    summary: {
+      zh: 'Jason Young 的实操帖：CC Switch v3.10 新增带配置环境隔离的“打开终端”功能，让每个 Claude Code 终端只使用对应供应商配置，不受全局热切换影响。',
+      en: 'A hands-on post by Jason Young: CC Switch v3.10 added isolated “Open Terminal” sessions so each Claude Code terminal can use its own provider configuration without being affected by global hot switching.',
+      ja: 'Jason Young による実践メモ。CC Switch v3.10 の隔離された「ターミナルを開く」により、各 Claude Code ターミナルで個別の Provider 設定を使い、グローバルなホットスイッチの影響を避けられます。',
+    },
+    author: { name: 'Jason Young', url: 'https://x.com/Jason_Young1231' },
+    date: '2026-01-24',
+    category: 'practice',
+    source: 'official',
+    readMinutes: 2,
+    externalUrl: 'https://x.com/Jason_Young1231/status/2015038067149799924',
+    accent: 'blue',
+    coverIcons: [tutorialIcons.claude, tutorialIcons.ccSwitch],
+    featured: true,
+  },
+  {
+    slug: 'codex-two-official-subscriptions',
+    title: {
+      zh: '用 CC Switch 在多个官方 Codex 订阅之间快速切换',
+      en: 'Switch Between Multiple Official Codex Subscriptions with CC Switch',
+      ja: 'CC Switch で複数の公式 Codex サブスクリプションを素早く切り替える',
+    },
+    summary: {
+      zh: 'Jason Young 的实操帖：添加多个 OpenAI 官方供应商，配合 Codex /logout 获取不同账号的 access token，在多个 Plus 订阅之间快速切换。',
+      en: 'A hands-on post by Jason Young: add multiple official OpenAI providers, use Codex /logout to capture access tokens for different accounts, and switch between multiple Plus subscriptions.',
+      ja: 'Jason Young による実践メモ。複数の OpenAI 公式 Provider を追加し、Codex /logout で別アカウントの access token を取得して、複数の Plus サブスクリプションを切り替えます。',
+    },
+    author: { name: 'Jason Young', url: 'https://x.com/Jason_Young1231' },
+    date: '2025-11-06',
+    category: 'practice',
+    source: 'official',
+    readMinutes: 3,
+    externalUrl: 'https://x.com/Jason_Young1231/status/1986363241791205435',
+    accent: 'blue',
+    coverIcons: [
+      { ...tutorialIcons.codex, alt: 'Codex account 1' },
+      { ...tutorialIcons.codex, alt: 'Codex account 2' },
+    ],
+    featured: true,
+  },
+];
+
+export function getTutorialBySlug(slug: string): Tutorial | undefined {
+  return tutorials.find((tutorial) => tutorial.slug === slug);
+}
+
+export function isInSiteTutorial(tutorial: Tutorial): boolean {
+  return !tutorial.externalUrl;
+}
+
+export function tutorialAvailableInLanguage(tutorial: Tutorial, language: Language): boolean {
+  if (tutorial.externalUrl) return true;
+  return tutorial.languages?.includes(language) ?? true;
+}

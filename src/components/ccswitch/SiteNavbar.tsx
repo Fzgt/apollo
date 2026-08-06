@@ -1,0 +1,221 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, Github, Download, Moon, Sun } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
+import { useLanguage } from '@/i18n/useLanguage';
+import { getLocalizedPath } from '@/i18n/routes';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import ccSwitchLogo from '@/assets/cc-switch-logo.png';
+
+export function SiteNavbar() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const { language, t } = useLanguage();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const downloadHref = getLocalizedPath('/download', language);
+  // The download entry renders as the mobile menu's CTA button, so keep it out
+  // of the mobile link list to avoid showing it twice.
+  const navLinks = [
+    { label: t.nav.home, href: getLocalizedPath('/', language) },
+    { label: t.nav.docs, href: getLocalizedPath('/docs', language) },
+    { label: t.nav.tutorials, href: getLocalizedPath('/tutorials', language) },
+    { label: t.nav.changelog, href: getLocalizedPath('/changelog', language) },
+    { label: t.nav.sponsors, href: getLocalizedPath('/sponsors', language) },
+    { label: t.nav.download, href: downloadHref, mobileCta: true },
+  ];
+  const mobileNavLinks = navLinks.filter((link) => !link.mobileCta);
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  return (
+    <>
+      <nav
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+          isScrolled
+            ? 'bg-background/80 backdrop-blur-xl border-b border-border shadow-sm'
+            : 'bg-transparent'
+        )}
+      >
+        <div className="container">
+          <div className="flex items-center justify-between h-16 md:h-20">
+            {/* Logo - Fixed width to prevent layout shift */}
+            <Link to={getLocalizedPath('/', language)} className="flex items-center gap-2 md:gap-3 min-w-[140px] md:min-w-[180px]">
+              <img src={ccSwitchLogo} alt="CC Switch Logo" className="w-8 h-8 md:w-10 md:h-10 flex-shrink-0" />
+              <span className="font-bold text-lg md:text-xl text-foreground whitespace-nowrap">
+                CC Switch
+              </span>
+            </Link>
+
+            {/* Desktop Navigation - Left aligned after logo */}
+            <div className="hidden md:flex items-center ml-8">
+              <div className="flex items-center gap-8">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className="text-muted-foreground hover:text-foreground transition-colors font-medium whitespace-nowrap"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Desktop CTA */}
+            <div className="hidden md:flex items-center gap-3">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+              
+              {/* Theme Toggle */}
+              {mounted && (
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={toggleTheme}
+                  className="p-2 rounded-lg bg-muted/80 hover:bg-muted transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.div
+                      key={theme}
+                      initial={{ y: -10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 10, opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      {theme === 'dark' ? (
+                        <Sun className="w-5 h-5 text-foreground" />
+                      ) : (
+                        <Moon className="w-5 h-5 text-foreground" />
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </motion.button>
+              )}
+              <a
+                href="https://github.com/farion1231/cc-switch"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub repository (opens in new tab)"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Github className="w-5 h-5" />
+              </a>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center gap-2">
+              <LanguageSwitcher />
+              {mounted && (
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={toggleTheme}
+                  className="p-2 rounded-lg bg-muted/80 hover:bg-muted transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  {theme === 'dark' ? (
+                    <Sun className="w-5 h-5 text-foreground" />
+                  ) : (
+                    <Moon className="w-5 h-5 text-foreground" />
+                  )}
+                </motion.button>
+              )}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="site-mobile-menu"
+                aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            id="site-mobile-menu"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation menu"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-background pt-20 md:hidden"
+          >
+            <nav className="container flex flex-col gap-6 py-8">
+              {mobileNavLinks.map((link, index) => (
+                <motion.div
+                  key={link.href}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Link
+                    to={link.href}
+                    className="text-2xl font-semibold text-foreground"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                </motion.div>
+              ))}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="pt-6 flex flex-col gap-4"
+              >
+                <Link to={downloadHref} className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="hero" className="w-full py-6 text-lg">
+                    <Download className="w-5 h-5" />
+                    {t.nav.download}
+                  </Button>
+                </Link>
+                <a
+                  href="https://github.com/farion1231/cc-switch"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="GitHub repository (opens in new tab)"
+                  className="flex items-center justify-center gap-2 text-muted-foreground"
+                >
+                  <Github className="w-5 h-5" />
+                  GitHub
+                </a>
+              </motion.div>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
