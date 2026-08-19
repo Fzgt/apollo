@@ -61,9 +61,11 @@ export function SiteNavbar() {
         <div className="container">
           <div className="flex h-16 items-center justify-between md:h-20">
             <Link to="/" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
-                A
-              </span>
+              <img
+                src="/logo-avatar.png"
+                alt=""
+                className="h-9 w-9 rounded-full object-cover ring-1 ring-border"
+              />
               <span className="whitespace-nowrap text-lg font-bold text-foreground md:text-xl">
                 {SITE_NAME}
               </span>
