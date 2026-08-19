@@ -26,6 +26,8 @@ export interface BlogPostMeta {
   /** 对应 issue 的 GitHub 地址 */
   url: string;
   excerpt: string;
+  /** 正文里的二级标题，列表页当目录显示；没有就是空数组 */
+  headings: string[];
 }
 
 export interface BlogIndex {
@@ -38,6 +40,7 @@ export interface BlogIndex {
 }
 
 const EXCERPT_LENGTH = 140;
+const MAX_HEADINGS = 8;
 const PER_PAGE = 100;
 const MAX_PAGES = 10;
 
@@ -63,6 +66,26 @@ function toExcerpt(body: string): string {
     .trim();
 
   return text.length > EXCERPT_LENGTH ? `${text.slice(0, EXCERPT_LENGTH)}…` : text;
+}
+
+/** 二级标题当目录用，规则和 scripts/sync-blog.mjs 保持一致 */
+function toHeadings(body: string): string[] {
+  const text = body.replace(/```[\s\S]*?```/g, '\n');
+  const headings: string[] = [];
+
+  for (const match of text.matchAll(/^\s{0,3}##\s+(.+?)\s*#*\s*$/gm)) {
+    const clean = match[1]
+      .replace(/`([^`]*)`/g, '$1')
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/[*_~]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (clean) headings.push(clean);
+    if (headings.length >= MAX_HEADINGS) break;
+  }
+
+  return headings;
 }
 
 interface GitHubIssue {
@@ -139,6 +162,7 @@ export async function fetchLiveIndex(signal?: AbortSignal): Promise<BlogIndex> {
       updatedAt: issue.updated_at,
       url: issue.html_url,
       excerpt: toExcerpt(issue.body ?? ''),
+      headings: toHeadings(issue.body ?? ''),
     })),
   };
 

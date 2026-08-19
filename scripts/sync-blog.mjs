@@ -26,6 +26,7 @@ const REPO = process.env.BLOG_REPO ?? 'Fzgt/Blog';
 const PER_PAGE = 100;
 const MAX_PAGES = 10;
 const EXCERPT_LENGTH = 140;
+const MAX_HEADINGS = 8;
 
 /** GitHub 的 issues 接口会把 PR 也算进去，靠 pull_request 字段剔掉 */
 function isRealIssue(issue) {
@@ -48,6 +49,26 @@ function toExcerpt(body) {
   return text.length > EXCERPT_LENGTH ? `${text.slice(0, EXCERPT_LENGTH)}…` : text;
 }
 
+/** 二级标题当目录用：列表页第二行显示这个，而不是正文原文 */
+function toHeadings(body) {
+  const text = (body ?? '').replace(/```[\s\S]*?```/g, '\n');
+  const headings = [];
+
+  for (const match of text.matchAll(/^\s{0,3}##\s+(.+?)\s*#*\s*$/gm)) {
+    const clean = match[1]
+      .replace(/`([^`]*)`/g, '$1')
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/[*_~]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (clean) headings.push(clean);
+    if (headings.length >= MAX_HEADINGS) break;
+  }
+
+  return headings;
+}
+
 function toIndexEntry(issue) {
   return {
     number: issue.number,
@@ -60,6 +81,7 @@ function toIndexEntry(issue) {
     updatedAt: issue.updated_at,
     url: issue.html_url,
     excerpt: toExcerpt(issue.body),
+    headings: toHeadings(issue.body),
   };
 }
 

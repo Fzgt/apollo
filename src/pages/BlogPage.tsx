@@ -67,7 +67,13 @@ function Chip({
 function matchesQuery(post: BlogPostMeta, query: string): boolean {
   const needle = query.trim().toLowerCase();
   if (!needle) return true;
-  const haystack = [post.title, post.excerpt, `#${post.number}`, ...post.labels.map((l) => l.name)]
+  const haystack = [
+    post.title,
+    post.excerpt,
+    ...(post.headings ?? []),
+    `#${post.number}`,
+    ...post.labels.map((l) => l.name),
+  ]
     .join(' ')
     .toLowerCase();
   return haystack.includes(needle);

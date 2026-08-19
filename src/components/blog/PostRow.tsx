@@ -26,6 +26,8 @@ export function PostRow({
   const shownLabels = post.labels.slice(0, MAX_SHOWN_LABELS);
   const extraLabels = post.labels.length - shownLabels.length;
   const accent = post.labels[0]?.color;
+  // 第二行放正文的二级标题当目录；文章没写小标题就留空
+  const outline = post.headings?.join(' · ') ?? '';
 
   return (
     <motion.article
@@ -80,7 +82,7 @@ export function PostRow({
         </div>
 
         <div className="mt-0.5 flex min-w-0 items-center overflow-hidden text-xs text-muted-foreground">
-          <span className="min-w-0 flex-1 truncate">{post.excerpt}</span>
+          <span className="min-w-0 flex-1 truncate">{outline}</span>
           {shownLabels.length > 0 && (
             <div className="ml-2 hidden shrink-0 items-center gap-1.5 border-l border-border pl-2 md:flex">
               {shownLabels.map((label) => (
