@@ -32,8 +32,8 @@ export function DocsSidebar({ sections, activeSection, activeItem, onNavigate }:
   };
 
   return (
-    <aside className="w-64 lg:w-72 shrink-0">
-      <nav className="sticky top-24 space-y-1">
+    <aside className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+      <nav className="space-y-1 pb-4">
         {sections.map((section) => {
           const isExpanded = expandedSections.includes(section.id);
           const isActive = activeSection === section.id;
