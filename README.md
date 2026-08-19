@@ -4,14 +4,13 @@
 
 **两周简历面试复习笔记站。内容全部是 Markdown，本地写、push 上线。**
 
-[![线上](https://img.shields.io/badge/线上-fzgt.github.io%2Fapollo-2563eb?style=flat-square)](https://fzgt.github.io/apollo/)
-[![Deploy](https://img.shields.io/github/actions/workflow/status/Fzgt/apollo/deploy.yml?branch=main&style=flat-square&label=deploy)](https://github.com/Fzgt/apollo/actions/workflows/deploy.yml)
+[![线上](https://img.shields.io/badge/线上-apollo--five--omega.vercel.app-000000?style=flat-square&logo=vercel&logoColor=white)](https://apollo-five-omega.vercel.app/)
 [![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?style=flat-square)](https://www.typescriptlang.org)
 [![Vite](https://img.shields.io/badge/Vite-646cff?style=flat-square)](https://vitejs.dev)
 [![Tailwind](https://img.shields.io/badge/Tailwind-06b6d4?style=flat-square)](https://tailwindcss.com)
 
-[**打开站点 →**](https://fzgt.github.io/apollo/)
+[**打开站点 →**](https://apollo-five-omega.vercel.app/)
 
 </div>
 
@@ -19,7 +18,8 @@
 
 | 我想…            | 做什么                                                                 |
 | ---------------- | ---------------------------------------------------------------------- |
-| 加一页笔记       | 丢一个 `.md` 进 `src/content/notes/<NN>-<分组>/`，见 [内容在哪](#内容在哪) |
+| 加一页复习笔记   | 丢一个 `.md` 进 `src/content/notes/<NN>-<分组>/`，见 [内容在哪](#内容在哪) |
+| 加一页资料       | 丢一个 `.md` 进 `src/content/library/<NN>-<分组>/`，见 [内容在哪](#内容在哪) |
 | 加一篇博客       | 去 [Fzgt/Blog](https://github.com/Fzgt/Blog) 开个 issue，见 [博客](#博客blog) |
 | 改一页现有笔记   | 页面底部「在 GitHub 上编辑这一页」，见 [怎么改](#怎么改)                  |
 | 本地跑起来       | `npm install && npm run dev`，见 [本地开发](#本地开发)                    |
@@ -28,8 +28,11 @@
 
 ## 内容在哪
 
+站里有两套 Markdown 内容，规则一样，各占一个 tab：
+
 ```
-src/content/notes/<NN>-<分组>/<NN>-<笔记>.md
+src/content/notes/<NN>-<分组>/<NN>-<笔记>.md      # 复习（/docs）——十四天复习计划，带进度和 Day 标签
+src/content/library/<NN>-<分组>/<NN>-<笔记>.md    # 资料（/library）——简历走查笔记，不带进度
 ```
 
 目录名去掉数字前缀就是分组 id，文件名去掉数字前缀就是页面 id，数字前缀只决定顺序。
@@ -59,6 +62,8 @@ status: todo
 | `level`   | `S` / `A` / `B` / `前置` / `—`                               |
 | `status`  | `todo` \| `doing` \| `done`，驱动首页进度条                  |
 
+资料那套只用 `title` / `section` / `icon` 三个字段 —— `day`、`level`、`status` 是复习计划才有的东西。
+
 加新图标：在 `src/content/notes/navigation.tsx` 的 `ICONS` 里补一行。
 
 ---
@@ -69,7 +74,7 @@ status: todo
 `/blog` 路由负责把它们搬过来，两条路接力：
 
 1. **构建期快照** —— `npm run sync:blog` 把 issues 抓成 `public/data/blog/`（索引一份，正文按 issue 号一篇一份），
-   随产物发布，首屏零等待、离线也有内容。部署流水线每次都会重跑，另外每 6 小时定时重建一次。
+   随产物发布，首屏零等待、离线也有内容。Vercel 每次构建都会重跑一遍，抓失败就用仓库里已提交的那份。
 2. **运行期同步** —— 打开页面时浏览器再问一次 GitHub API（Blog 是公开仓库，不需要 token），
    拿到新写的文章就地替换，右上角也有手动「同步」按钮。
 
@@ -85,7 +90,7 @@ status: todo
 
 ## 怎么改
 
-- **本地**：编辑 `.md`，`git push`，GitHub Actions 自动构建上线（约一分钟）。
+- **本地**：编辑 `.md`，`git push`，Vercel 自动构建上线（约一分钟）。
 - **浏览器**：在仓库页面按 `.` 进 [github.dev](https://github.dev/Fzgt/apollo)，改完直接 commit。
 - 每页底部有「在 GitHub 上编辑这一页」的直达链接。
 
@@ -113,16 +118,18 @@ React 18 · TypeScript · Vite · Tailwind CSS · shadcn/ui · Framer Motion · 
 笔记通过 `import.meta.glob` 在构建期全部内联进 bundle，所以换页零延迟、搜索是全文的。
 
 <details>
-<summary><b>部署细节</b> —— GitHub Pages、子路径、深链接兜底</summary>
+<summary><b>部署细节</b> —— Vercel、SPA 回退、响应头</summary>
 
 <br>
 
-部署：GitHub Pages，走 `.github/workflows/deploy.yml`（lint → typecheck → build → 发布）。
+部署：Vercel，连着 `main` 分支，push 即构建。配置全在 `vercel.json` 里：
 
-站挂在 `/apollo/` 子路径下，所以 `vite.config.ts` 的 `base` 和 router 的 `basename` 必须一致；
-Pages 没有 SPA 回退，构建后会把 `index.html` 复制成 `404.html` 兜住深链接。
+- **构建**：先跑一次 `scripts/sync-blog.mjs` 刷新博客快照（失败不阻断，回落到仓库里已提交的那份），再 `npm run build`。
+- **SPA 回退**：所有未命中静态文件的请求 rewrite 到 `index.html`，`/docs`、`/library`、`/blog` 刷新才不会 404。
+- **响应头**：`nosniff`、`Referrer-Policy`、`Permissions-Policy`，以及 `X-Robots-Tag: noindex, nofollow`。
 
-换自定义域名时把 `VITE_BASE=/` 传进构建即可。`wrangler.toml` 留着，想回 Cloudflare 随时能用。
+站挂在根路径，所以 `vite.config.ts` 的 `base` 是 `/`；真要换回子路径部署，把 `VITE_BASE` 传进构建，
+router 的 `basename` 跟着 `import.meta.env.BASE_URL` 走，不用另外改。
 
 </details>
 
@@ -132,5 +139,5 @@ Pages 没有 SPA 回退，构建后会把 `index.html` 复制成 `404.html` 兜�
 
 > [!WARNING]
 > 站点整体挂了 `noindex, nofollow` —— 这是私人笔记，不该被搜索引擎收录。
-> 注意 `robots.txt` 在 `fzgt.github.io/apollo/robots.txt` 这个位置对爬虫无效（只有域名根目录的才算数），
-> 子路径部署下真正起作用的是页面里的 `noindex` meta。
+> 三道防线：页面里的 `noindex` meta、`public/robots.txt`（根路径部署，对爬虫有效）、
+> 以及 `vercel.json` 里给所有响应加的 `X-Robots-Tag`。仓库本身也是 private。

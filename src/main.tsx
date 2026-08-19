@@ -10,7 +10,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ErrorBoundary>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        {/* GitHub Pages 把站挂在 /apollo/ 下，路由前缀跟着 vite 的 base 走 */}
+        {/* 路由前缀跟着 vite 的 base 走，子路径部署时自动生效 */}
         <BrowserRouter basename={import.meta.env.BASE_URL}>
           <App />
         </BrowserRouter>

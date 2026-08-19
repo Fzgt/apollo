@@ -1,4 +1,0 @@
-# SPA route rewrites。只映射真实的客户端路由，
-# 这样缺失的静态文件（例如 /assets/*.js）返回真 404 而不是 index.html。
-/docs   /  200
-/docs/  /  200

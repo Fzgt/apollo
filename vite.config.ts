@@ -1,37 +1,18 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
-import fs from "fs";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 
-// GitHub Pages 把站点挂在 https://<user>.github.io/<repo>/ 下，
-// 所以产物里的资源路径必须带仓库名前缀。VITE_BASE 可以覆盖（换自定义域名时设成 "/"）。
-const BASE = process.env.VITE_BASE ?? "/apollo/";
-
-// GitHub Pages 没有 SPA 回退，深链接（/apollo/docs?note=...）会直接 404。
-// 惯例做法：把 index.html 复制一份成 404.html，Pages 拿它兜底，react-router 再接管路由。
-function spaFallback(): Plugin {
-  return {
-    name: "spa-404-fallback",
-    apply: "build",
-    closeBundle() {
-      const dist = path.resolve(__dirname, "dist");
-      const index = path.join(dist, "index.html");
-      if (fs.existsSync(index)) {
-        fs.copyFileSync(index, path.join(dist, "404.html"));
-      }
-    },
-  };
-}
+// 站点部署在 Vercel 的根路径。换成子路径部署时用 VITE_BASE 覆盖。
+const BASE = process.env.VITE_BASE ?? "/";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   base: BASE,
   server: {
     host: "::",
     port: 8080,
   },
-  plugins: [react(), mode === "development" && componentTagger(), spaFallback()].filter(Boolean),
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -60,4 +41,4 @@ export default defineConfig(({ mode }) => ({
       },
     },
   },
-}));
+});

@@ -2,7 +2,7 @@
 /**
  * 把 Blog 仓库的 issues 拉成静态快照，供 /blog 路由直接读。
  *
- * 站点是纯静态的（GitHub Pages，无后端），所以数据有两条路：
+ * 站点是纯静态的（无后端），所以数据有两条路：
  *   1. 构建期 —— 这个脚本生成 public/data/blog/*.json，随产物发布，首屏零等待；
  *   2. 运行期 —— 浏览器再打一次 GitHub API 拿最新的，见 src/lib/blog.ts。
  *
