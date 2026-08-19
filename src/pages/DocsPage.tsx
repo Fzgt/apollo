@@ -85,7 +85,7 @@ export default function DocsPage() {
         <div className="container mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-4">
           <div className="flex gap-8 py-4 sm:py-6">
             {/* 侧边栏：钉在视口里，导航树自己滚，不跟正文一起走 */}
-            <div className="sticky top-24 hidden h-[calc(100vh-7rem)] w-64 shrink-0 flex-col lg:flex lg:w-72">
+            <div className="sticky top-[7.5rem] hidden h-[calc(100vh-8.5rem)] w-64 shrink-0 flex-col lg:flex lg:w-72">
               <button
                 onClick={() => setIsSearchOpen(true)}
                 className="w-full mb-4 shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-sm"
