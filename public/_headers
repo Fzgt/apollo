@@ -1,75 +1,24 @@
-# SPA HTML entrypoints must revalidate so a reload can pick up the latest
-# index.html and its current hashed chunks after each deployment.
+# SPA 入口必须每次校验，部署后刷新才能拿到新的 index.html 和当前的哈希 chunk。
 /index.html
-  Cache-Control: no-cache
-/zh
-  Cache-Control: no-cache
-/zh/
-  Cache-Control: no-cache
-/zh/*
-  Cache-Control: no-cache
-/en
-  Cache-Control: no-cache
-/en/
-  Cache-Control: no-cache
-/en/*
-  Cache-Control: no-cache
-/ja
-  Cache-Control: no-cache
-/ja/
-  Cache-Control: no-cache
-/ja/*
-  Cache-Control: no-cache
-
-/download
-  Cache-Control: no-cache
-/download/
   Cache-Control: no-cache
 /docs
   Cache-Control: no-cache
 /docs/
   Cache-Control: no-cache
-/changelog
-  Cache-Control: no-cache
-/changelog/
-  Cache-Control: no-cache
-/changelog/*
-  Cache-Control: no-cache
-/sponsors
-  Cache-Control: no-cache
-/sponsors/
-  Cache-Control: no-cache
-/tutorials
-  Cache-Control: no-cache
-/tutorials/
-  Cache-Control: no-cache
-/tutorials/*
-  Cache-Control: no-cache
 
-# Static images served from /public — moderate caching, no fingerprint
-/og-image.png
-  Cache-Control: public, max-age=2592000
-/og-image.svg
-  Cache-Control: public, max-age=2592000
+# public 下没有指纹的静态文件
 /favicon.ico
   Cache-Control: public, max-age=86400
 /favicon.png
   Cache-Control: public, max-age=86400
-/placeholder.svg
-  Cache-Control: public, max-age=86400
-
-# SEO discovery files — short cache so updates propagate quickly
-/sitemap.xml
-  Cache-Control: public, max-age=3600
-/robots.txt
-  Cache-Control: public, max-age=3600
-/llms.txt
-  Cache-Control: public, max-age=3600
 /site.webmanifest
   Cache-Control: public, max-age=86400
+/robots.txt
+  Cache-Control: public, max-age=3600
 
-# Defaults for everything else (HTML included): basic security hardening
+# 其余一切（含 HTML）的默认值：基础安全加固
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Robots-Tag: noindex, nofollow

@@ -1,17 +1,17 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, FileText, ArrowRight, Command } from 'lucide-react';
+import { Search, FileText, ArrowRight, Hash } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getDocSections } from '@/content/docs/navigation';
-import { useLanguage } from '@/i18n/useLanguage';
+import { allNotes } from '@/content/notes';
 
 interface SearchResult {
   sectionId: string;
-  itemId?: string;
+  itemId: string;
   title: string;
   sectionTitle: string;
-  content: string;
-  type: 'section' | 'heading' | 'content';
+  /** 命中的正文片段，标题命中时为空 */
+  excerpt: string;
+  type: 'title' | 'heading' | 'content';
 }
 
 interface DocsSearchProps {
@@ -20,55 +20,99 @@ interface DocsSearchProps {
   onNavigate: (sectionId: string, itemId?: string) => void;
 }
 
+const MAX_RESULTS = 12;
+
+/** 取命中位置前后各 40 字，够看清上下文又不撑破弹层 */
+function excerptAround(text: string, index: number, length: number) {
+  const start = Math.max(0, index - 40);
+  const end = Math.min(text.length, index + length + 40);
+  return `${start > 0 ? '…' : ''}${text.slice(start, end).replace(/\s+/g, ' ')}${
+    end < text.length ? '…' : ''
+  }`;
+}
+
 export function DocsSearch({ isOpen, onClose, onNavigate }: DocsSearchProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const { t } = useLanguage();
-  const sections = useMemo(() => getDocSections(t), [t]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Build searchable index
-  const searchIndex = useMemo(() => {
-    const results: SearchResult[] = [];
+  const results = useMemo<SearchResult[]>(() => {
+    const q = query.trim().toLowerCase();
 
-    sections.forEach(section => {
-      // Add section
-      results.push({
-        sectionId: section.id,
-        title: section.title,
-        sectionTitle: section.title,
-        content: '',
-        type: 'section',
-      });
-
-      // Add items
-      section.items?.forEach(item => {
-        results.push({
-          sectionId: section.id,
-          itemId: item.id,
-          title: item.title,
-          sectionTitle: section.title,
-          content: '',
-          type: 'section',
-        });
-      });
-    });
-
-    return results;
-  }, [sections]);
-
-  // Filter results
-  const filteredResults = useMemo(() => {
-    if (!query.trim()) {
-      return searchIndex.slice(0, 8);
+    if (!q) {
+      return allNotes.slice(0, MAX_RESULTS).map((note) => ({
+        sectionId: note.sectionId,
+        itemId: note.itemId,
+        title: note.title,
+        sectionTitle: note.section,
+        excerpt: '',
+        type: 'title' as const,
+      }));
     }
 
-    const lowerQuery = query.toLowerCase();
-    return searchIndex
-      .filter(item => item.title.toLowerCase().includes(lowerQuery))
-      .slice(0, 8);
-  }, [query, searchIndex]);
+    const found: SearchResult[] = [];
 
-  // Handle keyboard navigation
+    for (const note of allNotes) {
+      if (found.length >= MAX_RESULTS) break;
+
+      if (note.title.toLowerCase().includes(q)) {
+        found.push({
+          sectionId: note.sectionId,
+          itemId: note.itemId,
+          title: note.title,
+          sectionTitle: note.section,
+          excerpt: '',
+          type: 'title',
+        });
+        continue;
+      }
+
+      // 优先命中标题行，其次才是正文任意位置
+      const headingLine = note.content
+        .split('\n')
+        .find((line) => line.startsWith('#') && line.toLowerCase().includes(q));
+
+      if (headingLine) {
+        found.push({
+          sectionId: note.sectionId,
+          itemId: note.itemId,
+          title: note.title,
+          sectionTitle: note.section,
+          excerpt: headingLine.replace(/^#+\s*/, ''),
+          type: 'heading',
+        });
+        continue;
+      }
+
+      const idx = note.content.toLowerCase().indexOf(q);
+      if (idx !== -1) {
+        found.push({
+          sectionId: note.sectionId,
+          itemId: note.itemId,
+          title: note.title,
+          sectionTitle: note.section,
+          excerpt: excerptAround(note.content, idx, q.length),
+          type: 'content',
+        });
+      }
+    }
+
+    return found;
+  }, [query]);
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setQuery('');
+      setSelectedIndex(0);
+      // 等弹层挂载完再聚焦，否则动画期间拿不到焦点
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -76,25 +120,23 @@ export function DocsSearch({ isOpen, onClose, onNavigate }: DocsSearchProps) {
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedIndex(prev => 
-            prev < filteredResults.length - 1 ? prev + 1 : 0
-          );
+          setSelectedIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0));
           break;
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedIndex(prev => 
-            prev > 0 ? prev - 1 : filteredResults.length - 1
-          );
+          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1));
           break;
-        case 'Enter':
+        case 'Enter': {
           e.preventDefault();
-          if (filteredResults[selectedIndex]) {
-            const result = filteredResults[selectedIndex];
-            onNavigate(result.sectionId, result.itemId);
+          const hit = results[selectedIndex];
+          if (hit) {
+            onNavigate(hit.sectionId, hit.itemId);
             onClose();
           }
           break;
+        }
         case 'Escape':
+          e.preventDefault();
           onClose();
           break;
       }
@@ -102,145 +144,88 @@ export function DocsSearch({ isOpen, onClose, onNavigate }: DocsSearchProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, filteredResults, selectedIndex, onNavigate, onClose]);
-
-  // Reset on open
-  useEffect(() => {
-    if (isOpen) {
-      setQuery('');
-      setSelectedIndex(0);
-    }
-  }, [isOpen]);
-
-  const handleSelect = (result: SearchResult) => {
-    onNavigate(result.sectionId, result.itemId);
-    onClose();
-  };
+  }, [isOpen, results, selectedIndex, onNavigate, onClose]);
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
             className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+            onClick={onClose}
           />
-          
-          {/* Dialog */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+            initial={{ opacity: 0, scale: 0.98, y: -8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            exit={{ opacity: 0, scale: 0.98, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="fixed left-1/2 top-[20%] z-50 w-full max-w-xl -translate-x-1/2 px-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="搜索笔记"
+            className="fixed left-1/2 top-[15vh] z-50 w-[92vw] max-w-2xl -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
           >
-            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-              {/* Search Input */}
-              <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-                <Search className="w-5 h-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder={t.docs.search.placeholder}
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setSelectedIndex(0);
-                  }}
-                  className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
-                  autoFocus
-                />
-                <kbd className="hidden sm:flex items-center gap-1 px-2 py-1 text-xs bg-muted rounded border border-border text-muted-foreground">
-                  ESC
-                </kbd>
-              </div>
+            <div className="flex items-center gap-3 border-b border-border px-4">
+              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="搜索标题和正文…"
+                className="h-14 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
+              />
+              <kbd className="hidden shrink-0 rounded border border-border px-1.5 py-0.5 text-xs text-muted-foreground sm:block">
+                ESC
+              </kbd>
+            </div>
 
-              {/* Results */}
-              <div className="max-h-[400px] overflow-y-auto p-2">
-                {filteredResults.length > 0 ? (
-                  <div className="space-y-1">
-                    {filteredResults.map((result, index) => (
-                      <button
-                        key={`${result.sectionId}-${result.itemId}`}
-                        onClick={() => handleSelect(result)}
-                        onMouseEnter={() => setSelectedIndex(index)}
-                        className={cn(
-                          'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors',
-                          selectedIndex === index
-                            ? 'bg-primary/10 text-foreground'
-                            : 'text-muted-foreground hover:bg-muted'
-                        )}
-                      >
-                        <FileText className="w-4 h-4 shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{result.title}</div>
-                          {result.itemId && (
-                            <div className="text-xs text-muted-foreground capitalize">
-                              {result.sectionTitle}
-                            </div>
-                          )}
-                        </div>
-                        <ArrowRight className={cn(
-                          'w-4 h-4 shrink-0 transition-opacity',
-                          selectedIndex === index ? 'opacity-100' : 'opacity-0'
-                        )} />
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="py-8 text-center text-muted-foreground">
-                    <p>{t.docs.search.noResults.replace('{query}', query)}</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between border-t border-border px-4 py-2 text-xs text-muted-foreground">
-                <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border">↑</kbd>
-                    <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border">↓</kbd>
-                    {t.docs.search.navigate}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-muted rounded border border-border">↵</kbd>
-                    {t.docs.search.select}
-                  </span>
-                </div>
-              </div>
+            <div className="max-h-[55vh] overflow-y-auto p-2">
+              {results.length === 0 ? (
+                <p className="px-3 py-8 text-center text-sm text-muted-foreground">
+                  没有匹配的内容
+                </p>
+              ) : (
+                results.map((hit, index) => (
+                  <button
+                    key={`${hit.sectionId}-${hit.itemId}-${index}`}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                    onClick={() => {
+                      onNavigate(hit.sectionId, hit.itemId);
+                      onClose();
+                    }}
+                    className={cn(
+                      'flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors',
+                      index === selectedIndex ? 'bg-muted' : 'hover:bg-muted/50'
+                    )}
+                  >
+                    {hit.type === 'heading' ? (
+                      <Hash className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-foreground">
+                        {hit.title}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {hit.excerpt || hit.sectionTitle}
+                      </span>
+                    </span>
+                    <ArrowRight
+                      className={cn(
+                        'mt-0.5 h-4 w-4 shrink-0 text-muted-foreground transition-opacity',
+                        index === selectedIndex ? 'opacity-100' : 'opacity-0'
+                      )}
+                    />
+                  </button>
+                ))
+              )}
             </div>
           </motion.div>
         </>
       )}
     </AnimatePresence>
-  );
-}
-
-// Search trigger button component
-interface SearchTriggerProps {
-  onClick: () => void;
-  className?: string;
-}
-
-export function SearchTrigger({ onClick, className }: SearchTriggerProps) {
-  const { t } = useLanguage();
-
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'flex items-center gap-2 px-4 py-2 bg-muted/50 hover:bg-muted rounded-lg border border-border/50 text-muted-foreground hover:text-foreground transition-colors min-w-[200px]',
-        className
-      )}
-    >
-      <Search className="w-4 h-4" />
-      <span className="text-sm">{t.docs.search.trigger}</span>
-      <kbd className="ml-auto flex items-center gap-0.5 text-xs bg-background px-1.5 py-0.5 rounded border border-border">
-        <Command className="w-3 h-3" />K
-      </kbd>
-    </button>
   );
 }

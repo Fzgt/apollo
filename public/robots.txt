@@ -1,4 +1,3 @@
+# 私人复习笔记，不希望被任何搜索引擎收录
 User-agent: *
-Allow: /
-
-Sitemap: https://ccswitch.io/sitemap.xml
+Disallow: /

@@ -6,54 +6,48 @@ import { DocsMobileNav } from '@/components/docs/DocsMobileNav';
 import { MarkdownRenderer } from '@/components/docs/MarkdownRenderer';
 import { DocsSearch } from '@/components/docs/DocsSearch';
 import { TableOfContents } from '@/components/docs/TableOfContents';
-import { fetchDocContent, getDocSourcePath } from '@/content/docs';
-import { getDocSections } from '@/content/docs/navigation';
-import { SiteFooter } from '@/components/ccswitch/SiteFooter';
-import { ChevronLeft, ChevronRight, Edit, Clock, Search } from 'lucide-react';
-import { useLanguage } from '@/i18n/useLanguage';
+import { StatusBadge } from '@/components/notes/StatusBadge';
+import { allNotes, getNote } from '@/content/notes';
+import { docSections } from '@/content/notes/navigation';
+import { REPO_EDIT_BASE } from '@/content/site';
+import { SiteFooter } from '@/components/layout/SiteFooter';
+import { ChevronLeft, ChevronRight, Edit, Search } from 'lucide-react';
 
-type FlattenedDocNavItem = {
+type FlattenedNavItem = {
   sectionId: string;
-  itemId?: string;
+  itemId: string;
   title: string;
 };
 
+const flattenedNav: FlattenedNavItem[] = allNotes.map((note) => ({
+  sectionId: note.sectionId,
+  itemId: note.itemId,
+  title: note.title,
+}));
+
 export default function DocsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeSection, setActiveSection] = useState(searchParams.get('section') || 'getting-started');
-  const [activeItem, setActiveItem] = useState<string | undefined>(searchParams.get('item') || undefined);
-  const [content, setContent] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState(
+    searchParams.get('section') || docSections[0]?.id || 'overview'
+  );
+  const [activeItem, setActiveItem] = useState<string | undefined>(
+    searchParams.get('item') || undefined
+  );
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { language, t } = useLanguage();
-  const docSections = useMemo(() => getDocSections(t), [t]);
+
+  const note = useMemo(() => getNote(activeSection, activeItem), [activeSection, activeItem]);
 
   useEffect(() => {
-    if (activeSection === 'proxy' && activeItem === 'takeover') {
-      setActiveItem('routing');
-    }
-  }, [activeSection, activeItem]);
-
-  useEffect(() => {
-    setIsLoading(true);
-    fetchDocContent(language, activeSection, activeItem).then((newContent) => {
-      setContent(newContent);
-      setIsLoading(false);
-    });
-
-    // Update URL
     const params = new URLSearchParams();
     params.set('section', activeSection);
-    if (activeItem) {
-      params.set('item', activeItem);
+    if (note?.itemId) {
+      params.set('item', note.itemId);
     }
     setSearchParams(params, { replace: true });
-
-    // Scroll to top
     window.scrollTo(0, 0);
-  }, [language, activeSection, activeItem, setSearchParams]);
+  }, [activeSection, activeItem, note, setSearchParams]);
 
-  // Keyboard shortcut for search (Cmd+K / Ctrl+K)
+  // Cmd+K / Ctrl+K 打开搜索
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -61,7 +55,6 @@ export default function DocsPage() {
         setIsSearchOpen(true);
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
@@ -71,97 +64,88 @@ export default function DocsPage() {
     setActiveItem(itemId);
   }, []);
 
-  const flattenedNav = useMemo<FlattenedDocNavItem[]>(() => (
-    docSections.flatMap((section) => {
-      const items: FlattenedDocNavItem[] = [{ sectionId: section.id, title: section.title }];
-      section.items?.forEach((item) => {
-        items.push({ sectionId: section.id, itemId: item.id, title: item.title });
-      });
-      return items;
-    })
-  ), [docSections]);
-
   const currentIndex = flattenedNav.findIndex(
-    nav => nav.sectionId === activeSection && nav.itemId === activeItem
+    (nav) => nav.sectionId === note?.sectionId && nav.itemId === note?.itemId
   );
   const prevNav = currentIndex > 0 ? flattenedNav[currentIndex - 1] : null;
-  const nextNav = currentIndex < flattenedNav.length - 1 ? flattenedNav[currentIndex + 1] : null;
-  const editPath = getDocSourcePath(language, activeSection, activeItem);
+  const nextNav =
+    currentIndex >= 0 && currentIndex < flattenedNav.length - 1
+      ? flattenedNav[currentIndex + 1]
+      : null;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Search Modal */}
       <DocsSearch
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onNavigate={handleNavigate}
       />
-      
+
       <div className="pt-20 md:pt-24">
         <div className="container mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-4">
           <div className="flex gap-8 py-4 sm:py-6">
-            {/* Sidebar - Desktop */}
+            {/* 侧边栏 */}
             <div className="hidden lg:block">
-              {/* Search Button */}
               <button
                 onClick={() => setIsSearchOpen(true)}
                 className="w-full mb-4 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-sm"
               >
                 <Search className="w-4 h-4" />
-                <span className="flex-1 text-left">{t.docs.search.trigger}</span>
+                <span className="flex-1 text-left">搜索笔记</span>
                 <kbd className="text-xs px-1.5 py-0.5 rounded bg-background border border-border">⌘K</kbd>
               </button>
               <DocsSidebar
                 sections={docSections}
                 activeSection={activeSection}
-                activeItem={activeItem}
+                activeItem={note?.itemId}
                 onNavigate={handleNavigate}
               />
             </div>
 
-            {/* Main Content */}
+            {/* 正文 */}
             <main className="min-w-0 flex-1">
               <motion.article
-                key={`${language}-${activeSection}-${activeItem}`}
+                key={`${note?.sectionId}-${note?.itemId}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="max-w-none xl:max-w-3xl"
+                className="max-w-none xl:max-w-4xl"
               >
-                {/* Content */}
+                {note && (
+                  <div className="mb-6 flex flex-wrap items-center gap-2">
+                    <StatusBadge status={note.status} />
+                    {note.day >= 1 && note.day <= 14 && (
+                      <span className="rounded-md border border-border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground">
+                        Day {note.day}
+                      </span>
+                    )}
+                    {note.level && note.level !== '—' && (
+                      <span className="rounded-md border border-border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground">
+                        {note.level} 级
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="pb-8">
-                  {isLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    </div>
-                  ) : (
-                    <MarkdownRenderer content={content} />
-                  )}
+                  <MarkdownRenderer content={note?.content ?? '# 页面未找到\n\n请求的笔记不存在。'} />
                 </div>
 
-                {/* Page Footer */}
                 <div className="mt-8 border-t border-border pt-6">
                   <div className="mb-8 flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-4">
-                      {editPath && (
-                        <a
-                          href={`https://github.com/farion1231/cc-switch/edit/main/${editPath}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 hover:text-foreground transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                          {t.docs.footer.edit}
-                        </a>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-4 h-4" />
-                      {t.docs.footer.lastUpdated.replace('{date}', '2026-05-16')}
-                    </div>
+                    {note && (
+                      <a
+                        href={`${REPO_EDIT_BASE}/${note.sourcePath}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+                      >
+                        <Edit className="w-4 h-4" />
+                        在 GitHub 上编辑这一页
+                      </a>
+                    )}
                   </div>
 
-                  {/* Prev/Next Navigation */}
                   <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                     {prevNav ? (
                       <button
@@ -170,21 +154,21 @@ export default function DocsPage() {
                       >
                         <span className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                           <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                          {t.docs.pagination.previous}
+                          上一页
                         </span>
                         <span className="font-medium text-foreground break-words">{prevNav.title}</span>
                       </button>
                     ) : (
                       <div />
                     )}
-                    
+
                     {nextNav ? (
                       <button
                         onClick={() => handleNavigate(nextNav.sectionId, nextNav.itemId)}
                         className="group flex flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50 sm:items-end sm:text-right"
                       >
                         <span className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                          {t.docs.pagination.next}
+                          下一页
                           <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </span>
                         <span className="font-medium text-foreground break-words">{nextNav.title}</span>
@@ -197,21 +181,20 @@ export default function DocsPage() {
               </motion.article>
             </main>
 
-            {/* Table of Contents - Desktop */}
+            {/* 目录 */}
             <div className="hidden xl:block w-56 shrink-0">
               <div className="sticky top-36">
-                <TableOfContents content={content} />
+                <TableOfContents content={note?.content ?? ''} />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
       <DocsMobileNav
         sections={docSections}
         activeSection={activeSection}
-        activeItem={activeItem}
+        activeItem={note?.itemId}
         onNavigate={handleNavigate}
       />
 

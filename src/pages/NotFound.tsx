@@ -1,27 +1,18 @@
-import { useLocation, Link } from "react-router-dom";
-import { useEffect } from "react";
-import { getLocalizedPath } from "@/i18n/routes";
-import { useLanguage } from "@/i18n/useLanguage";
+import { Link } from 'react-router-dom';
 
-const NotFound = () => {
-  const location = useLocation();
-  const { language, t } = useLanguage();
-
-  useEffect(() => {
-    if (import.meta.env.DEV) console.error("404 Error:", location.pathname);
-  }, [location.pathname]);
-
+export default function NotFound() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="text-center">
-        <h1 className="mb-4 text-6xl font-bold text-foreground">404</h1>
-        <p className="mb-6 text-xl text-muted-foreground">{t.common.notFound.title}</p>
-        <Link to={getLocalizedPath('/', language)} className="text-primary hover:underline">
-          {t.common.notFound.backHome}
+        <h1 className="text-5xl font-bold text-foreground">404</h1>
+        <p className="mt-3 text-muted-foreground">这一页不存在。</p>
+        <Link
+          to="/"
+          className="mt-6 inline-block rounded-lg border border-border px-4 py-2 text-sm text-foreground transition-colors hover:bg-muted"
+        >
+          回总览
         </Link>
       </div>
     </div>
   );
-};
-
-export default NotFound;
+}

@@ -200,11 +200,29 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
               {children}
             </ol>
           ),
-          li: ({ children }) => (
-            <li className="leading-7">
-              {children}
-            </li>
-          ),
+          li: ({ children, className }) => {
+            // GFM 任务项自带 task-list-item 类：去掉列表符号，让复选框顶格
+            const isTask = typeof className === 'string' && className.includes('task-list-item');
+            return (
+              <li className={cn('leading-7', isTask && 'ml-0 list-none')}>
+                {children}
+              </li>
+            );
+          },
+          input: ({ type, checked }) =>
+            type === 'checkbox' ? (
+              <span
+                className={cn(
+                  'mr-2 inline-flex h-4 w-4 shrink-0 translate-y-[2px] items-center justify-center rounded border',
+                  checked
+                    ? 'border-emerald-500/60 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                    : 'border-border bg-muted/40'
+                )}
+                aria-hidden="true"
+              >
+                {checked ? <Check className="h-3 w-3" /> : null}
+              </span>
+            ) : null,
           blockquote: ({ children }) => (
             <blockquote className="border-l-4 border-primary/50 pl-4 py-2 my-4 bg-muted/30 rounded-r-lg text-muted-foreground">
               {children}
@@ -230,7 +248,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           },
           table: ({ children }) => (
             <div className="mb-6 max-w-full overflow-x-auto rounded-xl border border-border">
-              <table className="w-full min-w-max border-collapse">
+              <table className="w-full min-w-full border-collapse">
                 {children}
               </table>
             </div>
@@ -241,12 +259,12 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             </thead>
           ),
           th: ({ children }) => (
-            <th className="border-b border-border px-3 py-3 text-left font-semibold text-foreground sm:px-4">
+            <th className="border-b border-border px-3 py-3 text-left align-top font-semibold text-foreground sm:px-4">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="border-b border-border px-3 py-3 text-muted-foreground sm:px-4">
+            <td className="border-b border-border px-3 py-3 align-top text-muted-foreground sm:px-4">
               {children}
             </td>
           ),

@@ -1,18 +1,14 @@
 {
-  "name": "cc-switch-website",
+  "name": "apollo-interview-prep",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "predev": "node scripts/split-changelog.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/split-changelog.mjs",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "generate:changelog": "node scripts/split-changelog.mjs",
-    "generate:sitemap": "node scripts/generate-sitemap.mjs",
     "check": "npm run lint && npm run typecheck && npm run build",
     "preview": "vite preview"
   },

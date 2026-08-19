@@ -1,18 +1,11 @@
 {
-  "name": "CC Switch - AI Coding CLI Control Surface",
-  "short_name": "CC Switch",
-  "description": "Official website for CC Switch, the open source control surface for AI coding CLI workflows.",
-  "start_url": "/zh/",
-  "scope": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#101828",
+  "name": "Apollo · 两周简历面试复习",
+  "short_name": "Apollo",
   "icons": [
-    {
-      "src": "/favicon.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
+    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#101828",
+  "background_color": "#101828",
+  "display": "standalone",
+  "start_url": "/"
 }

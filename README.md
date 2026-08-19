@@ -1,56 +1,52 @@
-# CC Switch Website
+# Apollo
 
-CC Switch 官方网站，展示产品功能、文档和更新日志。
+两周简历面试复习笔记站。内容全部是 Markdown，本地写、push 上线。
 
-## 技术栈
+## 内容在哪
 
-- React 18
-- TypeScript
-- Vite
-- Tailwind CSS
-- shadcn/ui
-- Framer Motion
-- React Router
+```
+src/content/notes/<NN>-<分组>/<NN>-<笔记>.md
+```
+
+目录名去掉数字前缀就是分组 id，文件名去掉数字前缀就是页面 id，数字前缀只决定顺序。
+**加一页笔记 = 丢一个 `.md` 进对应目录**，侧边栏和上一页/下一页自动出现，不用改任何 TypeScript。
+
+### frontmatter
+
+```yaml
+---
+title: Day 2 · Beyz ① 实时 interview copilot   # 页面标题，也是侧边栏条目名
+section: Beyz · Day 2–4                        # 分组显示名，取组内第一篇的值
+icon: radio                                    # lucide 图标名，见 src/content/notes/navigation.tsx
+day: 2                                         # 第几天；0 = 总览，99 = 速查
+level: S                                       # S / A / B / 前置 / —
+status: todo                                   # todo | doing | done，驱动首页进度条
+---
+```
+
+加新图标：在 `src/content/notes/navigation.tsx` 的 `ICONS` 里补一行。
+
+## 怎么改
+
+- **本地**：编辑 `.md`，`git push`，Cloudflare 自动构建上线。
+- **浏览器**：在仓库页面按 `.` 进 [github.dev](https://github.dev/Fzgt/Apollo)，改完直接 commit。
+- 每页底部有「在 GitHub 上编辑这一页」的直达链接。
 
 ## 本地开发
 
 ```bash
-# 安装依赖
 npm install
-
-# 启动开发服务器
-npm run dev
-
-# 构建生产版本
-npm run build
-
-# 运行完整质量检查
-npm run check
+npm run dev      # http://localhost:8080
+npm run check    # lint + typecheck + build
 ```
 
-## 项目结构
+## 技术栈
 
-```
-src/
-├── components/     # 组件
-│   ├── ccswitch/   # CC Switch 专用组件
-│   │   └── demo/   # 首页交互演示面板
-│   ├── docs/       # 文档相关组件
-│   └── ui/         # shadcn/ui 组件
-├── content/        # 文档导航、示例数据和内容加载
-├── i18n/           # 国际化
-├── lib/            # 通用解析与工具函数
-├── pages/          # 页面
-└── hooks/          # 自定义 Hooks
-public/
-└── docs/           # Markdown 文档文件
-```
+React 18 · TypeScript · Vite · Tailwind CSS · shadcn/ui · Framer Motion · React Router。
+笔记通过 `import.meta.glob` 在构建期全部内联进 bundle，所以换页零延迟、搜索是全文的。
 
-## 相关链接
+部署：Cloudflare Workers Static Assets（`wrangler.toml`）。
 
-- [CC Switch 主仓库](https://github.com/farion1231/cc-switch)
-- [在线文档](https://ccswitch.lovable.app/docs)
+## 注意
 
-## 许可证
-
-[MIT](LICENSE)
+站点整体挂了 `noindex, nofollow`，`robots.txt` 也是 `Disallow: /` —— 这是私人笔记，不该被搜索引擎收录。
