@@ -28,3 +28,18 @@ export function scrollToAnchor(id: string, offset = 100): void {
 export function displayDomain(url: string): string {
   return url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 }
+
+/** 相对时间。列表里只给个量级，精确日期留给详情页 */
+export function timeAgo(iso: string): string {
+  const time = new Date(iso).getTime();
+  if (Number.isNaN(time)) return '';
+
+  const minutes = Math.floor((Date.now() - time) / 60000);
+  if (minutes < 60) return `${Math.max(1, minutes)} 分钟前`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} 小时前`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days} 天前`;
+  const months = Math.floor(days / 30);
+  return months < 12 ? `${months} 个月前` : `${Math.floor(months / 12)} 年前`;
+}

@@ -1,11 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ExternalLink, RefreshCw, Search } from 'lucide-react';
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  RefreshCw,
+  Search,
+  SearchX,
+} from 'lucide-react';
 import { MarkdownRenderer } from '@/components/docs/MarkdownRenderer';
 import { TableOfContents } from '@/components/docs/TableOfContents';
+import { PostRow } from '@/components/blog/PostRow';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { BLOG_ISSUES_URL, BLOG_REPO } from '@/content/site';
+import { useReadPosts } from '@/hooks/use-read-posts';
 import {
   fetchLiveIndex,
   formatDate,
@@ -17,23 +27,33 @@ import {
 } from '@/lib/blog';
 import { cn } from '@/lib/utils';
 
-/** 标签点显示 GitHub 上那个颜色；文字仍走主题色，白色标签在浅色背景上才不会消失 */
-function LabelChip({ name, color, className }: { name: string; color: string; className?: string }) {
+/** 入场动画只给首屏这些条，再往下滚出来的不抖 */
+const ENTRANCE_LIMIT = 20;
+
+function Chip({
+  active,
+  onClick,
+  children,
+  title,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  title?: string;
+}) {
   return (
-    <span
+    <button
+      onClick={onClick}
+      title={title}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground',
-        className
+        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors',
+        active
+          ? 'border-foreground bg-foreground text-background'
+          : 'border-border text-muted-foreground hover:border-foreground/40 hover:bg-muted hover:text-foreground'
       )}
     >
-      {color && (
-        <span
-          className="h-2 w-2 shrink-0 rounded-full ring-1 ring-border"
-          style={{ backgroundColor: `#${color}` }}
-        />
-      )}
-      {name}
-    </span>
+      {children}
+    </button>
   );
 }
 
@@ -58,12 +78,15 @@ export default function BlogPage() {
 
   const [query, setQuery] = useState('');
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
+  const [unreadOnly, setUnreadOnly] = useState(false);
 
   const [body, setBody] = useState<string | null>(null);
   const [bodyError, setBodyError] = useState<string | null>(null);
   const [isBodyLoading, setIsBodyLoading] = useState(false);
 
+  const { readPosts, markRead, toggleRead } = useReadPosts();
   const syncControllerRef = useRef<AbortController | null>(null);
+  const entranceSettled = useRef(false);
 
   const syncLive = useCallback(async () => {
     syncControllerRef.current?.abort();
@@ -113,6 +136,10 @@ export default function BlogPage() {
     };
   }, [syncLive]);
 
+  useEffect(() => {
+    entranceSettled.current = true;
+  }, []);
+
   const posts = useMemo(() => index?.posts ?? [], [index]);
 
   const labels = useMemo(() => {
@@ -132,15 +159,23 @@ export default function BlogPage() {
       posts.filter(
         (post) =>
           matchesQuery(post, query) &&
-          (!activeLabel || post.labels.some((label) => label.name === activeLabel))
+          (!activeLabel || post.labels.some((label) => label.name === activeLabel)) &&
+          (!unreadOnly || !readPosts.has(post.number))
       ),
-    [posts, query, activeLabel]
+    [posts, query, activeLabel, unreadOnly, readPosts]
   );
 
   const activePost = useMemo(
     () => (activeNumber ? posts.find((post) => post.number === activeNumber) : undefined),
     [posts, activeNumber]
   );
+
+  const activeIndexInList = activePost ? posts.indexOf(activePost) : -1;
+  const prevPost = activeIndexInList > 0 ? posts[activeIndexInList - 1] : null;
+  const nextPost =
+    activeIndexInList >= 0 && activeIndexInList < posts.length - 1
+      ? posts[activeIndexInList + 1]
+      : null;
 
   const openPost = useCallback(
     (number: number | null) => {
@@ -152,6 +187,12 @@ export default function BlogPage() {
     [setSearchParams]
   );
 
+  const resetFilters = useCallback(() => {
+    setQuery('');
+    setActiveLabel(null);
+    setUnreadOnly(false);
+  }, []);
+
   // 正文按需拉：内存里有就直接用，没有就取快照里的单篇文件
   useEffect(() => {
     if (!activeNumber) {
@@ -159,6 +200,8 @@ export default function BlogPage() {
       setBodyError(null);
       return;
     }
+
+    markRead(activeNumber);
 
     const controller = new AbortController();
     setIsBodyLoading(true);
@@ -178,8 +221,9 @@ export default function BlogPage() {
       });
 
     return () => controller.abort();
-  }, [activeNumber]);
+  }, [activeNumber, markRead]);
 
+  const isFiltered = visiblePosts.length !== posts.length;
   const syncedLabel = index
     ? `${index.source === 'live' ? '刚从 GitHub 同步' : '快照'} · ${formatDate(index.syncedAt)}`
     : '读取中…';
@@ -225,261 +269,253 @@ export default function BlogPage() {
             </p>
           )}
 
-          <div className="flex gap-8 py-6">
-            {/* 侧栏：搜索 + 标签 + 全部文章 */}
-            <aside className="hidden w-64 shrink-0 lg:block xl:w-72">
-              <div className="sticky top-24 max-h-[calc(100vh-8rem)] space-y-4 overflow-y-auto pb-8 pr-1">
+          <div className="py-6">
+            {indexError && !index && (
+              <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
+                文章列表没读出来：{indexError}
+              </p>
+            )}
+
+            {!index && !indexError && (
+              <p className="py-12 text-center text-sm text-muted-foreground">加载中…</p>
+            )}
+
+            {/* 列表 */}
+            {index && !activeNumber && (
+              <div className="space-y-3">
                 <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="搜索文章"
+                    placeholder="搜标题、摘要、标签…"
                     aria-label="搜索文章"
-                    className="w-full rounded-lg border border-border bg-muted/50 py-2.5 pl-9 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/60"
+                    className="w-full rounded-lg border border-border bg-card py-2 pl-9 pr-28 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
                   />
+                  {posts.length > 0 && (
+                    <div
+                      title={
+                        isFiltered
+                          ? `共 ${posts.length} 篇，筛选后剩 ${visiblePosts.length} 篇`
+                          : undefined
+                      }
+                      className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-baseline gap-1 text-xs tabular-nums"
+                    >
+                      {isFiltered && <span className="text-muted-foreground">显示</span>}
+                      <motion.span
+                        key={visiblePosts.length}
+                        initial={{ opacity: 0, y: -3 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={cn(
+                          'font-semibold',
+                          isFiltered ? 'text-foreground' : 'text-muted-foreground'
+                        )}
+                      >
+                        {visiblePosts.length}
+                      </motion.span>
+                      <span className="text-muted-foreground">
+                        {isFiltered ? `/ 共 ${posts.length} 篇` : '篇'}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {labels.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    <button
-                      onClick={() => setActiveLabel(null)}
-                      className={cn(
-                        'rounded-md border px-2 py-0.5 text-xs transition-colors',
-                        activeLabel === null
-                          ? 'border-primary/40 bg-primary/10 text-primary'
-                          : 'border-border bg-muted/50 text-muted-foreground hover:text-foreground'
-                      )}
-                    >
-                      全部
-                    </button>
-                    {labels.map((label) => (
-                      <button
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {labels.map((label) => {
+                    const active = activeLabel === label.name;
+                    return (
+                      <Chip
                         key={label.name}
-                        onClick={() =>
-                          setActiveLabel((prev) => (prev === label.name ? null : label.name))
-                        }
-                        className={cn(
-                          'inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs transition-colors',
-                          activeLabel === label.name
-                            ? 'border-primary/40 bg-primary/10 text-primary'
-                            : 'border-border bg-muted/50 text-muted-foreground hover:text-foreground'
-                        )}
+                        active={active}
+                        onClick={() => setActiveLabel(active ? null : label.name)}
                       >
                         {label.color && (
                           <span
-                            className="h-2 w-2 shrink-0 rounded-full ring-1 ring-border"
-                            style={{ backgroundColor: `#${label.color}` }}
+                            className="size-1.5 rounded-full"
+                            style={{ backgroundColor: active ? undefined : `#${label.color}` }}
                           />
                         )}
                         {label.name}
-                        <span className="opacity-60">{label.count}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <nav className="space-y-0.5">
-                  {visiblePosts.map((post) => (
-                    <button
-                      key={post.number}
-                      onClick={() => openPost(post.number)}
-                      className={cn(
-                        'w-full rounded-lg px-3 py-2 text-left text-sm transition-colors',
-                        post.number === activeNumber
-                          ? 'bg-primary/10 font-medium text-primary'
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                      )}
-                    >
-                      {post.title}
-                    </button>
-                  ))}
-                  {visiblePosts.length === 0 && (
-                    <p className="px-3 py-2 text-sm text-muted-foreground">没有匹配的文章</p>
-                  )}
-                </nav>
-              </div>
-            </aside>
-
-            {/* 正文 / 列表 */}
-            <main className="min-w-0 flex-1">
-              {indexError && !index && (
-                <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-                  文章列表没读出来：{indexError}
-                </p>
-              )}
-
-              {!index && !indexError && (
-                <p className="py-12 text-center text-sm text-muted-foreground">加载中…</p>
-              )}
-
-              {index && !activeNumber && (
-                <div className="space-y-6">
-                  {/* 小屏没有侧栏，搜索和标签在这里 */}
-                  <div className="space-y-3 lg:hidden">
-                    <div className="relative">
-                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <input
-                        value={query}
-                        onChange={(event) => setQuery(event.target.value)}
-                        placeholder="搜索文章"
-                        aria-label="搜索文章"
-                        className="w-full rounded-lg border border-border bg-muted/50 py-2.5 pl-9 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/60"
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      <button
-                        onClick={() => setActiveLabel(null)}
-                        className={cn(
-                          'rounded-md border px-2 py-0.5 text-xs transition-colors',
-                          activeLabel === null
-                            ? 'border-primary/40 bg-primary/10 text-primary'
-                            : 'border-border bg-muted/50 text-muted-foreground'
-                        )}
-                      >
-                        全部
-                      </button>
-                      {labels.map((label) => (
-                        <button
-                          key={label.name}
-                          onClick={() =>
-                            setActiveLabel((prev) => (prev === label.name ? null : label.name))
-                          }
-                          className={cn(
-                            'rounded-md border px-2 py-0.5 text-xs transition-colors',
-                            activeLabel === label.name
-                              ? 'border-primary/40 bg-primary/10 text-primary'
-                              : 'border-border bg-muted/50 text-muted-foreground'
-                          )}
-                        >
-                          {label.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {visiblePosts.length === 0 ? (
-                    <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-                      没有匹配的文章。
-                    </p>
-                  ) : (
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {visiblePosts.map((post) => (
-                        <button
-                          key={post.number}
-                          onClick={() => openPost(post.number)}
-                          // min-w-0：摘要用了 line-clamp（-webkit-box），
-                          // 不给最小宽度归零的话，网格项会按不换行的宽度撑破小屏
-                          className="group flex h-full w-full min-w-0 flex-col items-start rounded-xl border border-border bg-card p-5 text-left transition-colors hover:bg-muted/40"
-                        >
-                          <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                            <span>#{post.number}</span>
-                            <span>{formatDate(post.createdAt)}</span>
-                          </div>
-                          <h2 className="mb-2 w-full break-words font-semibold text-foreground group-hover:text-primary">
-                            {post.title}
-                          </h2>
-                          {post.excerpt && (
-                            <p className="mb-3 line-clamp-3 w-full break-words text-sm leading-6 text-muted-foreground">
-                              {post.excerpt}
-                            </p>
-                          )}
-                          {post.labels.length > 0 && (
-                            <div className="mt-auto flex flex-wrap gap-1.5">
-                              {post.labels.map((label) => (
-                                <LabelChip key={label.name} name={label.name} color={label.color} />
-                              ))}
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {index && activeNumber && (
-                <motion.article
-                  key={activeNumber}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="max-w-none xl:max-w-4xl"
-                >
-                  <button
-                    onClick={() => openPost(null)}
-                    className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        <span className="tabular-nums opacity-60">{label.count}</span>
+                      </Chip>
+                    );
+                  })}
+                  <span className="mx-1 h-4 w-px bg-border" />
+                  <Chip
+                    active={unreadOnly}
+                    onClick={() => setUnreadOnly((prev) => !prev)}
+                    title="只看还没读过的"
                   >
-                    <ArrowLeft className="h-4 w-4" />
-                    全部文章
-                  </button>
+                    只看未读
+                  </Chip>
+                </div>
 
-                  {activePost && (
-                    <div className="mb-6">
-                      <h1 className="mb-3 text-3xl font-bold text-foreground md:text-4xl">
-                        {activePost.title}
-                      </h1>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                        <span>#{activePost.number}</span>
-                        <span>写于 {formatDate(activePost.createdAt)}</span>
-                        {activePost.updatedAt !== activePost.createdAt && (
-                          <span>改于 {formatDate(activePost.updatedAt)}</span>
+                {visiblePosts.length === 0 ? (
+                  <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
+                    <SearchX className="size-8" />
+                    <p className="text-sm">
+                      一共 {posts.length} 篇，但没有符合当前筛选条件的
+                    </p>
+                    <button
+                      onClick={resetFilters}
+                      className="rounded-lg border border-border px-3 py-1.5 text-xs transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      重置筛选
+                    </button>
+                  </div>
+                ) : (
+                  <motion.div
+                    layout
+                    className="overflow-hidden rounded-xl border border-border bg-card"
+                  >
+                    {visiblePosts.map((post, rowIndex) => (
+                      <PostRow
+                        key={post.number}
+                        post={post}
+                        index={rowIndex}
+                        animateEntrance={!entranceSettled.current && rowIndex < ENTRANCE_LIMIT}
+                        isRead={readPosts.has(post.number)}
+                        onOpen={openPost}
+                        onToggleRead={toggleRead}
+                      />
+                    ))}
+                  </motion.div>
+                )}
+              </div>
+            )}
+
+            {/* 正文 */}
+            {index && activeNumber && (
+              <div className="flex gap-8">
+                <main className="min-w-0 flex-1">
+                  <motion.article
+                    key={activeNumber}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="max-w-none xl:max-w-4xl"
+                  >
+                    <button
+                      onClick={() => openPost(null)}
+                      className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      全部文章
+                    </button>
+
+                    {activePost && (
+                      <div className="mb-6">
+                        <h1 className="mb-3 text-3xl font-bold text-foreground md:text-4xl">
+                          {activePost.title}
+                        </h1>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <span>#{activePost.number}</span>
+                          <span>写于 {formatDate(activePost.createdAt)}</span>
+                          {activePost.updatedAt !== activePost.createdAt && (
+                            <span>改于 {formatDate(activePost.updatedAt)}</span>
+                          )}
+                          {activePost.labels.map((label) => (
+                            <span
+                              key={label.name}
+                              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground"
+                            >
+                              {label.color && (
+                                <span
+                                  className="size-2 shrink-0 rounded-full ring-1 ring-border"
+                                  style={{ backgroundColor: `#${label.color}` }}
+                                />
+                              )}
+                              {label.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {isBodyLoading && (
+                      <p className="py-12 text-center text-sm text-muted-foreground">加载中…</p>
+                    )}
+
+                    {bodyError && (
+                      <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
+                        {bodyError}。可以到{' '}
+                        <a
+                          href={`${BLOG_ISSUES_URL}/${activeNumber}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary underline underline-offset-4"
+                        >
+                          GitHub 上看原文
+                        </a>
+                        。
+                      </p>
+                    )}
+
+                    {!isBodyLoading && !bodyError && body !== null && (
+                      <div className="pb-8">
+                        <MarkdownRenderer content={body} />
+                      </div>
+                    )}
+
+                    <div className="mt-8 border-t border-border pt-6">
+                      {activePost && (
+                        <a
+                          href={activePost.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          在 GitHub 上看这篇
+                        </a>
+                      )}
+
+                      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+                        {prevPost ? (
+                          <button
+                            onClick={() => openPost(prevPost.number)}
+                            className="group flex flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50"
+                          >
+                            <span className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
+                              <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                              上一篇
+                            </span>
+                            <span className="break-words font-medium text-foreground">
+                              {prevPost.title}
+                            </span>
+                          </button>
+                        ) : (
+                          <div />
                         )}
-                        {activePost.labels.map((label) => (
-                          <LabelChip key={label.name} name={label.name} color={label.color} />
-                        ))}
+
+                        {nextPost ? (
+                          <button
+                            onClick={() => openPost(nextPost.number)}
+                            className="group flex flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50 sm:items-end sm:text-right"
+                          >
+                            <span className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
+                              下一篇
+                              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                            </span>
+                            <span className="break-words font-medium text-foreground">
+                              {nextPost.title}
+                            </span>
+                          </button>
+                        ) : (
+                          <div />
+                        )}
                       </div>
                     </div>
-                  )}
+                  </motion.article>
+                </main>
 
-                  {isBodyLoading && (
-                    <p className="py-12 text-center text-sm text-muted-foreground">加载中…</p>
-                  )}
-
-                  {bodyError && (
-                    <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-                      {bodyError}。可以到{' '}
-                      <a
-                        href={`${BLOG_ISSUES_URL}/${activeNumber}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary underline underline-offset-4"
-                      >
-                        GitHub 上看原文
-                      </a>
-                      。
-                    </p>
-                  )}
-
-                  {!isBodyLoading && !bodyError && body !== null && (
-                    <div className="pb-8">
-                      <MarkdownRenderer content={body} />
+                {body && (
+                  <div className="hidden w-56 shrink-0 xl:block">
+                    <div className="sticky top-36">
+                      <TableOfContents content={body} />
                     </div>
-                  )}
-
-                  {activePost && (
-                    <div className="mt-8 border-t border-border pt-6">
-                      <a
-                        href={activePost.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        在 GitHub 上看这篇
-                      </a>
-                    </div>
-                  )}
-                </motion.article>
-              )}
-            </main>
-
-            {/* 目录 */}
-            {activeNumber && body && (
-              <div className="hidden w-56 shrink-0 xl:block">
-                <div className="sticky top-36">
-                  <TableOfContents content={body} />
-                </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
