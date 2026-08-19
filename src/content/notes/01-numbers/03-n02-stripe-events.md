@@ -150,16 +150,7 @@ export enum SubscriptionEvent {
 
 注意 `route.ts:102-108`（唯一把人升成 Lifetime 的那次写入）**故意没有**这个 guard —— 它是入口，不能挡自己。
 
-**为什么这个位置选得对——一个收敛性论证。**
-
-`handleCheckoutSessionCompleted`（`route.ts:92-109`）买断时会**先取消该用户所有现存订阅，再把 plan 写成 Lifetime**。取消会触发 `customer.subscription.deleted` webhook → `deleteUserSubscription` → 试图写 Free。
-
-那这个 webhook 早到晚到会不会出错？
-
-- **晚到**：DB 已是 Lifetime → 被 `ne(Lifetime)` 挡住 → 保持 Lifetime ✅
-- **早到**：DB 被写成 Free → 随后 `:102-108` 无条件写 Lifetime → 最终 Lifetime ✅
-
-**两种到达顺序都收敛到 Lifetime。** 所以 `none of which can downgrade` 不是靠事件顺序保证的，是靠**数据层不变量 + 唯一升级路径无条件写入**共同保证的。这个答案能一口气讲完，面试官基本就不会再追了。
+> 那这两次写入谁先谁后会不会出错？两种顺序都收敛到 Lifetime——见 [#2 补充 · 早到晚到与收敛](/docs?section=numbers&item=n02b-convergence)。
 
 **一句话答法**
 
