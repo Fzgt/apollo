@@ -28,10 +28,6 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
-        env:
-          # 编辑层 API 地址（公开 URL，不是密钥）。在仓库 Settings → Variables
-          # 里设成 Worker 的地址；没设时站自动退回只读。
-          VITE_API_BASE: ${{ vars.API_BASE }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

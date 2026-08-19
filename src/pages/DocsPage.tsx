@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { DocsSidebar } from '@/components/docs/DocsSidebar';
 import { DocsMobileNav } from '@/components/docs/DocsMobileNav';
-import { NoteBody } from '@/components/docs/NoteBody';
+import { MarkdownRenderer } from '@/components/docs/MarkdownRenderer';
 import { DocsSearch } from '@/components/docs/DocsSearch';
 import { TableOfContents } from '@/components/docs/TableOfContents';
 import { StatusBadge } from '@/components/notes/StatusBadge';
@@ -128,10 +128,7 @@ export default function DocsPage() {
                 )}
 
                 <div className="pb-8">
-                  <NoteBody
-                    noteId={note ? `${note.sectionId}/${note.itemId}` : 'unknown'}
-                    content={note?.content ?? '# 页面未找到\n\n请求的笔记不存在。'}
-                  />
+                  <MarkdownRenderer content={note?.content ?? '# 页面未找到\n\n请求的笔记不存在。'} />
                 </div>
 
                 <div className="mt-8 border-t border-border pt-6">
