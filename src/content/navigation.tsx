@@ -14,7 +14,7 @@ import {
   Workflow,
   Wrench,
 } from 'lucide-react';
-import { noteSections } from './index';
+import type { NoteSection } from './collection';
 
 export interface DocSection {
   id: string;
@@ -43,9 +43,12 @@ const ICONS: Record<string, ReactNode> = {
   'file-text': <FileText className="w-4 h-4" />,
 };
 
-export const docSections: DocSection[] = noteSections.map((section) => ({
-  id: section.id,
-  title: section.title,
-  icon: section.icon ? ICONS[section.icon] : undefined,
-  items: section.items.map((item) => ({ id: item.itemId, title: item.title })),
-}));
+/** 内容层的分组结构 -> 侧边栏要的形状 */
+export function toDocSections(sections: NoteSection[]): DocSection[] {
+  return sections.map((section) => ({
+    id: section.id,
+    title: section.title,
+    icon: section.icon ? ICONS[section.icon] : undefined,
+    items: section.items.map((item) => ({ id: item.itemId, title: item.title })),
+  }));
+}

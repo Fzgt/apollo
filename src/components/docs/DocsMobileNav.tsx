@@ -2,16 +2,24 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { DocsSidebar } from './DocsSidebar';
-import type { DocSection } from '@/content/notes/navigation';
+import type { DocSection } from '@/content/navigation';
 
 interface DocsMobileNavProps {
   sections: DocSection[];
   activeSection: string;
   activeItem?: string;
   onNavigate: (sectionId: string, itemId?: string) => void;
+  /** 抽屉头部的标题，缺省是「笔记」 */
+  title?: string;
 }
 
-export function DocsMobileNav({ sections, activeSection, activeItem, onNavigate }: DocsMobileNavProps) {
+export function DocsMobileNav({
+  sections,
+  activeSection,
+  activeItem,
+  onNavigate,
+  title = '笔记',
+}: DocsMobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleNavigate = (sectionId: string, itemId?: string) => {
@@ -49,7 +57,7 @@ export function DocsMobileNav({ sections, activeSection, activeItem, onNavigate 
               className="lg:hidden fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-background border-r border-border shadow-xl overflow-y-auto"
             >
               <div className="flex items-center justify-between p-4 border-b border-border">
-                <span className="font-semibold text-foreground">{'笔记'}</span>
+                <span className="font-semibold text-foreground">{title}</span>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-2 rounded-lg hover:bg-muted transition-colors"

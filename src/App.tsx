@@ -6,6 +6,7 @@ import NotFound from './pages/NotFound';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
+const LibraryPage = lazy(() => import('./pages/LibraryPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 
 /** 私人笔记站：设个标题，顺手挂上 noindex */
@@ -52,6 +53,7 @@ const App = () => (
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/docs" element={<DocsPage />} />
+        <Route path="/library" element={<LibraryPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

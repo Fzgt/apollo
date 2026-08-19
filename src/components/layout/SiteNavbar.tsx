@@ -9,6 +9,7 @@ import { REPO_URL, SITE_NAME } from '@/content/site';
 const NAV_LINKS = [
   { label: '总览', href: '/' },
   { label: '复习', href: '/docs' },
+  { label: '资料', href: '/library' },
   { label: '博客', href: '/blog' },
 ];
 

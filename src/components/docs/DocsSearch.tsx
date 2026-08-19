@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, FileText, ArrowRight, Hash } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { allNotes } from '@/content/notes';
+import type { Note } from '@/content/collection';
 
 interface SearchResult {
   sectionId: string;
@@ -15,6 +15,8 @@ interface SearchResult {
 }
 
 interface DocsSearchProps {
+  /** 搜索范围。两个 tab 各搜各的 */
+  notes: Note[];
   isOpen: boolean;
   onClose: () => void;
   onNavigate: (sectionId: string, itemId?: string) => void;
@@ -31,7 +33,7 @@ function excerptAround(text: string, index: number, length: number) {
   }`;
 }
 
-export function DocsSearch({ isOpen, onClose, onNavigate }: DocsSearchProps) {
+export function DocsSearch({ notes, isOpen, onClose, onNavigate }: DocsSearchProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -40,7 +42,7 @@ export function DocsSearch({ isOpen, onClose, onNavigate }: DocsSearchProps) {
     const q = query.trim().toLowerCase();
 
     if (!q) {
-      return allNotes.slice(0, MAX_RESULTS).map((note) => ({
+      return notes.slice(0, MAX_RESULTS).map((note) => ({
         sectionId: note.sectionId,
         itemId: note.itemId,
         title: note.title,
@@ -52,7 +54,7 @@ export function DocsSearch({ isOpen, onClose, onNavigate }: DocsSearchProps) {
 
     const found: SearchResult[] = [];
 
-    for (const note of allNotes) {
+    for (const note of notes) {
       if (found.length >= MAX_RESULTS) break;
 
       if (note.title.toLowerCase().includes(q)) {
@@ -98,7 +100,7 @@ export function DocsSearch({ isOpen, onClose, onNavigate }: DocsSearchProps) {
     }
 
     return found;
-  }, [query]);
+  }, [notes, query]);
 
   useEffect(() => {
     setSelectedIndex(0);
