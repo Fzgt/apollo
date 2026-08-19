@@ -150,6 +150,17 @@ export enum SubscriptionEvent {
 
 注意 `route.ts:102-108`（唯一把人升成 Lifetime 的那次写入）**故意没有**这个 guard —— 它是入口，不能挡自己。
 
+**为什么这个位置选得对——一个收敛性论证。**
+
+`handleCheckoutSessionCompleted`（`route.ts:92-109`）买断时会**先取消该用户所有现存订阅，再把 plan 写成 Lifetime**。取消会触发 `customer.subscription.deleted` webhook → `deleteUserSubscription` → 试图写 Free。
+
+那这个 webhook 早到晚到会不会出错？
+
+- **晚到**：DB 已是 Lifetime → 被 `ne(Lifetime)` 挡住 → 保持 Lifetime ✅
+- **早到**：DB 被写成 Free → 随后 `:102-108` 无条件写 Lifetime → 最终 Lifetime ✅
+
+**两种到达顺序都收敛到 Lifetime。** 所以 `none of which can downgrade` 不是靠事件顺序保证的，是靠**数据层不变量 + 唯一升级路径无条件写入**共同保证的。这个答案能一口气讲完，面试官基本就不会再追了。
+
 **一句话答法**
 
 > 那半句不是靠事件顺序保证的，是靠数据层不变量保证的：所有可能降级的写入路径都在 SQL 的 WHERE 里带了 `ne(subscribedPlan, Lifetime)`，所以不管事件怎么乱序、并发多少次，lifetime 那行都改不动。唯一能升成 lifetime 的那条路径故意不带这个条件，因为它是入口。
@@ -208,9 +219,3 @@ event = stripe.webhooks.constructEvent(buf, sig, webhookSecret)             // :
 代码**没有**用 `event.created` 做版本比较。举个会翻车的例子：用户先升到 God、紧接着降回 Standard，两个 `customer.subscription.updated` 乱序到达 → 最终状态被写成 God，用户白拿高档位。
 
 诚实答法：*「乱序没处理。正解是存一份 event 时间戳或 subscription 版本号，只接受比当前记录更新的事件——这是我会补的第一个洞。」*
-
----
-
-## ⚠️ 归属待处理
-
-和 [#1](/docs?section=numbers&item=n01-ephemeral-keys) 同样的问题：`api/stripe/webhook/route.ts` 全文 411 行，`Fzgt` 的行数是 **0**（Teresa Tian 341 / Ziming Zhu 38 / Shann Timothy 12 / Miranda 12 / 其他 8）。`server/actions/subscription.ts` 同样是 **0**。

@@ -172,13 +172,3 @@ await deepgram.manage.createProjectKey(project.project_id, {
 **一句话答法**
 
 > 只给了 `usage:write` 一个 scope，就是「能提交转录请求」这一件事。它不带 `keys:write`，所以拿到这把 key 也没法用它铸新 key 提权；不带读权限，连用量和账单都看不到。最坏情况就是 60 秒内被人蹭掉一点转录额度——把爆炸半径压到这个程度，才是这个设计真正的产出。
-
----
-
-## ⚠️ 归属待处理
-
-`git blame` 显示 `/api/deepgram/route.ts` 全文 64 行**每一行**都是 `58ea6195 (Teresa Tian 2024-08-28)`，包括 `time_to_live_in_seconds: 60` 和 `scopes: ["usage:write"]` 两行。同样地，`useDeepgram.ts` / `useAudioToText.ts` / `useAudioStream.ts` / `server/actions/copilot.ts` / `api/stripe/webhook/route.ts` / `CopilotSection.tsx` 里 `Fzgt` 的行数均为 **0**。
-
-本仓库 `Fzgt <fzgt320@gmail.com>` 共 14 个提交，集中在 landing page / navbar / email login / cheatsheet 侧边栏 / resumeParser API / updateReminders 表 / next.config 去 console / **`ci.yml`（`92b5605` 2024-04-08，这个确实是你的）**。
-
-→ Beyz 四条 bullet 里能被 git 支撑的只有第 4 条的 CI gate。**这条得先定，再决定这份笔记的答案要不要说出口。**
