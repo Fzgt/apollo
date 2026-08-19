@@ -60,7 +60,7 @@ export function PostRow({
         className={cn(
           'absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary opacity-0 transition-opacity duration-200',
           'group-hover:opacity-100 group-focus-within:opacity-100',
-          isRead && 'bg-emerald-500 opacity-100'
+          isRead && 'bg-success opacity-100'
         )}
         style={!isRead && accent ? { backgroundColor: `#${accent}` } : undefined}
       />
@@ -68,7 +68,7 @@ export function PostRow({
 
       <div
         className="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-sm font-semibold tabular-nums text-muted-foreground"
-        style={accent ? { backgroundColor: `#${accent}26` } : undefined}
+        style={accent ? { backgroundColor: `#${accent}38` } : undefined}
         title={`issue #${post.number}`}
       >
         {post.number}
@@ -90,16 +90,16 @@ export function PostRow({
         <div className="mt-0.5 flex min-w-0 items-center overflow-hidden text-xs text-muted-foreground">
           <span className="min-w-0 flex-1 truncate">{post.excerpt}</span>
           {shownLabels.length > 0 && (
-            <div className="ml-2 hidden shrink-0 items-center gap-1.5 border-l border-border pl-2 xl:flex">
+            <div className="ml-2 hidden shrink-0 items-center gap-1.5 border-l border-border pl-2 md:flex">
               {shownLabels.map((label) => (
                 <span
                   key={label.name}
-                  className="inline-flex max-w-24 items-center gap-1 truncate rounded border border-border bg-background/50 px-1.5 py-0.5 text-[10px] text-muted-foreground"
+                  className="inline-flex max-w-24 items-center gap-1 truncate rounded border border-border bg-muted/60 px-1.5 py-0.5 text-[11px] text-muted-foreground"
                   title={label.name}
                 >
                   {label.color && (
                     <span
-                      className="size-1.5 shrink-0 rounded-full"
+                      className="size-2 shrink-0 rounded-full"
                       style={{ backgroundColor: `#${label.color}` }}
                     />
                   )}
@@ -107,7 +107,7 @@ export function PostRow({
                 </span>
               ))}
               {extraLabels > 0 && (
-                <span className="text-[10px] tabular-nums text-muted-foreground/70">
+                <span className="text-[11px] tabular-nums text-muted-foreground/70">
                   +{extraLabels}
                 </span>
               )}
@@ -131,7 +131,7 @@ export function PostRow({
             'absolute inset-y-0 right-0 hidden items-center rounded-md px-2 text-[11px] font-medium transition-opacity duration-150 sm:inline-flex',
             'group-hover:pointer-events-none group-hover:opacity-0 group-focus-within:pointer-events-none group-focus-within:opacity-0',
             isRead
-              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+              ? 'bg-success/15 text-success'
               : 'text-muted-foreground'
           )}
         >
@@ -150,7 +150,7 @@ export function PostRow({
             className={cn(
               'inline-flex h-8 items-center gap-1 rounded-md px-2 text-xs transition-colors',
               isRead
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                ? 'bg-success/15 text-success'
                 : 'hover:bg-muted'
             )}
             title={isRead ? '标记为未读' : '标记为已读'}

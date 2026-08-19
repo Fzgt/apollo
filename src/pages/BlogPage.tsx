@@ -48,8 +48,8 @@ function Chip({
       className={cn(
         'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors',
         active
-          ? 'border-foreground bg-foreground text-background'
-          : 'border-border text-muted-foreground hover:border-foreground/40 hover:bg-muted hover:text-foreground'
+          ? 'border-primary/50 bg-primary/15 font-medium text-primary'
+          : 'border-border bg-muted/50 text-muted-foreground hover:border-primary/30 hover:bg-muted hover:text-foreground'
       )}
     >
       {children}
@@ -331,8 +331,8 @@ export default function BlogPage() {
                       >
                         {label.color && (
                           <span
-                            className="size-1.5 rounded-full"
-                            style={{ backgroundColor: active ? undefined : `#${label.color}` }}
+                            className="size-2 rounded-full"
+                            style={{ backgroundColor: `#${label.color}` }}
                           />
                         )}
                         {label.name}
