@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # 每 6 小时重建一次，把 Blog 仓库新写的 issues 烘进静态快照。
+  # 访客那边其实不用等：/blog 打开时会自己再问一次 GitHub API。
+  schedule:
+    - cron: '0 */6 * * *'
 
 permissions:
   contents: read
@@ -25,6 +29,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      # 同步博客快照。GitHub 挂了就用仓库里已提交的那份，不该卡住部署
+      - run: npm run sync:blog
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build

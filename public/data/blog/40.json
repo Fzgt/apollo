@@ -1,0 +1,6 @@
+{
+  "number": 40,
+  "title": "AI related concepts",
+  "body": "## MCP\n<img width=\"400\" height=\"200\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/23b89882-e7de-4f68-afb9-665b76b93439\" />\n\n> Agent 之所以能动手，是因为有 Tools；MCP 让 Agent 能以标准化方式接入更多外部 Tools。",
+  "updatedAt": "2026-08-11T15:00:54Z"
+}

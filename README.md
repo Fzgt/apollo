@@ -28,6 +28,19 @@ status: todo                                   # todo | doing | done，驱动首
 
 加新图标：在 `src/content/notes/navigation.tsx` 的 `ICONS` 里补一行。
 
+## 博客（/blog）
+
+文章不写在这个仓库，写在 [Fzgt/Blog](https://github.com/Fzgt/Blog) 的 issues 里。
+`/blog` 路由负责把它们搬过来，两条路接力：
+
+1. **构建期快照** —— `npm run sync:blog` 把 issues 抓成 `public/data/blog/`（索引一份，正文按 issue 号一篇一份），
+   随产物发布，首屏零等待、离线也有内容。部署流水线每次都会重跑，另外每 6 小时定时重建一次。
+2. **运行期同步** —— 打开页面时浏览器再问一次 GitHub API（Blog 是公开仓库，不需要 token），
+   拿到新写的文章就地替换，右上角也有手动「同步」按钮。
+
+限流（未登录 60 次/小时）或断网时第 2 步静默失败，页面回落到快照并标一句数据截止时间。
+所以：**在 Blog 仓库开个 issue，文章就会出现在站上，这边不用改任何代码。**
+
 ## 怎么改
 
 - **本地**：编辑 `.md`，`git push`，GitHub Actions 自动构建上线（约一分钟）。
@@ -38,8 +51,9 @@ status: todo                                   # todo | doing | done，驱动首
 
 ```bash
 npm install
-npm run dev      # http://localhost:8080
-npm run check    # lint + typecheck + build
+npm run dev        # http://localhost:8080
+npm run check      # lint + typecheck + build
+npm run sync:blog  # 重新抓一份 Blog issues 快照
 ```
 
 ## 技术栈

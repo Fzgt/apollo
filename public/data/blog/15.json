@@ -1,0 +1,6 @@
+{
+  "number": 15,
+  "title": "待定",
+  "body": "执行代码分析 和 生成报告 都可以在sonar cloud进行，只需要在跑CI的时候sonar scanner或者GitActions插件传数据给sonar cloud\n\n### 生成的报告内容\n- 潜在运行时错误，未使用的变量，死代码\n- 安全漏洞 XSS、SQL注入风险。不安全的函数/库版本\n- 代码异味：过长的函数、类，重复代码，命名不规范，过深嵌套\n",
+  "updatedAt": "2026-07-28T08:13:28Z"
+}
