@@ -5,6 +5,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SiteNavbar } from '@/components/layout/SiteNavbar';
 import { SITE_NAME, SITE_TAGLINE } from '@/content/site';
+import { EditProvider } from '@/lib/edit-store';
 import NotFound from './pages/NotFound';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -44,20 +45,22 @@ function RouteFallback() {
 }
 
 const App = () => (
-  <TooltipProvider>
-    <PageMeta />
-    <ScrollToTop />
-    <Toaster />
-    <Sonner />
-    <SiteNavbar />
-    <Suspense fallback={<RouteFallback />}>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/docs" element={<DocsPage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Suspense>
-  </TooltipProvider>
+  <EditProvider>
+    <TooltipProvider>
+      <PageMeta />
+      <ScrollToTop />
+      <Toaster />
+      <Sonner />
+      <SiteNavbar />
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/docs" element={<DocsPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </TooltipProvider>
+  </EditProvider>
 );
 
 export default App;

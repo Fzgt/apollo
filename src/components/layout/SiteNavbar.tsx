@@ -5,6 +5,7 @@ import { Menu, X, Github, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 import { REPO_URL, SITE_NAME } from '@/content/site';
+import { EditLock } from '@/components/docs/EditLock';
 
 const NAV_LINKS = [
   { label: '总览', href: '/' },
@@ -87,6 +88,7 @@ export function SiteNavbar() {
             <div className="flex-1" />
 
             <div className="hidden items-center gap-3 md:flex">
+              <EditLock />
               {themeButton}
               <a
                 href={REPO_URL}
@@ -100,6 +102,7 @@ export function SiteNavbar() {
             </div>
 
             <div className="flex items-center gap-2 md:hidden">
+              <EditLock />
               {themeButton}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

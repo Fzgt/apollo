@@ -1,0 +1,19 @@
+# 编辑层 API。和静态站分开部署：
+#   站  → GitHub Pages（fzgt.github.io/apollo）
+#   API → 这个 Worker
+#
+# 部署前先设三个密钥（值不会进仓库、也不会出现在命令行里）：
+#   npx wrangler secret put DATABASE_URL  --config wrangler.api.toml
+#   npx wrangler secret put EDIT_PASSWORD --config wrangler.api.toml
+#   npx wrangler secret put EDIT_SECRET   --config wrangler.api.toml
+#
+# 然后：npm run api:deploy
+
+name = "apollo-api"
+main = "worker/index.ts"
+compatibility_date = "2026-08-06"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[observability]
+enabled = true
