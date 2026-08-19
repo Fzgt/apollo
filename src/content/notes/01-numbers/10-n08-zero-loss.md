@@ -1,5 +1,5 @@
 ---
-title: "#8 · without a single dollar of financial loss"
+title: "#8 · 零资损（已从简历删除）"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1
@@ -7,15 +7,21 @@ level: 前置
 status: done
 ---
 
-# #8 · `without a single dollar of financial loss`
+# #8 · `without a single dollar of financial loss`（已删）
 
-> **全份简历最难自证的一句。** 前面七条都还能靠工具、公式或后端口径撑住，**这一条撑不住**——它不是一个可观测的量，是一个**审计结论**。
+> **2026-08-19：这句话已经从简历上删掉了**，换成第六节的改法 A。所以这一篇不再是「待办」，是**背景知识**——句子没了，但「零资损」这个话题你一讲提现就会自己撞上去，答法还得会。
 >
-> 这一篇的目标不是帮你圆它，是让你想清楚：**要么找到它真正的出处并限定口径，要么今天就把措辞改掉。**
+> 原本的定位：全份简历最难自证的一句。前面七条都还能靠工具、公式或后端口径撑住，**这一条撑不住**——它不是一个可观测的量，是一个**审计结论**。
 
 ## 对应简历原句
 
 Baidu 第 3 条 bullet（v40）：
+
+**现在（v40，2026-08-19 起）：**
+
+> Built the withdrawal client on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures, never successes.
+
+**原句（已删）：**
 
 > Delivered a withdrawal flow that sustained 2,000+ peak QPS through request locking and defensive fallbacks, **without a single dollar of financial loss**.
 
@@ -124,13 +130,13 @@ Baidu 第 3 条 bullet（v40）：
 2. 「我参与的这个版本上线后没有发生资损类事故」
 3. 「没有出现过重复出款的线上问题」
 
-**今天要定的就是：你当时听到的那句话，限定的是哪个范围。** 记不清就退到最保守的那个说法。
+**句子已经删了，所以这不再是要在简历上定死的事**——但被问起时你说的是哪个范围，仍然要心里有数。记不清就退到最保守的那个说法。
 
 ---
 
-## 六、这条大概率要改，改法
+## 六、已改（2026-08-19 采用改法 A）
 
-**现在这句话有三个问题叠在一起：**
+**原句三个问题叠在一起：**
 
 1. **绝对化**——`a single dollar` 不留余地
 2. **归因错位**——它在 `through request locking and defensive fallbacks` 的射程里，语法上把零资损归给了前端的锁
@@ -138,7 +144,13 @@ Baidu 第 3 条 bullet（v40）：
 
 **三个改法，推荐第一个：**
 
-### 改法 A：换成你真正做过的过程性事实（推荐）
+### ✅ 改法 A：换成你真正做过的过程性事实（**已采用**）
+
+简历上的落地措辞（比下面这句短，因为原版会溢出成三行）：
+
+> Built the withdrawal client on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures, never successes.
+
+原提案：
 
 > Built the withdrawal flow's client layer on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures rather than successes.
 
@@ -150,27 +162,17 @@ Baidu 第 3 条 bullet（v40）：
 - `sustained ... peak` 的张力没了（改成 `peaking above`）
 - **QPS 不再被归因给前端的锁**——改成「客户端层建在一条峰值超过 2000 QPS 的链路上」，规模还在，但不声称是你扛住的（见 [#7](/docs?section=numbers&item=n07-qps) 第一节）
 
-### 改法 B：保留结论但严格限定范围
+### 备选：如果日后确认了口径，想把结论写回去
 
-> Delivered a withdrawal flow that peaked above 2,000 QPS through request locking and client-generated idempotency keys, with reconciliation finding no payout discrepancies over the campaign.
+只有一种写法站得住——把「对账」和「活动期间」两个限定词写进句子本身：
 
-保住了分量，加上 `reconciliation`（对账）和 `over the campaign`（活动期间）两个限定词。**前提是你确认这确实是当时的结论。**
+> ... with reconciliation finding no payout discrepancies over the campaign.
 
-### 改法 C：最小改动，只删掉末句
-
-> Delivered a withdrawal flow that sustained 2,000+ peak QPS through request locking and defensive fallbacks.
-
-最省事，但 **[#7](/docs?section=numbers&item=n07-qps) 那个归因问题还在**——语法上仍然把「扛住 2000 QPS」归给了前端的请求锁和错误兜底。
-
-### 对照
-
-原句：
-
-> Delivered a withdrawal flow that sustained 2,000+ peak QPS through request locking and defensive fallbacks, without a single dollar of financial loss.
+**前提是你能确认这确实是当时复盘的结论。** 确认不了就维持现状：三个可证的动作，比一个不可证的结果安全。
 
 ---
 
-## 七、如果不改，被追问时怎么答
+## 七、被追问「零资损」时怎么答（句子已删，但话题会自己撞上来）
 
 **两步走，别恋战：**
 
@@ -213,13 +215,3 @@ Baidu 第 3 条 bullet（v40）：
 ## 九、一句话答法
 
 > 零资损是对账的结论，不是我测的——前端连钱最终有没有出去都看不到，那是 T+1 拿渠道对账文件逐笔核对之后，财务侧给出的结果，我是在活动复盘上听到的，口径是那次活动期间。资损防线是分层的：前端减少无效重复请求，网关做限流风控，数据库靠幂等键的唯一索引和余额不变量保证正确性，异步状态机防乱序，最后靠对账兜底发现并修补。**真正做到零净损失靠的是最后那层兜底，不是前面几层完美。** 我负责的是第一层——幂等 key 提前生成并存 sessionStorage 让刷新后保持一致、in-flight 期间锁掉重复点击、任何不确定的结果一律按失败提示引导用户去查提现记录。**这些是降低风险，不是提供保证。**
-
----
-
-## 十、今天的产出
-
-**这条不做完不要往下走**（复习计划里明确写了「答不住就当天改到 v41」）：
-
-1. 回忆并确定：那句话的**出处**（复盘会？后端同事？文档？）和**时间范围**（活动期间？整个版本？）
-2. 如果确定不了 → **直接走改法 A**，把不可证的结论换成可证的动作
-3. 如果确定得了 → 至少走**改法 B**，把「活动期间」和「对账」两个限定词写进去

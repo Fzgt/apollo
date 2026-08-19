@@ -15,14 +15,14 @@ status: done
 
 Baidu 第 2 条 bullet（v40）：
 
-> Built a virtualized React feed **serving 5M+ daily page views** on a custom useVirtualList hook over IntersectionObserver, cutting live DOM nodes from 500+ to roughly 20 and scroll from 30 to a stable 60 FPS.
+> Built a virtualized React feed **serving 5M+ daily page views** on a custom useVirtualList hook over IntersectionObserver: live DOM nodes stay near 100 at any scroll depth, scroll from 30 to a stable 60 FPS.
 
 同一条 bullet 里有三个数字，但它们**性质完全不同**：
 
 | 数字 | 性质 | 谁测的 |
 |---|---|---|
 | **5M+ daily PV** | 规模背书 | 埋点系统，你只是读报表 |
-| 500+ → ~20 DOM | 优化成果 | 你自己用 DevTools 测的 |
+| DOM 节点恒定 ~100 | 优化成果 | 你自己用 DevTools 测的 |
 | 30 → 60 FPS | 优化成果 | 你自己用 DevTools 测的 |
 
 **这一篇只管第一个。** 后两个是审计表第 5、6 项，工具和方法完全是另一套。

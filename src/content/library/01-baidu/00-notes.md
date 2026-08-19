@@ -12,7 +12,7 @@ icon: landmark
 >
 > **2026-08-18 重排：编号已经和 v40 简历对齐**（原来笔记里虚拟列表排第 3、提现排第 2，和简历反着，已互换）。每条开头引的都是 **v40 原文**。
 >
-> **一处要盯住**：v40 提现那条新增了 `without a single dollar of financial loss`。零资损是财务对账的结论，不是前端能测出来的东西——这句在复习计划 Day 1 审计表第 8 项，**答不住就得改简历措辞**，别指望这份笔记替你圆。
+> **已处理（2026-08-19）**：提现那条原本带着 `without a single dollar of financial loss`。零资损是财务对账的结论，不是前端能测出来的东西——已经从简历上删掉，换成请求锁、幂等 key、不确定按失败处理这三个可证的动作。下面正文里的 v40 原句已同步更新。
 >
 > 另：百度的代码不在本机，这段全靠这份笔记 + 回忆，所以它的分量比另外两份重。
 
@@ -136,9 +136,9 @@ class JSBridge {
 ---
 
 
-## Bullet 2 ⭐ 虚拟列表 —— 500+ DOM → 20,30 FPS → 60 FPS
+## Bullet 2 ⭐ 虚拟列表 —— DOM 节点恒定 ~100,30 FPS → 60 FPS
 
-> v40 原文：Built a virtualized React feed serving 5M+ daily page views on a custom useVirtualList hook over IntersectionObserver, cutting live DOM nodes from 500+ to roughly 20 and scroll from 30 to a stable 60 FPS.
+> v40 原文：Built a virtualized React feed serving 5M+ daily page views on a custom useVirtualList hook over IntersectionObserver: live DOM nodes stay near 100 at any scroll depth, scroll from 30 to a stable 60 FPS.
 >
 > （v40 删掉了 React 16.8 / Webpack 4 / 好看视频这些背景，讲的时候仍然可以补，但简历上不再承诺。）
 
@@ -346,7 +346,7 @@ TanStack Virtual 就是这么做的(`measureElement` 就是方案 1 + 2 的结�
 
 #### 30 FPS → 60 FPS 的量化归因
 面试官可能问"具体是哪一步让 FPS 提升了?":
-1. **DOM 节点数量下降**:500 → 20,layout 时间从 ~10ms 降到 ~0.5ms,单帧 JS/Layout 阶段释放
+1. **DOM 节点数量下降**:五百多个 → 恒定一百上下(渲染 14~15 行 × 每卡八九个元素),layout 时间从 ~10ms 降到 ~0.5ms,单帧 JS/Layout 阶段释放
 2. **`translateY` 替代 `top`**:每次滚动只做 composite,GPU 处理,主线程无压力
 3. **`passive: true`**:scroll 事件不阻塞浏览器合成
 4. **IntersectionObserver 替代 scroll 判断**:去掉每次滚动的 `getBoundingClientRect`,避免强制同步布局(FSL,forced sync layout)
@@ -383,7 +383,7 @@ TanStack Virtual 就是这么做的(`measureElement` 就是方案 1 + 2 的结�
   → 这是 CSS 新特性,浏览器自己"跳过不可见 item 的 layout/paint"。是虚拟列表的**更轻量替代**。适合小到中等列表,大列表(万级)还是要虚拟化。
 
 **极端追问:**
-- **500 → 20 DOM 节点提升是怎么测的?**
+- **DOM 节点从五百多降到一百上下是怎么测的?**
   → Chrome DevTools Performance → 录制滚动过程 → 看 Rendering 面板 → DOM Nodes 计数。或者 `document.querySelectorAll('*').length`。
 - **30 → 60 FPS 是怎么测的?**
   → Chrome DevTools Performance → 录制 → 看 FPS 折线图。或者用 `PerformanceObserver` 监听长任务(long task > 50ms)。
@@ -401,7 +401,7 @@ TanStack Virtual 就是这么做的(`measureElement` 就是方案 1 + 2 的结�
 
 ## Bullet 3:提现功能 QPS 2000+ —— 高并发场景下的前端防御
 
-> v40 原文：Delivered a withdrawal flow that sustained 2,000+ peak QPS through request locking and defensive fallbacks, without a single dollar of financial loss.
+> v40 原文：Built the withdrawal client on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures, never successes.
 
 ### 核心技术点
 
