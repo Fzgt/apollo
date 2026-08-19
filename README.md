@@ -2,7 +2,7 @@
 
 两周简历面试复习笔记站。内容全部是 Markdown，本地写、push 上线。
 
-线上：<https://fzgt.github.io/Apollo/>
+线上：<https://fzgt.github.io/apollo/>
 
 ## 内容在哪
 
@@ -31,7 +31,7 @@ status: todo                                   # todo | doing | done，驱动首
 ## 怎么改
 
 - **本地**：编辑 `.md`，`git push`，GitHub Actions 自动构建上线（约一分钟）。
-- **浏览器**：在仓库页面按 `.` 进 [github.dev](https://github.dev/Fzgt/Apollo)，改完直接 commit。
+- **浏览器**：在仓库页面按 `.` 进 [github.dev](https://github.dev/Fzgt/apollo)，改完直接 commit。
 - 每页底部有「在 GitHub 上编辑这一页」的直达链接。
 
 ## 本地开发
@@ -48,12 +48,12 @@ React 18 · TypeScript · Vite · Tailwind CSS · shadcn/ui · Framer Motion · 
 笔记通过 `import.meta.glob` 在构建期全部内联进 bundle，所以换页零延迟、搜索是全文的。
 
 部署：GitHub Pages，走 `.github/workflows/deploy.yml`（lint → typecheck → build → 发布）。
-站挂在 `/Apollo/` 子路径下，所以 `vite.config.ts` 的 `base` 和 router 的 `basename` 必须一致；
+站挂在 `/apollo/` 子路径下，所以 `vite.config.ts` 的 `base` 和 router 的 `basename` 必须一致；
 Pages 没有 SPA 回退，构建后会把 `index.html` 复制成 `404.html` 兜住深链接。
 换自定义域名时把 `VITE_BASE=/` 传进构建即可。`wrangler.toml` 留着，想回 Cloudflare 随时能用。
 
 ## 注意
 
 站点整体挂了 `noindex, nofollow` —— 这是私人笔记，不该被搜索引擎收录。
-注意 `robots.txt` 在 `fzgt.github.io/Apollo/robots.txt` 这个位置对爬虫无效（只有域名根目录的才算数），
+注意 `robots.txt` 在 `fzgt.github.io/apollo/robots.txt` 这个位置对爬虫无效（只有域名根目录的才算数），
 子路径部署下真正起作用的是页面里的 `noindex` meta。

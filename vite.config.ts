@@ -6,9 +6,9 @@ import { componentTagger } from "lovable-tagger";
 
 // GitHub Pages 把站点挂在 https://<user>.github.io/<repo>/ 下，
 // 所以产物里的资源路径必须带仓库名前缀。VITE_BASE 可以覆盖（换自定义域名时设成 "/"）。
-const BASE = process.env.VITE_BASE ?? "/Apollo/";
+const BASE = process.env.VITE_BASE ?? "/apollo/";
 
-// GitHub Pages 没有 SPA 回退，深链接（/Apollo/docs?note=...）会直接 404。
+// GitHub Pages 没有 SPA 回退，深链接（/apollo/docs?note=...）会直接 404。
 // 惯例做法：把 index.html 复制一份成 404.html，Pages 拿它兜底，react-router 再接管路由。
 function spaFallback(): Plugin {
   return {
