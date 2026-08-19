@@ -140,19 +140,33 @@ Baidu 第 3 条 bullet（v40）：
 
 ### 改法 A：换成你真正做过的过程性事实（推荐）
 
-> ...with idempotency keys generated client-side and persisted across reloads, and every uncertain outcome surfaced as a failure rather than a success.
+> Built the withdrawal flow's client layer on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures rather than successes.
 
-**丢掉一个不可证的结果，换来两个可证的动作。** 而且这两个动作恰恰是**前端在资损防线里真正的贡献**，比空喊零资损有说服力得多。
+**丢掉一个不可证的结果，换来三个可证的动作**，而且这三个动作恰恰是前端在资损防线里真正的贡献。
+
+顺带一次性解决三个问题：
+
+- 零资损那句没了
+- `sustained ... peak` 的张力没了（改成 `peaking above`）
+- **QPS 不再被归因给前端的锁**——改成「客户端层建在一条峰值超过 2000 QPS 的链路上」，规模还在，但不声称是你扛住的（见 [#7](/docs?section=numbers&item=n07-qps) 第一节）
 
 ### 改法 B：保留结论但严格限定范围
 
-> ...with no payout discrepancies found in reconciliation during the campaign.
+> Delivered a withdrawal flow that peaked above 2,000 QPS through request locking and client-generated idempotency keys, with reconciliation finding no payout discrepancies over the campaign.
 
-保住了分量，加上了「对账」「活动期间」两个限定词。**前提是你确认这确实是当时的结论。**
+保住了分量，加上 `reconciliation`（对账）和 `over the campaign`（活动期间）两个限定词。**前提是你确认这确实是当时的结论。**
 
-### 改法 C：直接删掉
+### 改法 C：最小改动，只删掉末句
 
-把这条 bullet 的重心放回技术实现。**最省事，也最安全。**
+> Delivered a withdrawal flow that sustained 2,000+ peak QPS through request locking and defensive fallbacks.
+
+最省事，但 **[#7](/docs?section=numbers&item=n07-qps) 那个归因问题还在**——语法上仍然把「扛住 2000 QPS」归给了前端的请求锁和错误兜底。
+
+### 对照
+
+原句：
+
+> Delivered a withdrawal flow that sustained 2,000+ peak QPS through request locking and defensive fallbacks, without a single dollar of financial loss.
 
 ---
 
