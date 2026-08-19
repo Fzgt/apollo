@@ -49,7 +49,7 @@ export function PostRow({
         layout: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] },
       }}
       className={cn(
-        'group relative flex min-h-16 cursor-pointer items-center gap-3 overflow-hidden border-b border-border px-3 py-2.5 outline-none last:border-b-0',
+        'group relative flex min-h-16 cursor-pointer items-center gap-3 overflow-hidden border-b border-border py-2.5 pl-4 pr-3 outline-none last:border-b-0',
         'transition-[border-color,background-color,box-shadow,opacity] duration-200',
         'hover:z-10 hover:border-primary/25 hover:shadow-[0_8px_24px_-22px_hsl(var(--foreground))]',
         'focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring'
@@ -65,14 +65,6 @@ export function PostRow({
         style={!isRead && accent ? { backgroundColor: `#${accent}` } : undefined}
       />
       <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/[0.055] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100" />
-
-      <div
-        className="relative z-10 flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-sm font-semibold tabular-nums text-muted-foreground"
-        style={accent ? { backgroundColor: `#${accent}38` } : undefined}
-        title={`issue #${post.number}`}
-      >
-        {post.number}
-      </div>
 
       <div className="relative z-10 min-w-0 flex-1">
         <div className="flex min-w-0 items-center gap-1.5">

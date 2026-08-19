@@ -1,8 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { SiteNavbar } from '@/components/layout/SiteNavbar';
 import { SITE_NAME, SITE_TAGLINE } from '@/content/site';
 import NotFound from './pages/NotFound';
@@ -44,12 +41,12 @@ function RouteFallback() {
   );
 }
 
+// 注：模板自带的 Toaster / Sonner / TooltipProvider 站里一处没用到，
+// 却把整个 @radix-ui（180kB+）拖进首屏。真要用回来再挂。
 const App = () => (
-  <TooltipProvider>
+  <>
     <PageMeta />
     <ScrollToTop />
-    <Toaster />
-    <Sonner />
     <SiteNavbar />
     <Suspense fallback={<RouteFallback />}>
       <Routes>
@@ -59,7 +56,7 @@ const App = () => (
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
-  </TooltipProvider>
+  </>
 );
 
 export default App;

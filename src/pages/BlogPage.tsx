@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -10,8 +10,6 @@ import {
   Search,
   SearchX,
 } from 'lucide-react';
-import { MarkdownRenderer } from '@/components/docs/MarkdownRenderer';
-import { TableOfContents } from '@/components/docs/TableOfContents';
 import { PostRow } from '@/components/blog/PostRow';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { BLOG_ISSUES_URL, BLOG_REPO } from '@/content/site';
@@ -26,6 +24,15 @@ import {
   type BlogPostMeta,
 } from '@/lib/blog';
 import { cn } from '@/lib/utils';
+
+// 正文渲染（react-markdown + prism）和目录只在点开文章时才需要，
+// 静态引入会让列表页白白多下 150kB+，所以拆成按需加载。
+const MarkdownRenderer = lazy(() =>
+  import('@/components/docs/MarkdownRenderer').then((m) => ({ default: m.MarkdownRenderer }))
+);
+const TableOfContents = lazy(() =>
+  import('@/components/docs/TableOfContents').then((m) => ({ default: m.TableOfContents }))
+);
 
 /** 入场动画只给首屏这些条，再往下滚出来的不抖 */
 const ENTRANCE_LIMIT = 20;
@@ -231,7 +238,12 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="pt-20 md:pt-24">
-        <div className="container mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-4">
+        <div
+          className={cn(
+            'container mx-auto px-4 sm:px-6 lg:px-4',
+            activeNumber ? 'max-w-[1400px]' : 'max-w-5xl'
+          )}
+        >
           {/* 页头 */}
           <div className="flex flex-col gap-3 border-b border-border py-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -453,7 +465,11 @@ export default function BlogPage() {
 
                     {!isBodyLoading && !bodyError && body !== null && (
                       <div className="pb-8">
-                        <MarkdownRenderer content={body} />
+                        <Suspense
+                          fallback={<p className="text-sm text-muted-foreground">正文渲染中…</p>}
+                        >
+                          <MarkdownRenderer content={body} />
+                        </Suspense>
                       </div>
                     )}
 
@@ -512,7 +528,9 @@ export default function BlogPage() {
                 {body && (
                   <div className="hidden w-56 shrink-0 xl:block">
                     <div className="sticky top-36">
-                      <TableOfContents content={body} />
+                      <Suspense fallback={null}>
+                        <TableOfContents content={body} />
+                      </Suspense>
                     </div>
                   </div>
                 )}
