@@ -1,5 +1,5 @@
 ---
-title: "#1 · 60 秒临时凭证"
+title: "Beyz #1 · 60 秒临时凭证"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

@@ -1,5 +1,5 @@
 ---
-title: "#2 · six subscription events"
+title: "Beyz #2 · six subscription events"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

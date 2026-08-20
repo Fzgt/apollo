@@ -1,5 +1,5 @@
 ---
-title: "#15 · about a second end to end"
+title: "Periplus #15 · about a second end to end"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

@@ -1,5 +1,5 @@
 ---
-title: "#10 补充 · SplitChunks 实践"
+title: "百度 #10 补充 · SplitChunks 实践"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

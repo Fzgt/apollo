@@ -1,5 +1,5 @@
 ---
-title: "#16 · golden set 相关数字"
+title: "Periplus #16 · golden set 四个数字"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

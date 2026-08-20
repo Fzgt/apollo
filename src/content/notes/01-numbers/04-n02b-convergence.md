@@ -1,5 +1,5 @@
 ---
-title: "#2 补充 · 早到晚到与收敛"
+title: "Beyz #2 补充 · 早到晚到与收敛"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

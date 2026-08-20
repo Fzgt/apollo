@@ -1,5 +1,5 @@
 ---
-title: "#5 · DOM 节点恒定 ~100"
+title: "百度 #5 · 500+ → ~20 DOM nodes"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

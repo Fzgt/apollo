@@ -1,5 +1,5 @@
 ---
-title: "#9 · 10+ incompatible packages"
+title: "百度 #9 · 10+ incompatible packages"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

@@ -1,5 +1,5 @@
 ---
-title: "#17 · 1,020 generated layouts"
+title: "WinterFell #17 · 1,020 generated layouts"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

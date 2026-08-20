@@ -1,5 +1,5 @@
 ---
-title: "#4 · 5M+ daily page views"
+title: "百度 #4 · 5M+ daily page views"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

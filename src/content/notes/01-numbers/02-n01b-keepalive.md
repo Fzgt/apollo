@@ -1,5 +1,5 @@
 ---
-title: "#1 补充 · keepAlive 与 10 秒心跳"
+title: "Beyz #1 补充 · keepAlive 与 10 秒心跳"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

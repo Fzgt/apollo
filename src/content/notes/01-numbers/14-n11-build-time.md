@@ -1,5 +1,5 @@
 ---
-title: "#11 · 70% build-time reduction"
+title: "百度 #11 · 70% build-time reduction"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1

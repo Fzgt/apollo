@@ -1,5 +1,5 @@
 ---
-title: "#19 · 2.6× triangles"
+title: "WinterFell #19 · 2.6× triangles"
 section: Day 1 · 数字口径
 icon: calculator
 day: 1
