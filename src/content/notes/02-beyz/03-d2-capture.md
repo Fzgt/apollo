@@ -1,5 +1,5 @@
 ---
-title: "Day 2 · 采集层"
+title: "Day 2 · 参考 · 采集层"
 section: Beyz · Day 2–4
 icon: radio
 day: 2
@@ -7,6 +7,8 @@ level: S
 status: done
 ---
 
+
+> ⚪ **速查**。核心结论（抓的是标签页音频不是麦克风）已在必看清单里；这里是被追问 `video:true` 和 250 ms 时翻的。
 # Day 2 · 采集层：getDisplayMedia 与 250 ms 切片
 
 > 回答 [Day 2 清单](/docs?section=beyz&item=day02) 的 **Q6**（为什么必须 `video: true`）和 **Q7**（250 ms 怎么定的）。

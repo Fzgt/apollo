@@ -1,5 +1,5 @@
 ---
-title: "Day 2 · 转录与触发"
+title: "Day 2 · 必看 · 转录与触发"
 section: Beyz · Day 2–4
 icon: radio
 day: 2
@@ -7,6 +7,8 @@ level: S
 status: done
 ---
 
+
+> 🔴 **必看**。这条 bullet 最核心的两个技术点：防重复上屏、为什么在 utterance end 触发。
 # Day 2 · 转录合并与 utterance-end 触发
 
 > 回答 **Q2**（怎么防止 interim 和 final 重复上屏）和 **Q4**（为什么在 utterance end 触发而不是每句都触发）。

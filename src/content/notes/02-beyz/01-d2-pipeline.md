@@ -1,5 +1,5 @@
 ---
-title: "Day 2 · 数据流全图"
+title: "Day 2 · 必看 · 数据流全图"
 section: Beyz · Day 2–4
 icon: radio
 day: 2
@@ -7,6 +7,8 @@ level: S
 status: done
 ---
 
+
+> 🔴 **必看**。今天的产出（那张图）和要出声练的两段话都在这里。
 # Day 2 主篇 · 实时 copilot 的数据流全图
 
 > 这是 Day 2 的当日产出：**一张完整数据流图，含失败分支**。四个分支笔记从这里展开：

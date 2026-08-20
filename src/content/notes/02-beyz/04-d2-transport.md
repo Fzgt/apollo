@@ -1,5 +1,5 @@
 ---
-title: "Day 2 · 传输层"
+title: "Day 2 · 参考 · 传输层"
 section: Beyz · Day 2–4
 icon: radio
 day: 2
@@ -7,6 +7,8 @@ level: S
 status: done
 ---
 
+
+> ⚪ **速查**。核心结论（为什么 WebSocket、断了没重连）已在必看清单里；这里是被追问 WebRTC、backpressure、重连方案时翻的。
 # Day 2 · 传输层：为什么是 WebSocket，断了会怎样
 
 > 回答 **Q1**（Why WebSocket instead of SSE or polling）和 **Q3**（Deepgram 断了会怎样）。
