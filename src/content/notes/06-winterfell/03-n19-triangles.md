@@ -1,6 +1,6 @@
 ---
-title: "#19 · 2.6× triangles"
-section: WinterFell · Day 12
+title: "② 数字 · 2.6× triangles"
+section: WinterFell
 icon: gamepad-2
 tier: ref
 day: 12

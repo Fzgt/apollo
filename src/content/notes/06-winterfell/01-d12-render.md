@@ -1,14 +1,14 @@
 ---
-title: "Day 12 · 渲染管线与那次冻结"
+title: "①④ 渲染管线与那次冻结"
 tier: must
-section: WinterFell · Day 12
+section: WinterFell
 icon: gamepad-2
 day: 12
 level: B
 status: done
 ---
 
-# Day 12 · WinterFell 四条怎么讲
+# WinterFell 四条怎么讲
 
 > 🔴 **必看**。⚠️ **第 ② ③ 条（instancing 与关卡扫描）的测量方法已经写透了**：[#17 布局扫描](/docs?section=winterfell&item=n17-layouts) · [#18 draw calls](/docs?section=winterfell&item=n18-draw-calls) · [#19 三角形](/docs?section=winterfell&item=n19-triangles) · [#20 gap](/docs?section=winterfell&item=n20-gap)。
 >

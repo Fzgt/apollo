@@ -1,6 +1,6 @@
 ---
-title: "#10 补充 · SplitChunks 实践"
-section: 百度 · Day 6–7
+title: "④ SplitChunks 实践"
+section: 百度
 icon: landmark
 tier: ref
 day: 6

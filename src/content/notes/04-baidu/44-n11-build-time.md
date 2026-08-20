@@ -1,6 +1,6 @@
 ---
-title: "#11 · 70% build-time reduction"
-section: 百度 · Day 6–7
+title: "④ 数字 · 70% 构建时间"
+section: 百度
 icon: landmark
 tier: ref
 day: 6

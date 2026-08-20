@@ -1,6 +1,6 @@
 ---
-title: "#9 · 10+ incompatible packages"
-section: 百度 · Day 6–7
+title: "④ 数字 · 10+ 不兼容包"
+section: 百度
 icon: landmark
 tier: ref
 day: 6

@@ -1,14 +1,14 @@
 ---
-title: "Day 5 · 命令式 SDK 与框架共处"
+title: "① 命令式 SDK 与框架共处"
 tier: ref
-section: BioMap · Day 5
+section: BioMap
 icon: microscope
 day: 5
 level: B
 status: done
 ---
 
-# Day 5 · 命令式 SDK 与框架共处（速查）
+# 命令式 SDK 与框架共处（速查）
 
 > ⚪ **这一问要往通用高度答**：换成 ECharts、Monaco、Mapbox、AG Grid 是完全一样的处理方式。
 >

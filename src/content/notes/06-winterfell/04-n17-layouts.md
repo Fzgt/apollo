@@ -1,6 +1,6 @@
 ---
-title: "#17 · 1,020 generated layouts"
-section: WinterFell · Day 12
+title: "③ 数字 · 1,020 generated layouts"
+section: WinterFell
 icon: gamepad-2
 tier: ref
 day: 12

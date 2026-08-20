@@ -1,6 +1,6 @@
 ---
-title: "#14 · 406 server tests"
-section: Periplus · Day 8–11
+title: "④ 数字 · 406 server tests"
+section: Periplus
 icon: workflow
 tier: ref
 day: 10

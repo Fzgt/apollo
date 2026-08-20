@@ -1,14 +1,14 @@
 ---
-title: "Day 9 · 证据与裁决"
+title: "② 证据与裁决"
 tier: must
-section: Periplus · Day 8–11
+section: Periplus
 icon: workflow
 day: 9
 level: S
 status: done
 ---
 
-# Day 9 · 「代码而不是 prompt」这条怎么讲
+# 「代码而不是 prompt」这条怎么讲
 
 > 🔴 **必看**。⚠️ 机制细节以 [Library 的 Periplus AI 笔记](/library?section=periplus&item=ai) 为主（Claim/Evidence/Verdict 三层对象模型那一节）。**这一篇给口播稿 + 那张最值钱的分工表。**
 

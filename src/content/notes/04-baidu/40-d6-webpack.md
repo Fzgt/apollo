@@ -1,14 +1,14 @@
 ---
-title: "Day 6 · Webpack 3 → 5 迁移"
+title: "④ Webpack 3 → 5 迁移"
 tier: must
-section: 百度 · Day 6–7
+section: 百度
 icon: landmark
 day: 6
 level: A
 status: done
 ---
 
-# Day 6 · Webpack 迁移这条怎么讲
+# Webpack 迁移这条怎么讲
 
 > 🔴 **必看**。⚠️ **这条 bullet 的五个数字 Day 1 全审过了**，这里只补概念层和口播稿，追问直接跳回去。
 

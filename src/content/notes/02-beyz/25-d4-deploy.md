@@ -1,14 +1,14 @@
 ---
-title: "Day 4 · 部署与 CI/CD"
+title: "④ 部署与 CI/CD"
 tier: must
-section: Beyz · Day 2–4
+section: Beyz
 icon: radio
 day: 4
 level: A
 status: done
 ---
 
-# Day 4 · 部署这条怎么答赢
+# 部署这条怎么答赢
 
 > 🔴 **必看**。`Dockerized / EC2 / PM2 / GitHub Actions` 这几个词会让面试官顺手问下去，而**这几问的标准答案里恰好有好几个我当时做得不对**——**主动说出来是这条 bullet 最大的价值。**
 

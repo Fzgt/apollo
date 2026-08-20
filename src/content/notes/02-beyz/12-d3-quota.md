@@ -1,14 +1,14 @@
 ---
-title: "Day 3 · 用量与配额"
+title: "② 用量与配额"
 tier: must
-section: Beyz · Day 2–4
+section: Beyz
 icon: key-round
 day: 3
 level: S
 status: done
 ---
 
-# Day 3 · token 用量与套餐配额
+# token 用量与套餐配额
 
 > 🔴 **必看**。⚠️ **有个必须自己先知道的发现**：简历这半句的实际实现和字面读起来的不一样。**别等面试官查出来。**
 

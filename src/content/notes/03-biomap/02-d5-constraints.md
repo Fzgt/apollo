@@ -1,14 +1,14 @@
 ---
-title: "Day 5 · 把约定变成约束"
+title: "②④ 把约定变成约束"
 tier: must
-section: BioMap · Day 5
+section: BioMap
 icon: microscope
 day: 5
 level: B
 status: done
 ---
 
-# Day 5 · 把约定变成约束
+# 把约定变成约束
 
 > 🔴 **必看**。covers bullet ②（ESLint 边界）和 ④（MSW + 设计系统）。**这两条表面没关系，其实是同一个思想的两次应用**——合起来讲比分开讲各强一倍。
 

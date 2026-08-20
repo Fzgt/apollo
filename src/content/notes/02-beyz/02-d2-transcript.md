@@ -1,14 +1,14 @@
 ---
-title: "Day 2 · 转录与触发"
+title: "① 转录与触发"
 tier: must
-section: Beyz · Day 2–4
+section: Beyz
 icon: radio
 day: 2
 level: S
 status: done
 ---
 
-# Day 2 · 转录合并与 utterance-end 触发
+# 转录合并与 utterance-end 触发
 
 > 🔴 **必看**。这是整条 bullet 里最需要动脑子的一段，也是 `interim and finalized transcripts reconciled in the client` 的全部内容。
 

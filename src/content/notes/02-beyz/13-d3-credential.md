@@ -1,14 +1,14 @@
 ---
-title: "Day 3 · 凭证"
+title: "② 凭证"
 tier: ref
-section: Beyz · Day 2–4
+section: Beyz
 icon: key-round
 day: 3
 level: S
 status: done
 ---
 
-# Day 3 · 凭证（速查）
+# 凭证（速查）
 
 > ⚪ **这半条 Day 1 已经学完**：[#1 · 60 秒临时凭证](/docs?section=beyz&item=n01-ephemeral-keys)（为什么 60 秒 / 谁签发 / 续签 / scope）· [#1 补充 · keepAlive](/docs?section=beyz&item=n01b-keepalive)（10 秒心跳）。
 >

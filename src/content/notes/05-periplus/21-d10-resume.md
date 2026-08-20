@@ -1,14 +1,14 @@
 ---
-title: "Day 10 · 持久化与 resume"
+title: "③ 持久化与 resume"
 tier: must
-section: Periplus · Day 8–11
+section: Periplus
 icon: workflow
 day: 10
 level: S
 status: done
 ---
 
-# Day 10 · 崩了能续跑这条怎么讲
+# 崩了能续跑这条怎么讲
 
 > 🔴 **必看**。⚠️ **④ scripted seam 那半边你 Day 1 已经学透了**：[#14 · 406 tests](/docs?section=periplus&item=n14-server-tests)（四个 seam、三种注入手法、为什么注入时钟）· [#15 · 一秒](/docs?section=periplus&item=n15-end-to-end)。**今天只讲 ③ 持久化与 resume。**
 

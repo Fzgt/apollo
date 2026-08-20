@@ -1,6 +1,6 @@
 ---
-title: "#18 · 129 → 76 draw calls"
-section: WinterFell · Day 12
+title: "② 数字 · 129 → 76 draw calls"
+section: WinterFell
 icon: gamepad-2
 tier: ref
 day: 12

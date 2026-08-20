@@ -1,6 +1,6 @@
 ---
-title: "#10 · ~15% bundle reduction"
-section: 百度 · Day 6–7
+title: "④ 数字 · ~15% 体积"
+section: 百度
 icon: landmark
 tier: ref
 day: 6

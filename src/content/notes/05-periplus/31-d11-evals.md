@@ -1,14 +1,14 @@
 ---
-title: "Day 11 · golden set 与 evals"
+title: "⑤ golden set 与 evals"
 tier: must
-section: Periplus · Day 8–11
+section: Periplus
 icon: workflow
 day: 11
 level: S
 status: done
 ---
 
-# Day 11 · 评测这条怎么讲
+# 评测这条怎么讲
 
 > 🔴 **必看**。⚠️ **这一天你在 Day 1 已经写透了**：[#16 · golden set 四个数字](/docs?section=periplus&item=n16-golden-set)（冻结什么、断言范围、四个 case 逐个精读、oracle 钉死模型判断、`gap_rate` 返回 1.0、三条局限、什么时候该上 LLM judge）。
 >

@@ -1,6 +1,6 @@
 ---
-title: "#16 · golden set 四个数字"
-section: Periplus · Day 8–11
+title: "⑤ 数字 · 4 case / 8 claim / 8727 tokens"
+section: Periplus
 icon: workflow
 tier: ref
 day: 11

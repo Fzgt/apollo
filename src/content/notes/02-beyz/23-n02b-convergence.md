@@ -1,6 +1,6 @@
 ---
-title: "#2 补充 · 早到晚到与收敛"
-section: Beyz · Day 2–4
+title: "③ 早到晚到与收敛"
+section: Beyz
 icon: radio
 tier: ref
 day: 4

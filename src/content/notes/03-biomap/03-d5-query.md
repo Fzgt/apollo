@@ -1,14 +1,14 @@
 ---
-title: "Day 5 · TanStack Query 三层"
+title: "③ TanStack Query 三层"
 tier: must
-section: BioMap · Day 5
+section: BioMap
 icon: microscope
 day: 5
 level: B
 status: done
 ---
 
-# Day 5 · server state 这条怎么答赢
+# server state 这条怎么答赢
 
 > 🔴 **必看**。**BioMap 四条里面试价值最高的一条**——server state 管理是前端高频区，这套结构能直接搬到任何项目。
 >

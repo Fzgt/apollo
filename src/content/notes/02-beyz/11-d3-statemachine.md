@@ -1,14 +1,14 @@
 ---
-title: "Day 3 · 四态机"
+title: "② 四态机"
 tier: must
-section: Beyz · Day 2–4
+section: Beyz
 icon: key-round
 day: 3
 level: S
 status: done
 ---
 
-# Day 3 · 四态机与重叠生成
+# 四态机与重叠生成
 
 > 🔴 **必看**。**这是 Day 3 唯一全新的技术内容**——凭证那半条 Day 1 已学完。
 >

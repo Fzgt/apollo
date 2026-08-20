@@ -1,14 +1,14 @@
 ---
-title: "Day 8 · 六阶段与 typed contract"
+title: "① 六阶段与 typed contract"
 tier: must
-section: Periplus · Day 8–11
+section: Periplus
 icon: workflow
 day: 8
 level: S
 status: done
 ---
 
-# Day 8 · 编排这条怎么讲
+# 编排这条怎么讲
 
 > 🔴 **必看**。⚠️ **机制原理以 [Library 的 Periplus AI 笔记](/library?section=periplus&item=ai) 为主**（618 行，六个 agent 逐一精读）。**这一篇只给三样它没有的**：口播稿、命名对照、以及那个会决定你可信度的追问。
 >

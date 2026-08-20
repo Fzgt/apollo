@@ -1,6 +1,6 @@
 ---
-title: "#2 · six subscription events"
-section: Beyz · Day 2–4
+title: "③ 数字 · six subscription events"
+section: Beyz
 icon: radio
 tier: ref
 day: 4

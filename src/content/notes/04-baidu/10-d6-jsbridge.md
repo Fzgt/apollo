@@ -1,14 +1,14 @@
 ---
-title: "Day 6 · H5 与 JSBridge"
+title: "① H5 与 JSBridge"
 tier: ref
-section: 百度 · Day 6–7
+section: 百度
 icon: landmark
 day: 6
 level: B
 status: done
 ---
 
-# Day 6 · H5 与 JSBridge（速查）
+# H5 与 JSBridge（速查）
 
 > ⚪ **B 级**，计划里明确写了「只要 30 秒版 + 一层追问」。别在这条上花时间。
 

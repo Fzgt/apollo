@@ -1,6 +1,6 @@
 ---
-title: "#1 · 60 秒临时凭证"
-section: Beyz · Day 2–4
+title: "② 数字 · 60 秒 TTL"
+section: Beyz
 icon: radio
 tier: ref
 day: 3

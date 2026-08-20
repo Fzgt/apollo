@@ -1,14 +1,14 @@
 ---
-title: "Day 2 · 端到端延迟"
+title: "① 端到端延迟"
 tier: ref
-section: Beyz · Day 2–4
+section: Beyz
 icon: radio
 day: 2
 level: S
 status: done
 ---
 
-# Day 2 · 端到端延迟（速查）
+# 端到端延迟（速查）
 
 > ⚪ 一句话记住就够：**用户感知的延迟里有个 2 秒的固定底座，那是设计不是性能。**
 

@@ -1,6 +1,6 @@
 ---
-title: "#4 · 5M+ daily page views"
-section: 百度 · Day 6–7
+title: "② 数字 · 5M+ daily page views"
+section: 百度
 icon: landmark
 tier: ref
 day: 7

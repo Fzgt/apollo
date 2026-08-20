@@ -1,14 +1,14 @@
 ---
-title: "Day 7 · 两条 S 级怎么讲"
+title: "②⑤ 虚拟列表与生产白屏"
 tier: must
-section: 百度 · Day 6–7
+section: 百度
 icon: landmark
 day: 7
 level: S
 status: done
 ---
 
-# Day 7 · 虚拟列表与生产白屏
+# 虚拟列表与生产白屏
 
 > 🔴 **必看**。⚠️ **这一天机制原理以 [Library 的百度笔记](/library?section=baidu&item=notes) 为主**——那边虚拟列表和白屏各有两百多行，写得比我细。
 >

@@ -1,14 +1,14 @@
 ---
-title: "Day 6 · 提现的前端防线"
+title: "③ 提现的前端防线"
 tier: must
-section: 百度 · Day 6–7
+section: 百度
 icon: landmark
 day: 6
 level: A
 status: done
 ---
 
-# Day 6 · 提现：前端能保证什么，不能保证什么
+# 提现：前端能保证什么，不能保证什么
 
 > 🔴 **必看**。⚠️ 数字口径 Day 1 已审：[#7 · 2,000+ peak QPS](/docs?section=baidu&item=n07-qps)（后端怎么扛住、监控还是压测）· [#8 · 零资损](/docs?section=baidu&item=n08-zero-loss)（对账才是出处、改法三选一）。**这里只讲前端那一层。**
 

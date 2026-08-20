@@ -1,6 +1,6 @@
 ---
-title: "#5 · 500+ → ~20 DOM nodes"
-section: 百度 · Day 6–7
+title: "② 数字 · DOM 节点恒定 ~100"
+section: 百度
 icon: landmark
 tier: ref
 day: 7

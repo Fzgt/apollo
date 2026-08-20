@@ -1,14 +1,14 @@
 ---
-title: "Day 2 · 采集层"
+title: "① 采集层"
 tier: ref
-section: Beyz · Day 2–4
+section: Beyz
 icon: radio
 day: 2
 level: S
 status: done
 ---
 
-# Day 2 · 采集层（速查）
+# 采集层（速查）
 
 > ⚪ 被追问 `video:true` 或 250ms 时翻这里。核心结论已在[必看清单](/docs?section=beyz&item=day02)。
 

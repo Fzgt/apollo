@@ -1,6 +1,6 @@
 ---
-title: "#8 · 零资损（最难自证）"
-section: 百度 · Day 6–7
+title: "③ 数字 · 零资损（已删）"
+section: 百度
 icon: landmark
 tier: ref
 day: 6

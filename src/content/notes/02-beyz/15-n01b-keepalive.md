@@ -1,6 +1,6 @@
 ---
-title: "#1 补充 · keepAlive 与 10 秒心跳"
-section: Beyz · Day 2–4
+title: "② 数字 · 10 秒 keepAlive"
+section: Beyz
 icon: radio
 tier: ref
 day: 3

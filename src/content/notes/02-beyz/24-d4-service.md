@@ -1,14 +1,14 @@
 ---
-title: "Day 4 · 定时任务与幂等"
+title: "④ 定时任务与幂等"
 tier: must
-section: Beyz · Day 2–4
+section: Beyz
 icon: radio
 day: 4
 level: A
 status: done
 ---
 
-# Day 4 · 定时任务这条怎么答赢
+# 定时任务这条怎么答赢
 
 > 🔴 **必看**。**按面试官会问什么组织**，每问：**事实（简短）→ 原理 → 生产级会怎么做**。第三段是赢的地方。
 

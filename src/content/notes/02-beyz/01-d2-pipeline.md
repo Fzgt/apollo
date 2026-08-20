@@ -1,14 +1,14 @@
 ---
-title: "Day 2 · 数据流全图"
+title: "① 数据流全图"
 tier: must
-section: Beyz · Day 2–4
+section: Beyz
 icon: radio
 day: 2
 level: S
 status: done
 ---
 
-# Day 2 · 实时 copilot 全链路
+# 实时 copilot 全链路
 
 > 🔴 **必看**。分支细节：[采集层](/docs?section=beyz&item=d2-capture) · [传输层](/docs?section=beyz&item=d2-transport) · [延迟](/docs?section=beyz&item=d2-latency) · [转录与触发](/docs?section=beyz&item=d2-transcript)
 

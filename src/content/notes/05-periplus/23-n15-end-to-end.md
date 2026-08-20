@@ -1,6 +1,6 @@
 ---
-title: "#15 · about a second end to end"
-section: Periplus · Day 8–11
+title: "④ 数字 · 约一秒跑完"
+section: Periplus
 icon: workflow
 tier: ref
 day: 10

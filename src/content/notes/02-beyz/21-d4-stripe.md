@@ -1,14 +1,14 @@
 ---
-title: "Day 4 · Stripe"
+title: "③ Stripe"
 tier: ref
-section: Beyz · Day 2–4
+section: Beyz
 icon: radio
 day: 4
 level: A
 status: done
 ---
 
-# Day 4 · Stripe（速查）
+# Stripe（速查）
 
 > ⚪ **这条 Day 1 已经学了大半**：[#2 · six subscription events](/docs?section=beyz&item=n02-stripe-events)（哪六个 / 两层事件模型 / 漏一个的后果 / 验签 / 幂等与乱序）· [#2 补充 · 早到晚到与收敛](/docs?section=beyz&item=n02b-convergence)（lifetime 不可降级）。
 >
