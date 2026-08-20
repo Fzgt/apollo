@@ -84,6 +84,29 @@ status: done
 
 > **这个区分值得说**：**缓存不负责判断「新不新鲜」，只负责「别重复干活」。** 新鲜度是业务语义，归 `evidence_is_stale` 管。
 
+
+## Q6：pgvector 那几个选择（代码里核过）
+
+```sql
+CREATE INDEX IF NOT EXISTS evidence_cache_embedding_idx
+    ON evidence_cache USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+```
+
+| 问 | 答 |
+|---|---|
+| **为什么余弦不是 L2？** | 语义相似度的惯例选择，**而且对向量长度不敏感**——两段话意思一样但长短不同时，余弦仍然判它们近。（向量做了 L2 归一化之后两者排序其实等价，但余弦的语义更直白。） |
+| **`lists = 100` 怎么定的？** | ivfflat 把向量空间切成 `lists` 个簇，查询只扫最近的几个簇，**这是个吞吐/召回的旋钮**，100 是常见起点。⚠️ **代码里没写调优依据，照实说是默认值。** |
+| **为什么 ivfflat 不是 HNSW？** | ⚠️ **代码里没有说明理由。** 我的理解：ivfflat **建索引快、占内存小**，适合这种写入频繁、行数中等的缓存；HNSW 查询更快但建索引慢、吃内存。**被问到就说这是权衡不是定论。** |
+
+**但有一行注释值得引**（`postgres_evidence.py:71-72`）：
+
+> *"a fresh database just gets a single-list index, which degrades to a full scan until enough rows accumulate. **That is a correct, if slow, index — never a wrong answer.**"*
+
+> ⭐ **冷启动时 ivfflat 只有一个簇，等于全表扫描——慢，但答案永远是对的。** 这体现的是**「宁可慢也不能错」**，和 [Day 9 那条「宁可没有日期也不要猜一个」](/docs?section=periplus&item=d9-evidence) 是同一个价值观。
+
+**还有一个 fail-soft 设计**：embedding 失败或数据库出错时，缓存**返回「没找到相似的」而不是抛异常**——所以 Postgres 抖一下只会导致重复抓一次页面，**不会让整个 run 挂掉**。
+
+
 ## Library 导航
 
 **Hermes 那一节**（stage gate / budget / bounded retry / replay）是今天的主材料，尤其 **stage gate 拦什么**——它和 replay 边界是同一件事的两面。
