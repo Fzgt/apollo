@@ -125,9 +125,11 @@ function CodeBlock({ className, children }: { className?: string; children: stri
           )}
         </button>
       </div>
-      <div className="absolute left-3 top-2 text-xs text-muted-foreground/60 uppercase tracking-wider">
-        {language}
-      </div>
+      {language !== 'text' && (
+        <div className="absolute left-3 top-2 text-xs text-muted-foreground/60 uppercase tracking-wider">
+          {language}
+        </div>
+      )}
       <pre className="max-w-full overflow-x-auto rounded-xl border border-border bg-card px-4 pb-4 pt-10 text-sm">
         <code ref={codeRef} className={`language-${language}`}>
           {children}
@@ -229,8 +231,11 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             </blockquote>
           ),
           code: ({ className, children, ...props }) => {
-            const isBlock = className?.includes('language-');
             const codeString = String(children).replace(/\n$/, '');
+            // 不带语言标记的围栏块（``` 直接换行）拿不到 className，只能靠换行
+            // 判断。漏掉这一步它会掉进下面的行内分支，white-space 被折叠、
+            // break-all 把单词拦腰截断，ASCII 图就整个散了。
+            const isBlock = className?.includes('language-') || codeString.includes('\n');
             
             if (isBlock) {
               return <CodeBlock className={className}>{codeString}</CodeBlock>;
