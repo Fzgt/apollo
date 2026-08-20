@@ -37,7 +37,7 @@ BioMap 第 3 条 bullet（v40）：
 
 ## Q1：为什么不在每个组件里直接 `useQuery`
 
-### ① 我当时怎么做的
+#### ① 我当时怎么做的
 
 一个文件导出三样东西（`Prometheus/src/features/blog/api/get-posts.ts`）：
 
@@ -72,7 +72,7 @@ export const usePosts = ({ options = {}, queryConfig } = {}) =>
 - **预取和读取用不同的配置** → 预取写进缓存的数据，详情页读不到
 - **改一次 queryFn 要改 N 处**
 
-### ③ 生产级会怎么做
+#### ③ 生产级会怎么做
 
 **这套结构本身就是生产级的**（它是 bulletproof-react 的标准模式）。真要往上加：
 
@@ -218,7 +218,7 @@ export const queryConfig = {
 
 ## Q7：hover prefetch 会不会浪费请求
 
-### ① 我当时怎么做的
+#### ① 我当时怎么做的
 
 ```ts
 // Prometheus/src/features/blog/components/post-card.tsx:84-85, :97
@@ -240,7 +240,7 @@ const prefetchPost = () => {
 2. **预取的是详情数据，不是大资源**——通常几 KB
 3. **不 `await`**（`:80-83` 的注释写明了）——预取失败不阻塞任何 UI
 
-### ③ 生产级会怎么做
+#### ③ 生产级会怎么做
 
 **代码注释自己就指出了改进方向（`post-card.tsx:44-47`）：**
 

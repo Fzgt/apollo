@@ -40,7 +40,7 @@ status: done
 
 ## 一、架构边界：ESLint 怎么强制依赖方向
 
-### ① 我当时怎么做的
+#### ① 我当时怎么做的
 
 参照实现 `Prometheus/.eslintrc.cjs`，注释里画了依赖方向图（`:116-124`）：
 
@@ -82,7 +82,7 @@ blog 引了 comments 的一个工具函数
 
 **`no-cycle` 解决的是真实的运行时 bug**：注释写了三条——模块初始化顺序不确定、可能拿到 `undefined`（模块还没初始化完）、难以维护。**第二条是真的会炸的**。
 
-### ③ 生产级会怎么做
+#### ③ 生产级会怎么做
 
 | 做法 | 说明 |
 |---|---|
@@ -97,7 +97,7 @@ blog 引了 comments 的一个工具函数
 
 ## 二、Q4：为什么 MSW 优于假 fetch
 
-### ① 我当时怎么做的
+#### ① 我当时怎么做的
 
 `Prometheus/src/testing/mocks/`：`@mswjs/data` 建内存数据库（`db.ts:42-69` 定义 post / comment 两个 model），handlers 定义接口行为，两个入口：
 
@@ -145,7 +145,7 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 | **前端能独立跑起来** | 后端接口还没写，前端已经能开发、能演示、能截图——**这就是简历里 `let frontend delivery run independent of backend progress` 的字面意思** |
 | **`@mswjs/data` 给的是有状态的 mock** | 不是写死的 JSON：POST 一条评论，GET 就能查到它。**能测完整的交互流程，而不只是渲染** |
 
-### ③ 生产级会怎么做
+#### ③ 生产级会怎么做
 
 | 做法 | 说明 |
 |---|---|

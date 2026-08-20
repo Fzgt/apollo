@@ -17,16 +17,33 @@ export function TableOfContents({ content, className }: TableOfContentsProps) {
 
   // Extract headings from markdown content
   const headings = useMemo(() => {
-    const regex = /^(#{1,3})\s+(.+)$/gm;
     const items: TocItem[] = [];
-    let match;
+    // 和 MarkdownRenderer 保持同一套去重规则：同名标题按出现次数补后缀。
+    // 两处必须扫到完全一样的标题集合，否则计数错位、id 就对不上：
+    //   1. 渲染端 1–4 级都参与计数，所以这里也扫到 4 级，只是目录只收前三级；
+    //   2. 围栏代码块里以 # 开头的行（shell 注释、Dockerfile 注释）不是标题，
+    //      markdown 解析器不会把它们当标题，正则会——所以要跳过围栏内部。
+    const slugSeen = new Map<string, number>();
+    let inFence = false;
 
-    while ((match = regex.exec(content)) !== null) {
+    for (const line of content.split('\n')) {
+      if (/^\s*(```|~~~)/.test(line)) {
+        inFence = !inFence;
+        continue;
+      }
+      if (inFence) continue;
+
+      const match = /^(#{1,4})\s+(.+)$/.exec(line);
+      if (!match) continue;
+
       const level = match[1].length;
       const text = match[2].trim();
+      const base = slugify(text);
+      const n = (slugSeen.get(base) ?? 0) + 1;
+      slugSeen.set(base, n);
 
       if (level <= 3) {
-        items.push({ id: slugify(text), text, level });
+        items.push({ id: n === 1 ? base : `${base}-${n}`, text, level });
       }
     }
 

@@ -140,13 +140,25 @@ function CodeBlock({ className, children }: { className?: string; children: stri
 }
 
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
+  // 同名标题会 slugify 成同一个 id，页面里就出现多个相同 id：点目录任何一条
+  // 都跳到第一个，滚动高亮也认错。这里按「文档内第几次出现」补后缀。
+  // 每次渲染新建计数器，react-markdown 按文档顺序调用这些组件，所以结果稳定。
+  // TableOfContents 用同一套规则，两边 id 才对得上。
+  const slugSeen = new Map<string, number>();
+  const headingId = (children: React.ReactNode) => {
+    const base = slugify(String(children));
+    const n = (slugSeen.get(base) ?? 0) + 1;
+    slugSeen.set(base, n);
+    return n === 1 ? base : `${base}-${n}`;
+  };
+
   return (
     <div className={cn('prose-docs max-w-full [overflow-wrap:anywhere]', className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => {
-            const id = slugify(String(children));
+            const id = headingId(children);
             return (
               <h1 id={id} className="mb-6 mt-8 scroll-mt-24 border-b border-border pb-4 text-3xl font-bold text-foreground first:mt-0 md:text-4xl">
                 {children}
@@ -154,7 +166,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             );
           },
           h2: ({ children }) => {
-            const id = slugify(String(children));
+            const id = headingId(children);
             return (
               <h2 id={id} className="mb-4 mt-10 scroll-mt-24 text-2xl font-semibold text-foreground md:text-3xl">
                 {children}
@@ -162,7 +174,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             );
           },
           h3: ({ children }) => {
-            const id = slugify(String(children));
+            const id = headingId(children);
             return (
               <h3 id={id} className="mb-3 mt-8 scroll-mt-24 text-xl font-semibold text-foreground md:text-2xl">
                 {children}
@@ -170,7 +182,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             );
           },
           h4: ({ children }) => {
-            const id = slugify(String(children));
+            const id = headingId(children);
             return (
               <h4 id={id} className="text-lg font-semibold text-foreground mb-2 mt-6 scroll-mt-24">
                 {children}
