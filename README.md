@@ -2,7 +2,7 @@
 
 # Apollo
 
-**两周简历面试复习笔记站。内容全部是 Markdown，本地写、push 上线。**
+**简历、面试与技术笔记站。内容全部是 Markdown，本地写、push 上线。**
 
 [![线上](https://img.shields.io/badge/线上-apollo--five--omega.vercel.app-000000?style=flat-square&logo=vercel&logoColor=white)](https://apollo-five-omega.vercel.app/)
 [![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square)](https://react.dev)
