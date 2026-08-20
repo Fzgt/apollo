@@ -69,7 +69,7 @@ Entry 入口
 
 **② 简历那句话的因果是错配的**
 
-> `extracting shared runtime through SplitChunksPlugin and turning on persistent caching — bundle size down ~15%, local build times down 70%`
+> `extracting vendor and runtime chunks and turning on persistent caching — bundle size down ~15%, local build times down 70%`
 
 **破折号把两个动作和两个结果笼统绑在一起**，但真实对应是：拆分 → **缓存命中率**（句子里没写）；持久化缓存 → 构建时间 ✅；**体积 → 来自 polyfill 移除和 tree shaking（句子里没提）**。
 

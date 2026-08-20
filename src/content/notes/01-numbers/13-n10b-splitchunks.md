@@ -9,15 +9,18 @@ status: done
 
 # #10 补充 · SplitChunks 的常见优化实践
 
-> 简历上关于 SplitChunks 只写了「抽出共享 runtime」，但**那其实不是 SplitChunksPlugin 干的事**，而且真正的收益也不在那儿。这一篇把这套东西完整讲一遍，用来回忆当时到底还做了什么。
+> ✅ **简历已经改掉了插件名归错那处**（现在写的是 `extracting vendor and runtime chunks`）。这一篇仍然要看——**真正的收益在哪、拆分为什么不减体积**，是被追问时的答案。
 
 ## 对应简历原句
 
 Baidu 第 4 条 bullet（v40）：
 
-> Led a Webpack 3-to-5 migration across 10+ incompatible packages, **extracting shared runtime through SplitChunksPlugin** and turning on persistent caching — bundle size down ~15%, local build times down 70%.
+> Led a Webpack 3-to-5 migration across 10+ incompatible packages, **extracting vendor and runtime chunks** and turning on persistent caching — bundle size down ~15%, local build times down 70% on warm builds.
 
 ---
+
+> **2026-08-20 改过**：原句是 `extracting shared runtime through SplitChunksPlugin ... local build times down 70%.`。**两处已解决**——插件名归错（`runtimeChunk` 不是 SplitChunksPlugin 的选项）和 cold/warm 口径都修了。**因果错配仍在**：拆分买到的是缓存命中率，体积下降来自 polyfill 移除和 tree shaking，句子里没提。
+
 
 ## 零、先纠正一个精度问题
 
@@ -30,7 +33,7 @@ optimization: {
 }
 ```
 
-所以 `extracting shared runtime through SplitChunksPlugin` 严格说是**把两件事安在了一个插件头上**。
+所以 `extracting vendor and runtime chunks` 严格说是**把两件事安在了一个插件头上**。
 
 **这不是硬伤**（懂 webpack 的人知道你在说什么），但**如果面试官正好很熟 webpack，这句话会露一下**。改法很简单：`extracting the webpack runtime and vendor chunks`——不点插件名就没问题了。
 

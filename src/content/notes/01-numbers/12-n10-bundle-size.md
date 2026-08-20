@@ -17,9 +17,12 @@ status: done
 
 Baidu 第 4 条 bullet（v40）：
 
-> Led a Webpack 3-to-5 migration across 10+ incompatible packages, extracting shared runtime through SplitChunksPlugin and turning on persistent caching — **bundle size down ~15%**, local build times down 70%.
+> Led a Webpack 3-to-5 migration across 10+ incompatible packages, extracting vendor and runtime chunks and turning on persistent caching — **bundle size down ~15%**, local build times down 70% on warm builds.
 
 ---
+
+> **2026-08-20 改过**：原句是 `extracting shared runtime through SplitChunksPlugin ... local build times down 70%.`。**两处已解决**——插件名归错（`runtimeChunk` 不是 SplitChunksPlugin 的选项）和 cold/warm 口径都修了。**因果错配仍在**：拆分买到的是缓存命中率，体积下降来自 polyfill 移除和 tree shaking，句子里没提。
+
 
 ## 一、怎么测（工具链）
 
@@ -134,7 +137,7 @@ ls -lh dist/*.js
 >
 > **代码分割通常不减少总体积，它是重新分配体积。** 详见 [#10 补充 · SplitChunks 实践](/docs?section=numbers&item=n10b-splitchunks)。
 >
-> 简历那句 `extracting shared runtime through SplitChunksPlugin ... — bundle size down ~15%` 读起来像是拆分带来了体积下降，**如果面试官顺着这个逻辑问，你得能主动纠正**：拆分带来的是缓存命中率，体积下降来自上面那张表。**主动纠正这一点，比什么都能证明你真懂。**
+> 简历那句 `extracting vendor and runtime chunks ... — bundle size down ~15%` 读起来像是拆分带来了体积下降，**如果面试官顺着这个逻辑问，你得能主动纠正**：拆分带来的是缓存命中率，体积下降来自上面那张表。**主动纠正这一点，比什么都能证明你真懂。**
 
 ---
 

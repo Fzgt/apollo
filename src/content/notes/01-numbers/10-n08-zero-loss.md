@@ -15,7 +15,7 @@ status: done
 
 ## 对应简历原句
 
-Baidu 第 3 条 bullet（v40）：
+Baidu 第 3 条 bullet（**v40 原句，已按本篇改法 A 改掉**）：
 
 **现在（v40，2026-08-19 起）：**
 

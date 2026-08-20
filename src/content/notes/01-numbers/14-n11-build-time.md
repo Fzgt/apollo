@@ -17,9 +17,12 @@ status: done
 
 Baidu 第 4 条 bullet（v40）：
 
-> Led a Webpack 3-to-5 migration across 10+ incompatible packages, extracting shared runtime through SplitChunksPlugin and turning on persistent caching — bundle size down ~15%, **local build times down 70%**.
+> Led a Webpack 3-to-5 migration across 10+ incompatible packages, extracting vendor and runtime chunks and turning on persistent caching — bundle size down ~15%, **local build times down 70% on warm builds**.
 
 ---
+
+> **2026-08-20 改过**：原句是 `extracting shared runtime through SplitChunksPlugin ... local build times down 70%.`。**两处已解决**——插件名归错（`runtimeChunk` 不是 SplitChunksPlugin 的选项）和 cold/warm 口径都修了。**因果错配仍在**：拆分买到的是缓存命中率，体积下降来自 polyfill 移除和 tree shaking，句子里没提。
+
 
 ## 一、这 70% 是从哪来的
 

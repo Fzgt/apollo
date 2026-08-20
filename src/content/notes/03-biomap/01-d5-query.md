@@ -12,7 +12,7 @@ status: done
 
 > 🔴 **必看**。**BioMap 四条里面试价值最高的一条**——server state 管理是前端高频区，这套结构能直接搬到任何项目。
 >
-> ⚠️ `LCP under 500 ms` 的口径问题见 [Day 1 #3](/docs?section=numbers&item=n03-lcp)（SPA 软导航不产生 LCP、没有埋点），这里不重复。参照实现在 Prometheus，不是 BioMap 本体。
+> ✅ 简历里 `LCP under 500 ms` 已换成 `detail pages open instantly, with no request at all`。**为什么原来那个指标不成立、现在这句凭什么成立，见 [Day 1 #3](/docs?section=numbers&item=n03-lcp)。** 参照实现在 Prometheus，不是 BioMap 本体。
 
 ## 先立住（开场定调）
 

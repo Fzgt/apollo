@@ -58,7 +58,7 @@ status: done
 
 **Q：`~20` 这个数字到底是节点数还是条目数？**
 
-⚠️ **简历写 `roughly 20 DOM nodes`，但一个 feed 卡片本身就是 8–15 个节点**——20 更像是**渲染出来的条目数**。（Library 那份标题已经改成「DOM 节点恒定 ~100」，和简历对不上，**两边要统一**。）详见 [#5](/docs?section=numbers&item=n05-dom-nodes)，推荐改法是 `mounted list items` 或 `rendered rows`。
+✅ **已解决**：简历现在写 `live DOM nodes stay near 100 at any scroll depth`。原来的 `roughly 20` 是把条目数写成了节点数（一个 feed 卡片本身就是 8–15 个节点）。**现在这个写法更强**——`at any scroll depth` 说的是「不随滚动深度增长」，正是虚拟列表真正的收益。详见 [#5](/docs?section=numbers&item=n05-dom-nodes)。
 
 **Q：白屏那条「第一个定位到」怎么讲？**
 
