@@ -1,5 +1,6 @@
 ---
-title: "Day 4 · 必看 · 定时任务与幂等"
+title: "Day 4 · 定时任务与幂等"
+tier: must
 section: Beyz · Day 2–4
 icon: radio
 day: 4

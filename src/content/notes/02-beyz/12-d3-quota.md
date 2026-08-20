@@ -1,5 +1,6 @@
 ---
-title: "Day 3 · 必看 · 用量与配额"
+title: "Day 3 · 用量与配额"
+tier: must
 section: Beyz · Day 2–4
 icon: key-round
 day: 3

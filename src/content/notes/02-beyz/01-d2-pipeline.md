@@ -1,5 +1,6 @@
 ---
-title: "Day 2 · 必看 · 数据流全图"
+title: "Day 2 · 数据流全图"
+tier: must
 section: Beyz · Day 2–4
 icon: radio
 day: 2

@@ -1,5 +1,6 @@
 ---
-title: "Day 2 · 参考 · 传输层"
+title: "Day 2 · 传输层"
+tier: ref
 section: Beyz · Day 2–4
 icon: radio
 day: 2

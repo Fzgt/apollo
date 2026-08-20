@@ -1,5 +1,6 @@
 ---
-title: "Day 5 · 必看 · TanStack Query 三层"
+title: "Day 5 · TanStack Query 三层"
+tier: must
 section: BioMap · Day 5
 icon: microscope
 day: 5

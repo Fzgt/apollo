@@ -23,6 +23,7 @@ export interface DocSection {
   items?: {
     id: string;
     title: string;
+    tier?: string;
   }[];
 }
 
@@ -49,6 +50,10 @@ export function toDocSections(sections: NoteSection[]): DocSection[] {
     id: section.id,
     title: section.title,
     icon: section.icon ? ICONS[section.icon] : undefined,
-    items: section.items.map((item) => ({ id: item.itemId, title: item.title })),
+    items: section.items.map((item) => ({
+      id: item.itemId,
+      title: item.title,
+      tier: item.tier,
+    })),
   }));
 }

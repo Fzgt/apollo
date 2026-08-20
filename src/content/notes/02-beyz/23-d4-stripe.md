@@ -1,5 +1,6 @@
 ---
-title: "Day 4 · 参考 · Stripe"
+title: "Day 4 · Stripe"
+tier: ref
 section: Beyz · Day 2–4
 icon: radio
 day: 4

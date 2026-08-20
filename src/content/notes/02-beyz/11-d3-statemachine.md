@@ -1,5 +1,6 @@
 ---
-title: "Day 3 · 必看 · 四态机"
+title: "Day 3 · 四态机"
+tier: must
 section: Beyz · Day 2–4
 icon: key-round
 day: 3

@@ -1,5 +1,6 @@
 ---
-title: "Day 4 · 必看 · 部署与 CI/CD"
+title: "Day 4 · 部署与 CI/CD"
+tier: must
 section: Beyz · Day 2–4
 icon: radio
 day: 4

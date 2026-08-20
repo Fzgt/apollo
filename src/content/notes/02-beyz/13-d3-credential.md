@@ -1,5 +1,6 @@
 ---
-title: "Day 3 · 参考 · 凭证"
+title: "Day 3 · 凭证"
+tier: ref
 section: Beyz · Day 2–4
 icon: key-round
 day: 3

@@ -1,5 +1,6 @@
 ---
-title: "Day 5 · 参考 · 命令式 SDK 与框架共处"
+title: "Day 5 · 命令式 SDK 与框架共处"
+tier: ref
 section: BioMap · Day 5
 icon: microscope
 day: 5

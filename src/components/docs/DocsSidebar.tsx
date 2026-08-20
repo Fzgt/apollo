@@ -124,13 +124,27 @@ export function DocsSidebar({
                             key={item.id}
                             onClick={() => handleItemClick(section.id, item.id)}
                             className={cn(
-                              'w-full text-left px-3 py-2 rounded-lg text-sm transition-all duration-200',
+                              'w-full flex items-start gap-2 text-left px-3 py-2 rounded-lg text-sm transition-all duration-200',
                               isItemActive
                                 ? 'bg-primary/10 text-primary font-medium'
-                                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                : item.tier === 'must'
+                                  ? 'text-foreground/90 hover:bg-muted hover:text-foreground'
+                                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                             )}
                           >
-                            {item.title}
+                            {/* 必看用实心点，速查用空心点，日程页不带点 */}
+                            {item.tier && (
+                              <span
+                                aria-hidden
+                                className={cn(
+                                  'mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full border',
+                                  item.tier === 'must'
+                                    ? 'border-primary bg-primary'
+                                    : 'border-muted-foreground/50 bg-transparent'
+                                )}
+                              />
+                            )}
+                            <span className="flex-1">{item.title}</span>
                           </button>
                         );
                       })}

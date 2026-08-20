@@ -1,5 +1,6 @@
 ---
-title: "Day 5 · 必看 · 把约定变成约束"
+title: "Day 5 · 把约定变成约束"
+tier: must
 section: BioMap · Day 5
 icon: microscope
 day: 5

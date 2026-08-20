@@ -34,6 +34,8 @@ export interface Note extends NoteFrontmatter {
   level: string;
   /** 相对仓库根的源文件路径，用于「在 GitHub 上编辑」 */
   sourcePath: string;
+  /** 'must' = 必看，'ref' = 速查；侧边栏据此加标记 */
+  tier?: string;
   content: string;
 }
 
@@ -112,6 +114,7 @@ export function buildCollection(raw: Record<string, string>, contentRoot: string
       level: data.level || '—',
       status: isStatus(data.status) ? data.status : 'todo',
       sourcePath: `${contentRoot}/${dirName}/${fileName}`,
+      tier: data.tier,
       content: body,
     };
 

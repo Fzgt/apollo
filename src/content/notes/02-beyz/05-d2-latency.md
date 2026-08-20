@@ -1,5 +1,6 @@
 ---
-title: "Day 2 · 参考 · 端到端延迟"
+title: "Day 2 · 端到端延迟"
+tier: ref
 section: Beyz · Day 2–4
 icon: radio
 day: 2
