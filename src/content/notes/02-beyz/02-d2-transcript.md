@@ -120,6 +120,20 @@ confirmed = "What's your biggest weakness?"
 
 **用一个 className 工具做字符串拼接算是取巧**，被问到可以坦率说：*「这里其实是借了 clsx 的『跳过空值 + 空格连接』行为，语义上不太贴切，`[a, b].filter(Boolean).join(' ')` 更直白。」*
 
+### 顺带：`filler_words: false`
+
+```js
+// useAudioToText.ts:87
+filler_words: false
+```
+
+**过滤掉 uh / um / er 这类填充词。** 两个收益：
+
+- 屏幕上的转写更干净，用户读起来不费劲
+- **喂给 GPT-4o 的 prompt 噪声更少**——「uh, so, um, tell me about, uh, a time」和「So tell me about a time」对模型是两个输入质量
+
+**代价**：如果哪天要做「面试表现分析」（比如统计口头禅频率），这些词已经在识别阶段被丢了，拿不回来。**是个明确的取舍，不是白捡的。**
+
 ---
 
 ## 三、Q4：为什么在 utterance end 触发
@@ -225,6 +239,22 @@ for await (const delta of readStreamableValue(suggestion)) {
 
 > **不加会怎样**：答案越长，每次重渲染的开销越大，到后面输入框可能开始卡顿——**因为渲染答案的更新在和用户交互抢主线程**。
 
+### 流式回答怎么保证顺序
+
+**这一问看起来吓人，其实答案很短——但答不出来会显得没想过并发。**
+
+```js
+for await (const text of textStream) { stream.update(text) }   // 服务端
+for await (const delta of readStreamableValue(v)) { ... }       // 客户端
+```
+
+**两端都是 `for await`，也就是串行消费一个 async iterable。**
+
+- `streamText` 返回的 `textStream` 是**有序的异步迭代器**，前一个 chunk 消费完才轮到下一个
+- RSC 的 streamable value 是**单向追加**的，客户端只做字符串拼接，没有乱序的可能
+
+> **换句话说：这里根本没有并发，所以不存在顺序问题。** 真正需要担心顺序的是「多个请求同时在跑」——而那个场景被四态机挡掉了（`Generating` 期间直接 return，Day 3 的内容）。
+
 ---
 
 ## 五、预期追问速查
@@ -238,3 +268,5 @@ for await (const delta of readStreamableValue(suggestion)) {
 | 2000 ms 怎么定的？ | 比句中换气长、比尴尬沉默短；面试场景问完会真停顿，所以这个信号可靠。换场景要重调 |
 | 为什么只带 4 条历史？ | token 成本和延迟；代价是长面试里的早期上下文丢失 |
 | `startTransition` 干什么？ | 把每 token 的重渲染标为低优先级可中断，避免和用户交互抢主线程 |
+| `filler_words: false` 是什么？ | 滤掉 uh/um；转写更干净、prompt 噪声更少。代价是做不了口头禅分析 |
+| 流式回答怎么保证顺序？ | 两端都是 `for await` 串行消费有序的 async iterable，**这里没有并发**；真正的并发被四态机挡掉了 |
