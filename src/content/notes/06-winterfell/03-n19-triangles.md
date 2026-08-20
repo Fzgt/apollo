@@ -1,15 +1,16 @@
 ---
-title: "WinterFell #19 · 2.6× triangles"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#19 · 2.6× triangles"
+section: WinterFell · Day 12
+icon: gamepad-2
+tier: ref
+day: 12
 level: 前置
 status: done
 ---
 
 # #19 · `triangles submitted up 2.6×`
 
-> **材料说明**：WinterFell 在本机，和 [#18](/docs?section=numbers&item=n18-draw-calls) 是同一次测量、同一份 harness。
+> **材料说明**：WinterFell 在本机，和 [#18](/docs?section=winterfell&item=n18-draw-calls) 是同一次测量、同一份 harness。
 >
 > **这条是整份简历里唯一一个「变差了的数字」**——而它恰恰是最能加分的一条，因为它证明你在报**代价**，不只是报**收益**。
 
@@ -90,7 +91,7 @@ three.js 默认对**每个 Mesh** 做这件事：每帧遍历场景，拿每个 
 
 **用一个瓶颈资源，换一个非瓶颈资源——这就是这笔交易划算的全部理由。**
 
-而 [#18](/docs?section=numbers&item=n18-draw-calls) 里那条 `fps.p50 > 115` 的提示正好佐证了「GPU 有富余」：四个场景的帧率都顶在合成器 120 的上限上，**harness 自己就说了 `the GPU still has headroom at this resolution`。**
+而 [#18](/docs?section=winterfell&item=n18-draw-calls) 里那条 `fps.p50 > 115` 的提示正好佐证了「GPU 有富余」：四个场景的帧率都顶在合成器 120 的上限上，**harness 自己就说了 `the GPU still has headroom at this resolution`。**
 
 > **⚠️ 但这个结论是有前提的，必须主动说**：
 >
@@ -102,7 +103,7 @@ three.js 默认对**每个 Mesh** 做这件事：每帧遍历场景，拿每个 
 
 ## 四、2.6× 是怎么测的
 
-**和 [#18](/docs?section=numbers&item=n18-draw-calls) 是同一次测量**——同一个 harness、同一份采样、同一个 2×2 受控实验（WebGPU/WebGL × instancing 开关）。
+**和 [#18](/docs?section=winterfell&item=n18-draw-calls) 是同一次测量**——同一个 harness、同一份采样、同一个 2×2 受控实验（WebGPU/WebGL × instancing 开关）。
 
 数据来源：`src/utils/PerfProbe.tsx:64`
 

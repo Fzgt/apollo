@@ -1,8 +1,9 @@
 ---
-title: "百度 #8 · 零资损（最难自证）"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#8 · 零资损（最难自证）"
+section: 百度 · Day 6–7
+icon: landmark
+tier: ref
+day: 6
 level: 前置
 status: done
 ---
@@ -25,7 +26,7 @@ Baidu 第 3 条 bullet（**v40 原句，已按本篇改法 A 改掉**）：
 
 > Delivered a withdrawal flow that sustained 2,000+ peak QPS through request locking and defensive fallbacks, **without a single dollar of financial loss**.
 
-和 [#7](/docs?section=numbers&item=n07-qps) 是同一条 bullet。#7 那个数至少后端监控里真实存在，**这一句连「存在于哪个系统里」都答不上来**。
+和 [#7](/docs?section=baidu&item=n07-qps) 是同一条 bullet。#7 那个数至少后端监控里真实存在，**这一句连「存在于哪个系统里」都答不上来**。
 
 ---
 
@@ -160,7 +161,7 @@ Baidu 第 3 条 bullet（**v40 原句，已按本篇改法 A 改掉**）：
 
 - 零资损那句没了
 - `sustained ... peak` 的张力没了（改成 `peaking above`）
-- **QPS 不再被归因给前端的锁**——改成「客户端层建在一条峰值超过 2000 QPS 的链路上」，规模还在，但不声称是你扛住的（见 [#7](/docs?section=numbers&item=n07-qps) 第一节）
+- **QPS 不再被归因给前端的锁**——改成「客户端层建在一条峰值超过 2000 QPS 的链路上」，规模还在，但不声称是你扛住的（见 [#7](/docs?section=baidu&item=n07-qps) 第一节）
 
 ### 备选：如果日后确认了口径，想把结论写回去
 

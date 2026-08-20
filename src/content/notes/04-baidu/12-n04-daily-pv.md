@@ -1,8 +1,9 @@
 ---
-title: "百度 #4 · 5M+ daily page views"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#4 · 5M+ daily page views"
+section: 百度 · Day 6–7
+icon: landmark
+tier: ref
+day: 7
 level: 前置
 status: done
 ---

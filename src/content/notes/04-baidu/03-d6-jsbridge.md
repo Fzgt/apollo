@@ -90,4 +90,4 @@ class JSBridge {
 
 **冷问：怎么保证请求不丢？** 用 **1×1 的 `hm.gif` 图片请求**而不是 XHR——图片请求**天然跨域不受同源策略限制**，而且**页面卸载时存活率更高**。（现代更好的做法是 `navigator.sendBeacon`，浏览器专门为「卸载时可靠上报」提供的 API。）
 
-> PV 口径和统计链路详见 [#4 · 5M+ daily page views](/docs?section=numbers&item=n04-daily-pv)。
+> PV 口径和统计链路详见 [#4 · 5M+ daily page views](/docs?section=baidu&item=n04-daily-pv)。

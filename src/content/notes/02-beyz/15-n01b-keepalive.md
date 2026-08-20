@@ -1,15 +1,16 @@
 ---
-title: "Beyz #1 补充 · keepAlive 与 10 秒心跳"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#1 补充 · keepAlive 与 10 秒心跳"
+section: Beyz · Day 2–4
+icon: radio
+tier: ref
+day: 3
 level: 前置
 status: done
 ---
 
 # #1 补充 · keepAlive 与 10 秒心跳
 
-> [#1](/docs?section=numbers&item=n01-ephemeral-keys) 讲的是 60 秒 TTL（凭证的寿命）。这一篇讲挨着它的另一个数字：10 秒心跳（连接的寿命）。**这两个数字管的是完全不同的事，是这条 bullet 最容易讲混的地方。**
+> [#1](/docs?section=beyz&item=n01-ephemeral-keys) 讲的是 60 秒 TTL（凭证的寿命）。这一篇讲挨着它的另一个数字：10 秒心跳（连接的寿命）。**这两个数字管的是完全不同的事，是这条 bullet 最容易讲混的地方。**
 
 ## 对应简历原句
 

@@ -94,7 +94,7 @@ FRESHNESS_DAYS = {
 
 > *"`as_of` makes replay and freshness tests stable. It defaults to the current UTC date, **never to a date inferred by the model**."*
 
-**时间是业务输入不是环境噪音**——不注入的话，一个测「30 天内的价格应该 supported」的用例过几个月会自己变红。**这和 [#14 里注入时钟](/docs?section=numbers&item=n14-server-tests) 是同一个道理。**
+**时间是业务输入不是环境噪音**——不注入的话，一个测「30 天内的价格应该 supported」的用例过几个月会自己变红。**这和 [#14 里注入时钟](/docs?section=periplus&item=n14-server-tests) 是同一个道理。**
 
 **② 日期抽取只认发布者声明的**（`extract.py:259-265`）
 

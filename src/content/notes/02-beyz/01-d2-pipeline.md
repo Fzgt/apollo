@@ -55,7 +55,7 @@ status: done
                                                 CopilotSection.tsx:257-266
 ```
 
-> **注意服务端的位置：音频从不经过自己的服务器**，只有第⑦步生成才走 Server Action。**这个拓扑就是 [Day 1 #1 凭证](/docs?section=numbers&item=n01-ephemeral-keys) 存在的全部原因**——直连意味着浏览器必须持有 Deepgram 凭证。
+> **注意服务端的位置：音频从不经过自己的服务器**，只有第⑦步生成才走 Server Action。**这个拓扑就是 [Day 1 #1 凭证](/docs?section=beyz&item=n01-ephemeral-keys) 存在的全部原因**——直连意味着浏览器必须持有 Deepgram 凭证。
 
 ## 失败分支（当日产出要求）
 
@@ -65,7 +65,7 @@ status: done
 | 2 | 选了屏幕但没勾「分享音频」 | 显式检查 `getAudioTracks()[0]` → `onError` |
 | 3 | **空音频包** | `if (e.data.size > 0)`——**发 size 0 的包 Deepgram 会直接关连接**，不是防御性编程是必需的 |
 | 4 | **Deepgram 断开** | ⚠️ **只改状态，没有自动重连**（见[传输层](/docs?section=beyz&item=d2-transport)） |
-| 5 | 麦克风暂停致连接空闲 | 每 10 秒 `keepAlive()`（见 [#1 补充](/docs?section=numbers&item=n01b-keepalive)） |
+| 5 | 麦克风暂停致连接空闲 | 每 10 秒 `keepAlive()`（见 [#1 补充](/docs?section=beyz&item=n01b-keepalive)） |
 | 6 | 上一条还在生成又触发 | `statusRef.current === Generating` 直接 return（Day 3 四态机） |
 | 7 | 提问配额用完 | `useEffect` **持续检查**，不只开始时查一次 |
 | 8 | Free 用户走到生成 | 服务端 `throw Unauthorized`——**前端拦截不算数** |

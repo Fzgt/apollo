@@ -10,7 +10,7 @@ status: done
 
 # Day 11 · 评测这条怎么讲
 
-> 🔴 **必看**。⚠️ **这一天你在 Day 1 已经写透了**：[#16 · golden set 四个数字](/docs?section=numbers&item=n16-golden-set)（冻结什么、断言范围、四个 case 逐个精读、oracle 钉死模型判断、`gap_rate` 返回 1.0、三条局限、什么时候该上 LLM judge）。
+> 🔴 **必看**。⚠️ **这一天你在 Day 1 已经写透了**：[#16 · golden set 四个数字](/docs?section=periplus&item=n16-golden-set)（冻结什么、断言范围、四个 case 逐个精读、oracle 钉死模型判断、`gap_rate` 返回 1.0、三条局限、什么时候该上 LLM judge）。
 >
 > **这一篇只补 #16 没覆盖的三块**，外加口播稿。
 
@@ -32,7 +32,7 @@ status: done
 
 **删掉一个不通过的 case，指标当然会变好。** 这个设计让「少了一个 case」显式出现在报告里，**而不是伪装成进步**。
 
-> **这和 [`gap_rate` 零 claim 返回 1.0](/docs?section=numbers&item=n16-golden-set) 是同一个思路：写评测的人想过自己的评测会怎么被骗。** 两个例子一起讲很有力。
+> **这和 [`gap_rate` 零 claim 返回 1.0](/docs?section=periplus&item=n16-golden-set) 是同一个思路：写评测的人想过自己的评测会怎么被骗。** 两个例子一起讲很有力。
 
 ## 二、⭐ Q4：怎么避免 prompt 对着 golden set 过拟合
 
@@ -72,10 +72,10 @@ status: done
 
 | 问题 | 去哪 |
 |---|---|
-| **为什么断言范围而不是字面输出** | [#16 · 三](/docs?section=numbers&item=n16-golden-set)（断字面 = 每改一次 prompt 就得重写测试） |
-| **golden set 冻结了什么** | [#16 · 二](/docs?section=numbers&item=n16-golden-set)（brief / corpus / clock，各有各的理由） |
-| **什么时候该上 LLM judge，怎么验证它** | [#16 · 九](/docs?section=numbers&item=n16-golden-set)（**这里没有 LLM judge**，绝不能说成用了；验证 judge 要算和人工标注的一致率，而且 judge 版本也要钉住） |
-| **`gap_rate` 零 claim 为什么返回 1.0** | [#16 · 六](/docs?section=numbers&item=n16-golden-set)（返回 0.0 会让空跑通过阈值） |
+| **为什么断言范围而不是字面输出** | [#16 · 三](/docs?section=periplus&item=n16-golden-set)（断字面 = 每改一次 prompt 就得重写测试） |
+| **golden set 冻结了什么** | [#16 · 二](/docs?section=periplus&item=n16-golden-set)（brief / corpus / clock，各有各的理由） |
+| **什么时候该上 LLM judge，怎么验证它** | [#16 · 九](/docs?section=periplus&item=n16-golden-set)（**这里没有 LLM judge**，绝不能说成用了；验证 judge 要算和人工标注的一致率，而且 judge 版本也要钉住） |
+| **`gap_rate` 零 claim 为什么返回 1.0** | [#16 · 六](/docs?section=periplus&item=n16-golden-set)（返回 0.0 会让空跑通过阈值） |
 
 ## 五、必须主动说的三条局限
 

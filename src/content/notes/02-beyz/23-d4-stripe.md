@@ -10,7 +10,7 @@ status: done
 
 # Day 4 · Stripe（速查）
 
-> ⚪ **这条 Day 1 已经学了大半**：[#2 · six subscription events](/docs?section=numbers&item=n02-stripe-events)（哪六个 / 两层事件模型 / 漏一个的后果 / 验签 / 幂等与乱序）· [#2 补充 · 早到晚到与收敛](/docs?section=numbers&item=n02b-convergence)（lifetime 不可降级）。
+> ⚪ **这条 Day 1 已经学了大半**：[#2 · six subscription events](/docs?section=beyz&item=n02-stripe-events)（哪六个 / 两层事件模型 / 漏一个的后果 / 验签 / 幂等与乱序）· [#2 补充 · 早到晚到与收敛](/docs?section=beyz&item=n02b-convergence)（lifetime 不可降级）。
 >
 > 这里只补那两篇没有的两块。
 
@@ -59,7 +59,7 @@ status: done
 
 | 问题 | 去哪 |
 |---|---|
-| 验签为什么必须原始 body | [#2 · 七](/docs?section=numbers&item=n02-stripe-events) |
-| 重复投递怎么处理 | [#2 · 八](/docs?section=numbers&item=n02-stripe-events)（**没有 event id 去重表**，靠写绝对值天然幂等） |
-| 事件乱序怎么处理 | [#2 · 八](/docs?section=numbers&item=n02-stripe-events)（**没处理**，主动交代） |
-| 六个事件各改哪一位 | [#2 · 二/三/四](/docs?section=numbers&item=n02-stripe-events) |
+| 验签为什么必须原始 body | [#2 · 七](/docs?section=beyz&item=n02-stripe-events) |
+| 重复投递怎么处理 | [#2 · 八](/docs?section=beyz&item=n02-stripe-events)（**没有 event id 去重表**，靠写绝对值天然幂等） |
+| 事件乱序怎么处理 | [#2 · 八](/docs?section=beyz&item=n02-stripe-events)（**没处理**，主动交代） |
+| 六个事件各改哪一位 | [#2 · 二/三/四](/docs?section=beyz&item=n02-stripe-events) |

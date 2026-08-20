@@ -1,15 +1,16 @@
 ---
-title: "Beyz #2 补充 · 早到晚到与收敛"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#2 补充 · 早到晚到与收敛"
+section: Beyz · Day 2–4
+icon: radio
+tier: ref
+day: 4
 level: 前置
 status: done
 ---
 
 # #2 补充 · 早到晚到与收敛
 
-> [#2](/docs?section=numbers&item=n02-stripe-events) 讲了 `ne(Lifetime)` 这个守卫写在 SQL 的 WHERE 里。这一篇把它推到底：**为什么两个 webhook 不管谁先谁后，最终状态都是对的。** 这是 `none of which can downgrade a lifetime purchase` 最强的答法。
+> [#2](/docs?section=beyz&item=n02-stripe-events) 讲了 `ne(Lifetime)` 这个守卫写在 SQL 的 WHERE 里。这一篇把它推到底：**为什么两个 webhook 不管谁先谁后，最终状态都是对的。** 这是 `none of which can downgrade a lifetime purchase` 最强的答法。
 
 ## 对应简历原句
 
@@ -99,7 +100,7 @@ Stripe 发回来（时间不确定）：
 | 乙晚到 | `ne(Lifetime)` 守卫挡住降级 |
 | 乙早到 | `:102-108` 那次写入**故意不带守卫**，无条件覆盖 |
 
-所以 [#2](/docs?section=numbers&item=n02-stripe-events) 里说的「`:102-108` 故意没有 guard」不只是「入口不能挡自己」——**它同时还是早到那条路径的兜底**。少了它，乙早到时用户就卡在 Free 了，付了买断的钱拿不到权限。
+所以 [#2](/docs?section=beyz&item=n02-stripe-events) 里说的「`:102-108` 故意没有 guard」不只是「入口不能挡自己」——**它同时还是早到那条路径的兜底**。少了它，乙早到时用户就卡在 Free 了，付了买断的钱拿不到权限。
 
 ---
 

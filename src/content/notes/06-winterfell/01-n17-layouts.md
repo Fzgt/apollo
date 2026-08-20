@@ -1,8 +1,9 @@
 ---
-title: "WinterFell #17 · 1,020 generated layouts"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#17 · 1,020 generated layouts"
+section: WinterFell · Day 12
+icon: gamepad-2
+tier: ref
+day: 12
 level: 前置
 status: done
 ---
@@ -19,7 +20,7 @@ WinterFell 第 3 条 bullet（v40）：
 
 > **Swept the live generator across 1,020 generated layouts**, testing every step against the craft's lateral reach at that level's speed — every layout had a continuous path through it, no gap narrower than 15 units, against a random-scatter control.
 
-（`15 units` 那半句见 [#20](/docs?section=numbers&item=n20-gap)。）
+（`15 units` 那半句见 [#20](/docs?section=winterfell&item=n20-gap)。）
 
 ---
 
@@ -223,7 +224,7 @@ console.log(
 | **用什么参数跑的** | ⚠️ 默认是 12×40=480，1020 需要显式参数（推测 `--trials 85`）——**跑之前把参数记牢** |
 | **怎么测的** | 不是试玩，是几何分析：区间集合前向扫描，`STEP = 10` 单位一次 |
 | **能否复现** | ✅ `npm run dev` 起 Vite，然后 `node bench/fairness.mjs --sections N --trials M`。需要 playwright |
-| **归因** | **你自己写的工具、自己跑的** ——这条和 [#14/#15](/docs?section=numbers&item=n14-server-tests) 一样是硬证据 |
+| **归因** | **你自己写的工具、自己跑的** ——这条和 [#14/#15](/docs?section=periplus&item=n14-server-tests) 一样是硬证据 |
 
 ---
 

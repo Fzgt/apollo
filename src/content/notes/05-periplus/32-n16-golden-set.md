@@ -1,8 +1,9 @@
 ---
-title: "Periplus #16 · golden set 四个数字"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#16 · golden set 四个数字"
+section: Periplus · Day 8–11
+icon: workflow
+tier: ref
+day: 11
 level: 前置
 status: done
 ---
@@ -67,7 +68,7 @@ Periplus 第 5 条 bullet（v40）：
 
 Periplus 的核心判定之一是「这条证据过不过期」，公式是 `as_of − 页面发布时间 > 新鲜度窗口`。
 
-**不冻时钟，同一个 case 明年跑就是不同的答案**——一条今天还 supported 的价格，半年后自然变成 stale，测试自己就红了。（这和 [#14](/docs?section=numbers&item=n14-server-tests) 里 `FakeClock` 是同一个道理，只是这里冻的是业务语义上的「今天」。）
+**不冻时钟，同一个 case 明年跑就是不同的答案**——一条今天还 supported 的价格，半年后自然变成 stale，测试自己就红了。（这和 [#14](/docs?section=periplus&item=n14-server-tests) 里 `FakeClock` 是同一个道理，只是这里冻的是业务语义上的「今天」。）
 
 ---
 

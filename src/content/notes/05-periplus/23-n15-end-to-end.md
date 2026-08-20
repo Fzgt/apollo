@@ -1,8 +1,9 @@
 ---
-title: "Periplus #15 · about a second end to end"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#15 · about a second end to end"
+section: Periplus · Day 8–11
+icon: workflow
+tier: ref
+day: 10
 level: 前置
 status: done
 ---
@@ -19,7 +20,7 @@ Periplus 第 4 条 bullet（v40）：
 
 > Put a scripted seam behind every external dependency — model provider, search, page fetch and clock — so the whole system runs with no API keys and no network: 406 server tests, **about a second end to end**.
 
-（seam 的技术细节见 [#14](/docs?section=numbers&item=n14-server-tests)，这一篇只管这个时间数字。）
+（seam 的技术细节见 [#14](/docs?section=periplus&item=n14-server-tests)，这一篇只管这个时间数字。）
 
 ---
 
@@ -113,7 +114,7 @@ asyncio_mode = "auto"
 
 ## 四、为什么能这么快（技术归因）
 
-**逐条拆开，每一条都对应 [#14](/docs?section=numbers&item=n14-server-tests) 里的一个 seam：**
+**逐条拆开，每一条都对应 [#14](/docs?section=periplus&item=n14-server-tests) 里的一个 seam：**
 
 | 省掉了什么 | 靠哪个 seam | 如果没有会慢多少 |
 |---|---|---|
@@ -139,7 +140,7 @@ asyncio_mode = "auto"
 
 > **所以「一秒」是个证明，不是个成绩。** 它证明的是：**没有任何一条测试路径偷偷溜出了进程。**
 >
-> **这是这条 bullet 最漂亮的讲法**，也是把 [#14](/docs?section=numbers&item=n14-server-tests) 和 [#15](/docs?section=numbers&item=n15-end-to-end) 串成一个论点的方式：#14 说结构（四个 seam），#15 说这个结构真的没漏。
+> **这是这条 bullet 最漂亮的讲法**，也是把 [#14](/docs?section=periplus&item=n14-server-tests) 和 [#15](/docs?section=periplus&item=n15-end-to-end) 串成一个论点的方式：#14 说结构（四个 seam），#15 说这个结构真的没漏。
 
 ---
 

@@ -1,8 +1,9 @@
 ---
-title: "百度 #10 · ~15% bundle reduction"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#10 · ~15% bundle reduction"
+section: 百度 · Day 6–7
+icon: landmark
+tier: ref
+day: 6
 level: 前置
 status: done
 ---
@@ -135,7 +136,7 @@ ls -lh dist/*.js
 
 > **⚠️ 注意 `SplitChunksPlugin` 不在这张表里**——这是这条 bullet 最容易被问住的地方。
 >
-> **代码分割通常不减少总体积，它是重新分配体积。** 详见 [#10 补充 · SplitChunks 实践](/docs?section=numbers&item=n10b-splitchunks)。
+> **代码分割通常不减少总体积，它是重新分配体积。** 详见 [#10 补充 · SplitChunks 实践](/docs?section=baidu&item=n10b-splitchunks)。
 >
 > 简历那句 `extracting vendor and runtime chunks ... — bundle size down ~15%` 读起来像是拆分带来了体积下降，**如果面试官顺着这个逻辑问，你得能主动纠正**：拆分带来的是缓存命中率，体积下降来自上面那张表。**主动纠正这一点，比什么都能证明你真懂。**
 

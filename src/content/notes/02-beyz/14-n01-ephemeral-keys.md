@@ -1,8 +1,9 @@
 ---
-title: "Beyz #1 · 60 秒临时凭证"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#1 · 60 秒临时凭证"
+section: Beyz · Day 2–4
+icon: radio
+tier: ref
+day: 3
 level: 前置
 status: done
 ---
@@ -146,7 +147,7 @@ await deepgram.manage.createProjectKey(project.project_id, {
 
 **两者互不相干。把 keepAlive 说成「续期 key」就露馅了——它续的是连接，不是凭证。**
 
-> 10 秒这个数字本身（为什么是 10 秒、为什么只在麦克风暂停时发、为什么这个值偏危险）见 [#1 补充 · keepAlive 与 10 秒心跳](/docs?section=numbers&item=n01b-keepalive)。
+> 10 秒这个数字本身（为什么是 10 秒、为什么只在麦克风暂停时发、为什么这个值偏危险）见 [#1 补充 · keepAlive 与 10 秒心跳](/docs?section=beyz&item=n01b-keepalive)。
 
 **断线了怎么办？** `useDeepgram.ts:52-57` 的 `disconnectFromDeepgram()` 把 connection 置 null；要恢复只能重走 `requestStart()`，那条链会**重新 fetch 一把全新的 key**。
 

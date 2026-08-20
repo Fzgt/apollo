@@ -1,8 +1,9 @@
 ---
-title: "百度 #5 · 500+ → ~20 DOM nodes"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#5 · 500+ → ~20 DOM nodes"
+section: 百度 · Day 6–7
+icon: landmark
+tier: ref
+day: 7
 level: 前置
 status: done
 ---
@@ -11,7 +12,7 @@ status: done
 
 > **材料说明**：百度代码不在本机，材料是 `LEARNING_NOTES_BAIDU.md` + 回忆。
 >
-> 但和 [#4](/docs?section=numbers&item=n04-daily-pv) 性质**完全相反**：5M+ PV 是别人的系统报给你的，**这一条是你自己拿浏览器量出来的**。所以它要答的是「我用什么工具、在什么条件下量的」——而这个数字**能当场在任何一个虚拟列表页面上复现给面试官看**。
+> 但和 [#4](/docs?section=baidu&item=n04-daily-pv) 性质**完全相反**：5M+ PV 是别人的系统报给你的，**这一条是你自己拿浏览器量出来的**。所以它要答的是「我用什么工具、在什么条件下量的」——而这个数字**能当场在任何一个虚拟列表页面上复现给面试官看**。
 
 ## 对应简历原句
 

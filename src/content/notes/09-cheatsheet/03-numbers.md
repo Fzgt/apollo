@@ -1,8 +1,8 @@
 ---
-title: Day 1 · 数字口径审计
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: 数字口径总表（20 条审计记录）
+section: 速查
+icon: repeat
+day: 99
 level: 前置
 status: doing
 ---
@@ -56,7 +56,7 @@ status: doing
 
 ## 1. 60-second, usage-scoped keys
 
-**出处**：Beyz 凭证 · ✅ 已完成，详解见 [#1 · 60 秒临时凭证](/docs?section=numbers&item=n01-ephemeral-keys)
+**出处**：Beyz 凭证 · ✅ 已完成，详解见 [#1 · 60 秒临时凭证](/docs?section=beyz&item=n01-ephemeral-keys)
 
 为什么是 60 秒不是 5 分钟？谁签发的（服务端哪个路由）？过期之后前端怎么续？`usage:write` 这个 scope 具体允许什么、禁止什么？
 
@@ -76,7 +76,7 @@ status: doing
 
 ## 2. six subscription events
 
-**出处**：Beyz Stripe · ✅ 已完成，详解见 [#2 · six subscription events](/docs?section=numbers&item=n02-stripe-events)
+**出处**：Beyz Stripe · ✅ 已完成，详解见 [#2 · six subscription events](/docs?section=beyz&item=n02-stripe-events)
 
 哪六个事件？能不能当场报出名字？每个事件改了 entitlement 的哪一位？漏掉一个会发生什么？
 
@@ -96,7 +96,7 @@ status: doing
 
 ## 3. ~~LCP under 500 ms~~（已从简历删除）
 
-**出处**：BioMap TanStack Query · ✅ 已完成，详解见 [#3 · LCP under 500 ms](/docs?section=numbers&item=n03-lcp)
+**出处**：BioMap TanStack Query · ✅ 已完成，详解见 [#3 · LCP under 500 ms](/docs?section=biomap&item=n03-lcp)
 
 什么工具测的（Lighthouse / WebPageTest / RUM）？lab 还是 field 数据？哪个页面、什么网络条件？优化前的基线是多少？
 
@@ -116,7 +116,7 @@ status: doing
 
 ## 4. 5M+ daily page views
 
-**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#4 · 5M+ daily page views](/docs?section=numbers&item=n04-daily-pv)
+**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#4 · 5M+ daily page views](/docs?section=baidu&item=n04-daily-pv)
 
 是日均 PV 还是别的口径？整个平台的数还是这个页面的数？我的个人贡献该怎么表述才不越界？
 
@@ -136,7 +136,7 @@ status: doing
 
 ## 5. DOM 节点恒定 ~100
 
-**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#5 · DOM 节点恒定 ~100](/docs?section=numbers&item=n05-dom-nodes)
+**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#5 · DOM 节点恒定 ~100](/docs?section=baidu&item=n05-dom-nodes)
 
 怎么统计的（DevTools Elements 计数 / `document.querySelectorAll`）？不同 viewport 高度、不同 overscan 配置下这个数会变吗？
 
@@ -156,7 +156,7 @@ status: doing
 
 ## 6. 30 → 60 FPS
 
-**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#6 · 30 → 60 FPS](/docs?section=numbers&item=n06-fps)
+**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#6 · 30 → 60 FPS](/docs?section=baidu&item=n06-fps)
 
 什么工具（Performance 面板 / FPS meter）？什么设备、什么交互场景？60 是稳定值还是峰值？
 
@@ -176,7 +176,7 @@ status: doing
 
 ## 7. 2,000+ peak QPS
 
-**出处**：百度提现 · ✅ 已完成，详解见 [#7 · 2,000+ peak QPS](/docs?section=numbers&item=n07-qps)
+**出处**：百度提现 · ✅ 已完成，详解见 [#7 · 2,000+ peak QPS](/docs?section=baidu&item=n07-qps)
 
 峰值还是持续值？来自监控还是压测？这是系统规模还是我个人实现的部分？我测的是哪一层——网关、服务还是前端请求数？
 
@@ -200,7 +200,7 @@ status: doing
 
 **2026-08-19：已改措辞，这句话不在简历上了。** 原因是它最难自证——零资损是财务对账结论，前端测不出来：谁告诉你的？口径是活动期间还是全量？拿得出对账报告吗？换成了三个可证的动作（请求锁、幂等 key、不确定按失败处理）。**句子删了，话题还会被问，答法见详解。**
 
-✅ 已完成，详解见 [#8 · 零资损（已从简历删除）](/docs?section=numbers&item=n08-zero-loss)
+✅ 已完成，详解见 [#8 · 零资损（已从简历删除）](/docs?section=baidu&item=n08-zero-loss)
 
 | 项 | 填写 |
 |---|---|
@@ -218,7 +218,7 @@ status: doing
 
 ## 9. 10+ incompatible packages
 
-**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#9 · 10+ incompatible packages](/docs?section=numbers&item=n09-incompatible)
+**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#9 · 10+ incompatible packages](/docs?section=baidu&item=n09-incompatible)
 
 具体是哪几类不兼容（loader API 变更 / Node polyfill 移除 / 插件未适配）？能举 1–2 个代表案例并说清怎么定位的吗？
 
@@ -238,7 +238,7 @@ status: doing
 
 ## 10. ~15% bundle reduction
 
-**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#10 · ~15% bundle reduction](/docs?section=numbers&item=n10-bundle-size) · 另见 [SplitChunks 实践](/docs?section=numbers&item=n10b-splitchunks)
+**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#10 · ~15% bundle reduction](/docs?section=baidu&item=n10-bundle-size) · 另见 [SplitChunks 实践](/docs?section=baidu&item=n10b-splitchunks)
 
 比较范围是什么（首屏 chunk / 全量产物）？压缩方式一致吗（gzip 前后）？production 模式对 production 模式？
 
@@ -258,7 +258,7 @@ status: doing
 
 ## 11. 70% build-time reduction
 
-**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#11 · 70% build-time reduction](/docs?section=numbers&item=n11-build-time)
+**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#11 · 70% build-time reduction](/docs?section=baidu&item=n11-build-time)
 
 cold build 还是 warm build？本地还是 CI？样本几次取平均？机器配置是什么？**这个数最可能来自 filesystem cache 的 warm build，一定要说清。**
 
@@ -318,7 +318,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 14. 406 server tests
 
-**出处**：Periplus · ✅ 已完成，详解见 [#14 · 406 server tests](/docs?section=numbers&item=n14-server-tests)
+**出处**：Periplus · ✅ 已完成，详解见 [#14 · 406 server tests](/docs?section=periplus&item=n14-server-tests)
 
 ✅ 已实测确为 406（16 个测试文件求和，其中 `test_evals.py` 38 个）。**剩下要能答的是测试类型构成**：单测 / 集成 / eval 各多少？面试前重跑一次 `uv run pytest --collect-only -q`。
 
@@ -338,7 +338,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 15. about a second end to end
 
-**出处**：Periplus · ✅ 已完成，详解见 [#15 · about a second end to end](/docs?section=numbers&item=n15-end-to-end)
+**出处**：Periplus · ✅ 已完成，详解见 [#15 · about a second end to end](/docs?section=periplus&item=n15-end-to-end)
 
 哪台机器？什么命令？串行还是并行跑的？包不包含 collection 时间？这个「一秒」指的是测试套件还是一次 run？
 
@@ -358,7 +358,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 16. golden set 相关数字
 
-**出处**：Periplus evals · ✅ 已完成，详解见 [#16 · golden set 相关数字](/docs?section=numbers&item=n16-golden-set)
+**出处**：Periplus evals · ✅ 已完成，详解见 [#16 · golden set 相关数字](/docs?section=periplus&item=n16-golden-set)
 
 ✅ 已实测：4 个 case、8 条 claim、8727 tokens、0 引用失败、全套 0.009s。**别把 case 数说多，四个就是四个。**主动交代它是种子集不是覆盖率主张。
 
@@ -378,7 +378,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 17. 1,020 generated layouts
 
-**出处**：WinterFell · ✅ 已完成，详解见 [#17 · 1,020 generated layouts](/docs?section=numbers&item=n17-layouts)
+**出处**：WinterFell · ✅ 已完成，详解见 [#17 · 1,020 generated layouts](/docs?section=winterfell&item=n17-layouts)
 
 ✅ **已实测（2026-08-19 复跑）**：`node bench/fairness.mjs --sections 20 --trials 51`，20 × 51 = **1,020**，报告表头原话 `# Obstacle-layout fairness (51 generated layouts per section)`。**480 是脚本默认值（12 × 40），不是简历口径**——两个数没有冲突，简历那次是显式传参跑的。
 
@@ -402,7 +402,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 18. 129 → 76 draw calls
 
-**出处**：WinterFell · ✅ 已完成，详解见 [#18 · 129 → 76 draw calls](/docs?section=numbers&item=n18-draw-calls)
+**出处**：WinterFell · ✅ 已完成，详解见 [#18 · 129 → 76 draw calls](/docs?section=winterfell&item=n18-draw-calls)
 
 哪个 probe 测的？同场景同设备吗？`bench/run.mjs:123` 那个 `fps.p50 > 115` 的过滤条件为什么这么筛，要能解释。
 
@@ -422,7 +422,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 19. 2.6× triangles
 
-**出处**：WinterFell · ✅ 已完成，详解见 [#19 · 2.6× triangles](/docs?section=numbers&item=n19-triangles)
+**出处**：WinterFell · ✅ 已完成，详解见 [#19 · 2.6× triangles](/docs?section=winterfell&item=n19-triangles)
 
 三角形为什么反而涨了（26,230 → 69,112）？和 draw call 下降是什么关系？对实际帧率的影响是什么？**这条的价值就在于它是反向数字，主动讲出来比被问出来强。**
 
@@ -442,7 +442,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 20. no gap narrower than 15 units
 
-**出处**：WinterFell · ✅ 已完成，详解见 [#20 · no gap narrower than 15 units](/docs?section=numbers&item=n20-gap)
+**出处**：WinterFell · ✅ 已完成，详解见 [#20 · no gap narrower than 15 units](/docs?section=winterfell&item=n20-gap)
 
 「单位」在这个场景里是什么？15 这个阈值怎么定的？和飞行器碰撞半径是什么关系？（注意：早先的「14 units」是**看错了列**，14 来自 "how wide"，实测 15–20。）
 

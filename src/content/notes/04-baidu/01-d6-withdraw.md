@@ -10,7 +10,7 @@ status: done
 
 # Day 6 · 提现：前端能保证什么，不能保证什么
 
-> 🔴 **必看**。⚠️ 数字口径 Day 1 已审：[#7 · 2,000+ peak QPS](/docs?section=numbers&item=n07-qps)（后端怎么扛住、监控还是压测）· [#8 · 零资损](/docs?section=numbers&item=n08-zero-loss)（对账才是出处、改法三选一）。**这里只讲前端那一层。**
+> 🔴 **必看**。⚠️ 数字口径 Day 1 已审：[#7 · 2,000+ peak QPS](/docs?section=baidu&item=n07-qps)（后端怎么扛住、监控还是压测）· [#8 · 零资损](/docs?section=baidu&item=n08-zero-loss)（对账才是出处、改法三选一）。**这里只讲前端那一层。**
 
 ## 30 秒口播稿（改一改就能用）
 
@@ -73,7 +73,7 @@ async function withdraw(orderId) {
 | **存 sessionStorage** | ⭐ **刷新页面后还是同一个 key**——否则刷新重试在后端看来是一笔新提现 |
 | 每次调用都带上它 | |
 
-> **后端拿这个 key 建唯一索引兜底**：第二次插入直接违反唯一约束。**这和 [Stripe webhook](/docs?section=numbers&item=n02-stripe-events)、[Beyz 的 cron 去重](/docs?section=beyz&item=d4-service) 是完全同一个模式：把不变量放在数据层。**
+> **后端拿这个 key 建唯一索引兜底**：第二次插入直接违反唯一约束。**这和 [Stripe webhook](/docs?section=beyz&item=n02-stripe-events)、[Beyz 的 cron 去重](/docs?section=beyz&item=d4-service) 是完全同一个模式：把不变量放在数据层。**
 
 ## 四、defensive fallback：金融场景的错误处理原则
 
@@ -97,8 +97,8 @@ async function withdraw(orderId) {
 | 问题 | 答法 |
 |---|---|
 | **用户绕过前端锁会怎样？** | **能绕，而且很容易**——F12 直接调接口。所以前端锁只是减少无效请求，**正确性靠后端幂等键 + 唯一索引 + 数据库事务 + `WHERE balance >= ?` 的余额不变量** |
-| **2000 QPS 是你测的吗？** | 不是。后端监控里的整条链路量级，**前端不「扛」QPS，前端「贡献」QPS**。详见 [#7](/docs?section=numbers&item=n07-qps) |
-| **零资损怎么保证的？** | **对账的结论，不是我测的**。资损防线分五层，前端只在第一层。详见 [#8](/docs?section=numbers&item=n08-zero-loss) |
+| **2000 QPS 是你测的吗？** | 不是。后端监控里的整条链路量级，**前端不「扛」QPS，前端「贡献」QPS**。详见 [#7](/docs?section=baidu&item=n07-qps) |
+| **零资损怎么保证的？** | **对账的结论，不是我测的**。资损防线分五层，前端只在第一层。详见 [#8](/docs?section=baidu&item=n08-zero-loss) |
 | **前端还能做什么？** | 令牌桶/漏桶限流（没 token 时按钮 disabled）、活动开始瞬间的排队/验证码削峰、**但这些都是体验优化不是正确性保证** |
 
 > **一句话收尾**：**前端减少无效负载，后端提供正确性。** 这句话把整条 bullet 的分工讲干净了。

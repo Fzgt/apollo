@@ -10,7 +10,7 @@ status: done
 
 # Day 10 · 崩了能续跑这条怎么讲
 
-> 🔴 **必看**。⚠️ **④ scripted seam 那半边你 Day 1 已经学透了**：[#14 · 406 tests](/docs?section=numbers&item=n14-server-tests)（四个 seam、三种注入手法、为什么注入时钟）· [#15 · 一秒](/docs?section=numbers&item=n15-end-to-end)。**今天只讲 ③ 持久化与 resume。**
+> 🔴 **必看**。⚠️ **④ scripted seam 那半边你 Day 1 已经学透了**：[#14 · 406 tests](/docs?section=periplus&item=n14-server-tests)（四个 seam、三种注入手法、为什么注入时钟）· [#15 · 一秒](/docs?section=periplus&item=n15-end-to-end)。**今天只讲 ③ 持久化与 resume。**
 
 ## 对应简历原句
 

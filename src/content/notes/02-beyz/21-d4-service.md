@@ -70,7 +70,7 @@ status: done
 | 给服务商传 `Idempotency-Key` | 把去重推到最后一层 |
 | 调度层保证单实例 | 分布式锁或 singleton 调度器 |
 
-> **唯一索引兜底这一招和 [Stripe webhook](/docs?section=numbers&item=n02-stripe-events)、[百度提现](/docs?section=numbers&item=n07-qps) 是完全同一个模式：把不变量放在数据层，不放在应用层的 if 里。** 三个项目串起来讲，是 Day 14 跨项目题的现成答案。
+> **唯一索引兜底这一招和 [Stripe webhook](/docs?section=beyz&item=n02-stripe-events)、[百度提现](/docs?section=baidu&item=n07-qps) 是完全同一个模式：把不变量放在数据层，不放在应用层的 if 里。** 三个项目串起来讲，是 Day 14 跨项目题的现成答案。
 
 ## Q：为什么 cron 定成每分钟
 

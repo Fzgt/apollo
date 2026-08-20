@@ -1,8 +1,9 @@
 ---
-title: "WinterFell #18 · 129 → 76 draw calls"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#18 · 129 → 76 draw calls"
+section: WinterFell · Day 12
+icon: gamepad-2
+tier: ref
+day: 12
 level: 前置
 status: done
 ---
@@ -19,7 +20,7 @@ WinterFell 第 2 条 bullet（v40）：
 
 > Collapsed each obstacle section into two InstancedMeshes sharing one matrix set: a headless Chromium harness sampling renderer stats every frame put **draw calls down from 129 to 76** and triangles submitted up 2.6×, one bounding volume per mesh being the price of losing per-instance frustum culling.
 
-（`2.6×` 那半句见 [#19](/docs?section=numbers&item=n19-triangles)。）
+（`2.6×` 那半句见 [#19](/docs?section=winterfell&item=n19-triangles)。）
 
 ---
 
@@ -154,7 +155,7 @@ if (capped.length) {
 
 > WARNING: WebGL here is [swiftshader] — software rasterisation, not a GPU. **Draw-call and triangle counts are CPU-side and still valid, but any frame timing from a WebGL row is meaningless for real hardware.**
 
-**headless 环境里 WebGL 常常退化成软件光栅化**（和 [#17](/docs?section=numbers&item=n17-layouts) 遇到的是同一个问题）。这条警告划清了界限：
+**headless 环境里 WebGL 常常退化成软件光栅化**（和 [#17](/docs?section=winterfell&item=n17-layouts) 遇到的是同一个问题）。这条警告划清了界限：
 
 | 指标 | headless 里可不可信 |
 |---|---|

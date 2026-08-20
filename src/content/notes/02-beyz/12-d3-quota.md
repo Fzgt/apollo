@@ -54,7 +54,7 @@ return recruiterMessages.length > subscriptionPlans[subscribedPlan].limits.quest
 
 **应该怎样**：前端不能是 entitlement 的真源。三条理由——①**前端代码用户可控**（F12 改个变量就行）②**前端数据可能不全**（换设备/新标签页计数重新开始）③**前端拦截只改变行为，不提供保证**。
 
-> 这和 [百度提现](/docs?section=numbers&item=n07-qps) 是同一句话：**前端减少无效负载，正确性必须来自服务端。**
+> 这和 [百度提现](/docs?section=baidu&item=n07-qps) 是同一句话：**前端减少无效负载，正确性必须来自服务端。**
 
 **实际怎样**：服务端只拦了套餐，**没拦条数**。
 
@@ -88,7 +88,7 @@ if (subscribedPlan === SubscriptionPlan.Free) throw new Error("Unauthorized");
 
 **现在不会**——配额判定是**读当前消息条数**（绝对值），不是「余额减一」的增量操作，**读绝对值天然幂等**。
 
-**改成预付费额度就会**，那时的正确做法和[百度提现](/docs?section=numbers&item=n07-qps)完全同一套：
+**改成预付费额度就会**，那时的正确做法和[百度提现](/docs?section=baidu&item=n07-qps)完全同一套：
 
 ```sql
 UPDATE quota SET remaining = remaining - 1 WHERE user_id = ? AND remaining > 0;

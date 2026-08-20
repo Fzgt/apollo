@@ -55,11 +55,11 @@ Entry 入口
 
 | 问题 | 去哪 | 一句话预习 |
 |---|---|---|
-| **10+ 不兼容包，举个具体案例** | [#9](/docs?section=numbers&item=n09-incompatible) | 讲四类破坏性变化，主推 **Node polyfill 移除**（症状和原因对不上，有故事性） |
-| **SplitChunks 改了什么？runtime chunk 解决什么？** | [#10 补充](/docs?section=numbers&item=n10b-splitchunks) | ⚠️ **`runtimeChunk` 不是 SplitChunksPlugin 的选项**；抽出来是为了防止任何 chunk 变动都连累 entry 的 hash |
-| **contenthash 和长效缓存的关系** | [#10 补充 · 实践四](/docs?section=numbers&item=n10b-splitchunks) | 文件名带 contenthash 只是前提，**还要 moduleIds 稳定**，否则加一个依赖全站缓存失效 |
-| **filesystem cache 缓存的是什么？** | [#11](/docs?section=numbers&item=n11-build-time) | 每个 module 编译后的中间结果。**cache key = 内容 hash + loader 版本 + config hash + 依赖 hash** |
-| **15% 的体积从哪来？** | [#10](/docs?section=numbers&item=n10-bundle-size) | ⚠️ **SplitChunks 不减少总体积**，它重新分配体积。降幅来自 polyfill 移除 + tree shaking + Terser |
+| **10+ 不兼容包，举个具体案例** | [#9](/docs?section=baidu&item=n09-incompatible) | 讲四类破坏性变化，主推 **Node polyfill 移除**（症状和原因对不上，有故事性） |
+| **SplitChunks 改了什么？runtime chunk 解决什么？** | [#10 补充](/docs?section=baidu&item=n10b-splitchunks) | ⚠️ **`runtimeChunk` 不是 SplitChunksPlugin 的选项**；抽出来是为了防止任何 chunk 变动都连累 entry 的 hash |
+| **contenthash 和长效缓存的关系** | [#10 补充 · 实践四](/docs?section=baidu&item=n10b-splitchunks) | 文件名带 contenthash 只是前提，**还要 moduleIds 稳定**，否则加一个依赖全站缓存失效 |
+| **filesystem cache 缓存的是什么？** | [#11](/docs?section=baidu&item=n11-build-time) | 每个 module 编译后的中间结果。**cache key = 内容 hash + loader 版本 + config hash + 依赖 hash** |
+| **15% 的体积从哪来？** | [#10](/docs?section=baidu&item=n10-bundle-size) | ⚠️ **SplitChunks 不减少总体积**，它重新分配体积。降幅来自 polyfill 移除 + tree shaking + Terser |
 
 ## 四、两个必须自己先知道的口径
 
@@ -73,7 +73,7 @@ Entry 入口
 
 **破折号把两个动作和两个结果笼统绑在一起**，但真实对应是：拆分 → **缓存命中率**（句子里没写）；持久化缓存 → 构建时间 ✅；**体积 → 来自 polyfill 移除和 tree shaking（句子里没提）**。
 
-**推荐改法**（见 [#10](/docs?section=numbers&item=n10-bundle-size) 讨论）：
+**推荐改法**（见 [#10](/docs?section=baidu&item=n10-bundle-size) 讨论）：
 
 > Led a Webpack 3-to-5 migration across 10+ incompatible packages: split vendor and runtime into separately-hashed chunks so a business change no longer invalidates them, dropped the automatic Node polyfills, and turned on the filesystem cache — bundle size down ~15%, warm local builds down 70%.
 

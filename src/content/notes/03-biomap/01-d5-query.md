@@ -12,7 +12,7 @@ status: done
 
 > 🔴 **必看**。**BioMap 四条里面试价值最高的一条**——server state 管理是前端高频区，这套结构能直接搬到任何项目。
 >
-> ✅ 简历里 `LCP under 500 ms` 已换成 `detail pages open instantly, with no request at all`。**为什么原来那个指标不成立、现在这句凭什么成立，见 [Day 1 #3](/docs?section=numbers&item=n03-lcp)。** 参照实现在 Prometheus，不是 BioMap 本体。
+> ✅ 简历里 `LCP under 500 ms` 已换成 `detail pages open instantly, with no request at all`。**为什么原来那个指标不成立、现在这句凭什么成立，见 [Day 1 #3](/docs?section=biomap&item=n03-lcp)。** 参照实现在 Prometheus，不是 BioMap 本体。
 
 ## 先立住（开场定调）
 
@@ -56,7 +56,7 @@ export type QueryConfig<T> = Omit<ReturnType<T>, 'queryKey' | 'queryFn'>;
 
 调用方能覆盖 `enabled`、`staleTime`，但 **`queryKey`/`queryFn` 在类型层面被 `Omit` 掉了，传进去直接编译报错**。
 
-> 和 [四态机](/docs?section=beyz&item=d3-statemachine)、[Stripe 的 `ne(Lifetime)`](/docs?section=numbers&item=n02b-convergence) 同一个思想：**把「不该发生的事」从「靠自觉」变成「做不到」。**
+> 和 [四态机](/docs?section=beyz&item=d3-statemachine)、[Stripe 的 `ne(Lifetime)`](/docs?section=beyz&item=n02b-convergence) 同一个思想：**把「不该发生的事」从「靠自觉」变成「做不到」。**
 
 **生产级**：用 **key factory**（`postKeys.all / lists() / detail(slug)`），收益是**失效粒度可控**——`invalidateQueries({ queryKey: postKeys.lists() })` 只作废列表不动详情。
 

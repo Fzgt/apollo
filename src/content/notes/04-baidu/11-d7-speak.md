@@ -12,7 +12,7 @@ status: done
 
 > 🔴 **必看**。⚠️ **这一天机制原理以 [Library 的百度笔记](/library?section=baidu&item=notes) 为主**——那边虚拟列表和白屏各有两百多行，写得比我细。
 >
-> **这一篇只给三样 Library 没有的**：两段口播稿、Library 导航、以及几个它没覆盖的追问。数字口径见 [#5 DOM 节点](/docs?section=numbers&item=n05-dom-nodes) · [#6 FPS](/docs?section=numbers&item=n06-fps)。
+> **这一篇只给三样 Library 没有的**：两段口播稿、Library 导航、以及几个它没覆盖的追问。数字口径见 [#5 DOM 节点](/docs?section=baidu&item=n05-dom-nodes) · [#6 FPS](/docs?section=baidu&item=n06-fps)。
 
 ## 一、虚拟列表 · 30 秒口播稿
 
@@ -58,7 +58,7 @@ status: done
 
 **Q：`~20` 这个数字到底是节点数还是条目数？**
 
-✅ **已解决**：简历现在写 `live DOM nodes stay near 100 at any scroll depth`。原来的 `roughly 20` 是把条目数写成了节点数（一个 feed 卡片本身就是 8–15 个节点）。**现在这个写法更强**——`at any scroll depth` 说的是「不随滚动深度增长」，正是虚拟列表真正的收益。详见 [#5](/docs?section=numbers&item=n05-dom-nodes)。
+✅ **已解决**：简历现在写 `live DOM nodes stay near 100 at any scroll depth`。原来的 `roughly 20` 是把条目数写成了节点数（一个 feed 卡片本身就是 8–15 个节点）。**现在这个写法更强**——`at any scroll depth` 说的是「不随滚动深度增长」，正是虚拟列表真正的收益。详见 [#5](/docs?section=baidu&item=n05-dom-nodes)。
 
 **Q：白屏那条「第一个定位到」怎么讲？**
 

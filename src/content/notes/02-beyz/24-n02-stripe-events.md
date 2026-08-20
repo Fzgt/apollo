@@ -1,8 +1,9 @@
 ---
-title: "Beyz #2 · six subscription events"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#2 · six subscription events"
+section: Beyz · Day 2–4
+icon: radio
+tier: ref
+day: 4
 level: 前置
 status: done
 ---
@@ -150,7 +151,7 @@ export enum SubscriptionEvent {
 
 注意 `route.ts:102-108`（唯一把人升成 Lifetime 的那次写入）**故意没有**这个 guard —— 它是入口，不能挡自己。
 
-> 那这两次写入谁先谁后会不会出错？两种顺序都收敛到 Lifetime——见 [#2 补充 · 早到晚到与收敛](/docs?section=numbers&item=n02b-convergence)。
+> 那这两次写入谁先谁后会不会出错？两种顺序都收敛到 Lifetime——见 [#2 补充 · 早到晚到与收敛](/docs?section=beyz&item=n02b-convergence)。
 
 **一句话答法**
 

@@ -12,7 +12,7 @@ status: done
 
 > 🔴 **必看**。⚠️ **机制原理以 [Library 的 Periplus AI 笔记](/library?section=periplus&item=ai) 为主**（618 行，六个 agent 逐一精读）。**这一篇只给三样它没有的**：口播稿、命名对照、以及那个会决定你可信度的追问。
 >
-> 数字口径见 [#14 · 406 tests](/docs?section=numbers&item=n14-server-tests) · [#15 · 一秒](/docs?section=numbers&item=n15-end-to-end)。
+> 数字口径见 [#14 · 406 tests](/docs?section=periplus&item=n14-server-tests) · [#15 · 一秒](/docs?section=periplus&item=n15-end-to-end)。
 
 ## 30 秒口播稿（改一改就能用）
 
@@ -61,7 +61,7 @@ status: done
 
 **Q：typed stage contract 换来了什么？**
 
-三样：**可替换**（换掉某个阶段的实现不影响其他）、**可测试**（每个阶段单独喂输入验输出，[#14](/docs?section=numbers&item=n14-server-tests) 的 406 个测试就建在这上面）、**可恢复**（产物有类型、能持久化，所以能从任意已完成阶段续跑——Day 10 的内容）。
+三样：**可替换**（换掉某个阶段的实现不影响其他）、**可测试**（每个阶段单独喂输入验输出，[#14](/docs?section=periplus&item=n14-server-tests) 的 406 个测试就建在这上面）、**可恢复**（产物有类型、能持久化，所以能从任意已完成阶段续跑——Day 10 的内容）。
 
 **Q：后端契约怎么和 React 保持同步？**
 

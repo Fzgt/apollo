@@ -1,8 +1,9 @@
 ---
-title: "Periplus #14 · 406 server tests"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#14 · 406 server tests"
+section: Periplus · Day 8–11
+icon: workflow
+tier: ref
+day: 10
 level: 前置
 status: done
 ---

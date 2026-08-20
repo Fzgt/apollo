@@ -10,7 +10,7 @@ status: done
 
 # Day 3 · 凭证（速查）
 
-> ⚪ **这半条 Day 1 已经学完**：[#1 · 60 秒临时凭证](/docs?section=numbers&item=n01-ephemeral-keys)（为什么 60 秒 / 谁签发 / 续签 / scope）· [#1 补充 · keepAlive](/docs?section=numbers&item=n01b-keepalive)（10 秒心跳）。
+> ⚪ **这半条 Day 1 已经学完**：[#1 · 60 秒临时凭证](/docs?section=beyz&item=n01-ephemeral-keys)（为什么 60 秒 / 谁签发 / 续签 / scope）· [#1 补充 · keepAlive](/docs?section=beyz&item=n01b-keepalive)（10 秒心跳）。
 >
 > 这里只补那两篇没有的三块。
 

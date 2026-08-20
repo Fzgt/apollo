@@ -66,7 +66,7 @@ app/ ──→ features/ ──→ components/ hooks/ lib/ types/ utils/
 
 > **一句话：MSW 拦在网络层，所以你测的是真实的请求路径。**
 >
-> **这和 [Periplus 的 scripted seam](/docs?section=numbers&item=n14-server-tests) 是完全同一个原则**——`ScriptedClient` 只覆写 `_chat`，schema 校验和重试都还在真跑；抓网页换的是 httpx 的传输层，robots、限流、重定向全是真测的。**两个项目串起来讲：「seam 要放在最接近进程边界的位置，越靠外，被测的真实代码越多。」**
+> **这和 [Periplus 的 scripted seam](/docs?section=periplus&item=n14-server-tests) 是完全同一个原则**——`ScriptedClient` 只覆写 `_chat`，schema 校验和重试都还在真跑；抓网页换的是 httpx 的传输层，robots、限流、重定向全是真测的。**两个项目串起来讲：「seam 要放在最接近进程边界的位置，越靠外，被测的真实代码越多。」**
 
 **三条 MSW 独有的收益**：**同一套 handler 浏览器和 Node 通用**（`setupWorker` 给开发和 Storybook，`setupServer` 给测试，**mock 逻辑只写一份**）；**前端能独立跑起来**（这就是简历 `let frontend delivery run independent of backend progress` 的字面意思）；**`@mswjs/data` 给的是有状态的 mock**——POST 一条评论 GET 就能查到，**能测完整交互流程而不只是渲染**。
 

@@ -1,8 +1,9 @@
 ---
-title: "百度 #9 · 10+ incompatible packages"
-section: Day 1 · 数字口径
-icon: calculator
-day: 1
+title: "#9 · 10+ incompatible packages"
+section: 百度 · Day 6–7
+icon: landmark
+tier: ref
+day: 6
 level: 前置
 status: done
 ---
@@ -11,7 +12,7 @@ status: done
 
 > **材料说明**：百度代码不在本机，材料是 `LEARNING_NOTES_BAIDU.md` + 回忆。
 >
-> 这条和 [#2](/docs?section=numbers&item=n02-stripe-events) 性质接近——**是个计数声明，不是测量**。审计表要的不是「你怎么数的」，而是「**具体哪几类问题，能不能举 1–2 个代表案例**」。**答不出案例，这个 10+ 就是个空数。**
+> 这条和 [#2](/docs?section=beyz&item=n02-stripe-events) 性质接近——**是个计数声明，不是测量**。审计表要的不是「你怎么数的」，而是「**具体哪几类问题，能不能举 1–2 个代表案例**」。**答不出案例，这个 10+ 就是个空数。**
 
 ## 对应简历原句
 
@@ -79,7 +80,7 @@ compiler.hooks.emit.tapAsync('MyPlugin', (compilation, callback) => { ... })
 
 **所以迁移不是替换一行配置，是把「我指定要哪些 chunk」重写成「我描述什么样的模块该被拆出去」。**
 
-（拆分策略本身见 [#10 补充 · SplitChunks 实践](/docs?section=numbers&item=n10b-splitchunks)。）
+（拆分策略本身见 [#10 补充 · SplitChunks 实践](/docs?section=baidu&item=n10b-splitchunks)。）
 
 ### 案例 B：Node polyfill 移除（推荐主讲这个）
 
@@ -105,7 +106,7 @@ modules by default. This is no longer the case.
 | `resolve.fallback: { crypto: false }` | 确认浏览器端根本走不到那段代码时用，**体积收益最大** |
 | 换掉那个依赖 | 最干净，最费时间 |
 
-> **这个案例还有个额外价值**：它同时是 [#10](/docs?section=numbers&item=n10-bundle-size) 里「体积为什么降了 15%」的一个主要来源。**同一个变更同时解释了两个数字**，串起来讲会显得你真的经历过这次迁移。
+> **这个案例还有个额外价值**：它同时是 [#10](/docs?section=baidu&item=n10-bundle-size) 里「体积为什么降了 15%」的一个主要来源。**同一个变更同时解释了两个数字**，串起来讲会显得你真的经历过这次迁移。
 
 ---
 
@@ -118,7 +119,7 @@ modules by default. This is no longer the case.
 
 **第二个才是能拿出来的证据。** 如果那个仓库还能访问，`git log` 找到迁移的 commit，`git show --stat` 看 `package.json` 的改动就是原始记录。
 
-**但百度的代码不在本机，所以这条和 [#7](/docs?section=numbers&item=n07-qps)、[#8](/docs?section=numbers&item=n08-zero-loss) 一样，只能给口径不能给证据。** 好在这类计数声明面试官一般不会索要证据，**他们只会追案例**——所以上一节那两个案例才是重点。
+**但百度的代码不在本机，所以这条和 [#7](/docs?section=baidu&item=n07-qps)、[#8](/docs?section=baidu&item=n08-zero-loss) 一样，只能给口径不能给证据。** 好在这类计数声明面试官一般不会索要证据，**他们只会追案例**——所以上一节那两个案例才是重点。
 
 ---
 
@@ -141,7 +142,7 @@ modules by default. This is no longer the case.
 
 **建议口径：包数。** 因为它对应 `package.json` 的 diff，是唯一有客观依据的算法。
 
-**另外一个措辞小问题**：`incompatible packages` 把 loader、plugin、普通依赖三种东西混在一个词里了。想更准可以改成 `10+ incompatible loaders and plugins`——但这个不算硬伤，优先级低于 [#8](/docs?section=numbers&item=n08-zero-loss)。
+**另外一个措辞小问题**：`incompatible packages` 把 loader、plugin、普通依赖三种东西混在一个词里了。想更准可以改成 `10+ incompatible loaders and plugins`——但这个不算硬伤，优先级低于 [#8](/docs?section=baidu&item=n08-zero-loss)。
 
 ---
 
