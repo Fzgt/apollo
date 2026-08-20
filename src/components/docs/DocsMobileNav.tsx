@@ -11,6 +11,8 @@ interface DocsMobileNavProps {
   onNavigate: (sectionId: string, itemId?: string) => void;
   /** 抽屉头部的标题，缺省是「笔记」 */
   title?: string;
+  /** 和桌面侧栏共用一份展开状态 */
+  storageKey: string;
 }
 
 export function DocsMobileNav({
@@ -19,6 +21,7 @@ export function DocsMobileNav({
   activeItem,
   onNavigate,
   title = '笔记',
+  storageKey,
 }: DocsMobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -72,6 +75,7 @@ export function DocsMobileNav({
                   activeSection={activeSection}
                   activeItem={activeItem}
                   onNavigate={handleNavigate}
+                  storageKey={storageKey}
                 />
               </div>
             </motion.div>

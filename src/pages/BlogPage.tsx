@@ -195,7 +195,7 @@ export default function BlogPage() {
       const params = new URLSearchParams();
       if (number) params.set('post', String(number));
       setSearchParams(params, { replace: false });
-      window.scrollTo(0, 0);
+      // 滚动位置交给 RouteMemory：回列表时还停在刚才那条上
     },
     [setSearchParams]
   );

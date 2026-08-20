@@ -9,6 +9,7 @@ export default function LibraryPage() {
       notes={allLibraryNotes}
       getNote={getLibraryNote}
       navTitle="资料"
+      storageKey="library"
     />
   );
 }

@@ -5,7 +5,9 @@ import { Menu, X, Github, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 import { REPO_URL, SITE_NAME } from '@/content/site';
+import { lastTabUrl } from '@/lib/session-state';
 
+/** href 同时是页签的身份：路由记忆按它存「上次停在哪」 */
 const NAV_LINKS = [
   { label: '总览', href: '/' },
   { label: '复习', href: '/docs' },
@@ -75,7 +77,7 @@ export function SiteNavbar() {
               {NAV_LINKS.map((link) => (
                 <Link
                   key={link.href}
-                  to={link.href}
+                  to={lastTabUrl(link.href)}
                   className={cn(
                     'font-medium transition-colors',
                     pathname === link.href
@@ -141,7 +143,7 @@ export function SiteNavbar() {
                   transition={{ delay: index * 0.1 }}
                 >
                   <Link
-                    to={link.href}
+                    to={lastTabUrl(link.href)}
                     className="text-2xl font-semibold text-foreground"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >

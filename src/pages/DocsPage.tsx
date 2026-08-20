@@ -9,6 +9,7 @@ export default function DocsPage() {
       notes={allNotes}
       getNote={getNote}
       navTitle="复习"
+      storageKey="docs"
       showProgress
     />
   );

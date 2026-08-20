@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { readSession, writeSession } from '@/lib/session-state';
 import type { DocSection } from '@/content/navigation';
 
 interface DocsSidebarProps {
@@ -9,10 +10,46 @@ interface DocsSidebarProps {
   activeSection: string;
   activeItem?: string;
   onNavigate: (sectionId: string, itemId?: string) => void;
+  /** 这份目录的身份（docs / library），展开状态按它分开存 */
+  storageKey: string;
+  /** 只有桌面端那份常驻侧栏才记自己的滚动位置；抽屉里那份每次都是新开的 */
+  persistScroll?: boolean;
 }
 
-export function DocsSidebar({ sections, activeSection, activeItem, onNavigate }: DocsSidebarProps) {
-  const [expandedSections, setExpandedSections] = useState<string[]>([activeSection]);
+export function DocsSidebar({
+  sections,
+  activeSection,
+  activeItem,
+  onNavigate,
+  storageKey,
+  persistScroll = false,
+}: DocsSidebarProps) {
+  const [expandedSections, setExpandedSections] = useState<string[]>(() => {
+    const saved = readSession<unknown>(`sidebar:${storageKey}`, null);
+    return Array.isArray(saved) ? (saved as string[]) : [activeSection];
+  });
+
+  useEffect(() => {
+    writeSession(`sidebar:${storageKey}`, expandedSections);
+  }, [storageKey, expandedSections]);
+
+  const asideRef = useRef<HTMLElement>(null);
+  const asideScroll = useRef(0);
+
+  useLayoutEffect(() => {
+    const el = asideRef.current;
+    if (!el || !persistScroll) return;
+
+    el.scrollTop = readSession<number>(`sidebar-scroll:${storageKey}`, 0);
+    asideScroll.current = el.scrollTop;
+
+    const save = () => writeSession(`sidebar-scroll:${storageKey}`, asideScroll.current);
+    window.addEventListener('pagehide', save);
+    return () => {
+      window.removeEventListener('pagehide', save);
+      save();
+    };
+  }, [storageKey, persistScroll]);
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev =>
@@ -32,7 +69,13 @@ export function DocsSidebar({ sections, activeSection, activeItem, onNavigate }:
   };
 
   return (
-    <aside className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+    <aside
+      ref={asideRef}
+      onScroll={(e) => {
+        asideScroll.current = e.currentTarget.scrollTop;
+      }}
+      className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1"
+    >
       <nav className="space-y-1 pb-4">
         {sections.map((section) => {
           const isExpanded = expandedSections.includes(section.id);
@@ -64,7 +107,7 @@ export function DocsSidebar({ sections, activeSection, activeItem, onNavigate }:
                 )}
               </button>
 
-              <AnimatePresence>
+              <AnimatePresence initial={false}>
                 {hasItems && isExpanded && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}

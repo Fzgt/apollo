@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { SiteNavbar } from '@/components/layout/SiteNavbar';
+import { RouteMemory } from '@/components/layout/RouteMemory';
 import { SITE_NAME, SITE_TAGLINE } from '@/content/site';
 import NotFound from './pages/NotFound';
 
@@ -26,14 +27,6 @@ function PageMeta() {
   return null;
 }
 
-function ScrollToTop() {
-  const { pathname } = useLocation();
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  return null;
-}
-
 function RouteFallback() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
@@ -47,7 +40,7 @@ function RouteFallback() {
 const App = () => (
   <>
     <PageMeta />
-    <ScrollToTop />
+    <RouteMemory />
     <SiteNavbar />
     <Suspense fallback={<RouteFallback />}>
       <Routes>

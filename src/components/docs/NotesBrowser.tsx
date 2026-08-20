@@ -21,6 +21,8 @@ interface NotesBrowserProps {
   navTitle: string;
   /** 复习计划才有进度/日程标签，资料那套没有 */
   showProgress?: boolean;
+  /** 这套内容的身份（docs / library），侧边栏展开状态按它分开存 */
+  storageKey: string;
 }
 
 /**
@@ -33,6 +35,7 @@ export function NotesBrowser({
   getNote,
   navTitle,
   showProgress = false,
+  storageKey,
 }: NotesBrowserProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const docSections = useMemo(() => toDocSections(sections), [sections]);
@@ -66,7 +69,7 @@ export function NotesBrowser({
       params.set('item', note.itemId);
     }
     setSearchParams(params, { replace: true });
-    window.scrollTo(0, 0);
+    // 滚动位置交给 RouteMemory：新的一篇从头看，看过的回到上次停的地方
   }, [activeSection, activeItem, note, setSearchParams]);
 
   // Cmd+K / Ctrl+K 打开搜索
@@ -122,6 +125,8 @@ export function NotesBrowser({
                 activeSection={activeSection}
                 activeItem={note?.itemId}
                 onNavigate={handleNavigate}
+                storageKey={storageKey}
+                persistScroll
               />
             </div>
 
@@ -220,6 +225,7 @@ export function NotesBrowser({
         activeItem={note?.itemId}
         onNavigate={handleNavigate}
         title={navTitle}
+        storageKey={storageKey}
       />
 
       <SiteFooter />
