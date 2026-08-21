@@ -8,41 +8,58 @@ level: S
 status: done
 ---
 
-# 编排这条怎么讲
+# 六个阶段，和编排器不知道的事
 
-> 🔴 **必看**。⚠️ **机制原理以 [Library 的 Periplus AI 笔记](/library?section=periplus&item=ai) 为主**（618 行，六个 agent 逐一精读）。**这一篇只给三样它没有的**：口播稿、命名对照、以及那个会决定你可信度的追问。
+> 🔴 **必看**。⚠️ 机制细节以 [Library 的 Periplus 笔记](/library?section=periplus&item=ai) 为主（618 行，六个 agent 逐一精读）。**这一篇给口播稿、命名对照、和那个会决定你可信度的追问。**
+
+## 一、这个系统在干什么
+
+**Periplus 是个做旅行研究的系统**：给它一份行程简报（去哪、几号到几号、想看什么），它去检索、核实、规划、写稿、编辑、配图，**产出一份每句话都能追溯到原文出处的内容**。
+
+**六个阶段依次跑**：research（检索）→ verify（核实）→ plan（规划）→ write（写稿）→ edit（编辑）→ illustrate（配图）。
+
+## 二、30 秒口播稿（改一改就能用）
+
+> Periplus 是个做旅行研究的系统：给它一份行程简报，它去检索、核实、规划、写稿、编辑、配图，产出一份**每句话都能追溯到原文出处**的内容。
 >
-> 数字口径见 [#14 · 406 tests](/docs?section=periplus&item=n14-server-tests) · [#15 · 一秒](/docs?section=periplus&item=n15-end-to-end)。
-
-## 30 秒口播稿（改一改就能用）
-
-> Periplus 是个做旅行研究的系统：给它一个行程简报，它去检索、核实、规划、写稿、编辑、配图，产出一份**每句话都能追溯到原文出处**的内容。
+> **关键设计是六个阶段之间只通过「带类型的契约」交接** —— 每个阶段吃一个结构化对象、吐一个结构化对象，**编排器只认这个契约，完全不知道每个阶段内部在干什么**。所以我能单独换掉某一个阶段的实现、单独测它、或者让某个阶段根本不调模型，**编排器一行都不用改**。
 >
-> **关键设计是六个阶段之间只通过「带类型的契约」交接**——每个阶段吃一个 Pydantic 模型、吐一个 Pydantic 模型，编排器只认这个契约，**完全不知道每个阶段内部在干什么**。所以我能单独换掉某一个阶段的实现、单独测它、或者让某个阶段根本不调模型，编排器一行都不用改。
->
-> **而且这套契约一直延伸到前端**——后端的 Pydantic 模型生成 OpenAPI schema，前端用 `openapi-typescript` 直接生成 TS 类型。**后端改了字段名，前端是编译期报错，不是线上白屏。**
+> **而且这套契约一直延伸到前端** —— 后端的数据模型自动生成接口描述，前端再从描述生成 TypeScript 类型。**后端改了字段名，前端是编译期报错，不是线上白屏。**
 
-## ⭐ 最该准备的一问：凭什么说它是 agentic workflow 而不是 multi-agent system
+## 三、⭐ 最该准备的一问：凭什么说它是 agentic workflow 而不是 multi-agent system
 
-**简历 v41 用的词是 `six-stage agentic workflow`。这是个会被追问的措辞选择，而且答错方向会显得你在超售。**
+**简历用的词是 `six-stage agentic workflow`（六阶段的智能体工作流）。这是个会被追问的措辞选择，而且答错方向会显得你在超售。**
 
-**三条硬依据，都能当场指代码：**
+### 先说清这两个词的区别
+
+| | 定义特征 |
+|---|---|
+| **multi-agent system**（多智能体系统） | ⭐ **模型自己决定下一步做什么、该调用谁** —— 控制权在模型手里 |
+| **agentic workflow**（智能体工作流） | 有多个**专职的、带提示词的**处理单元，**但编排权在代码手里** |
+
+### 三条硬依据，都能当场指代码
 
 | 依据 | 代码 |
 |---|---|
-| **控制流是写死的，不是模型决定的** | `hermes.py:45-52` 的 `STAGE_ORDER` 是一个**固定 tuple**，而且只允许跑它的**连续前缀**——「可以在 plan 之后停下，但永远不能在没跑 research 的情况下跑 write」 |
-| **零个 tool call** | `grep -rn "tools=\|tool_choice\|function_call" periplus/llm/ periplus/agents/` **返回空**。模型只被要求在固定位置产出结构化输出，**它没有任何调用外部能力的口子** |
-| **连「看起来像 agent 自己规划」的部分都是代码算的** | `research.py:107` 的 `build_research_queries`，docstring 直接写着 *"Build a stable search plan **without spending a model call**"* |
+| **① 控制流是写死的，不是模型决定的** | `hermes.py:45-52` 的 `STAGE_ORDER` 是一个**固定的元组**，而且**只允许跑它的连续前缀** —— 注释原话：「一次运行可以在 plan 之后停下，**但永远不能在没跑 research 的情况下跑 write**」 |
+| **② 零个工具调用** | `grep -rn "tools=\|tool_choice\|function_call" periplus/llm/ periplus/agents/` **返回空**。**模型没有任何调用外部能力的口子** —— 它只被要求在固定位置产出结构化输出 |
+| **③ 连「看起来像自己规划」的部分都是代码算的** | `research.py:107` 那个函数的文档字符串直接写着 *"Build a stable search plan **without spending a model call**"*（**不花一次模型调用**就把检索计划算出来） |
 
-> **一句话答法**：「**multi-agent system 的定义特征是模型自己决定下一步做什么、调用谁。我们这套里模型一次都没有这个权力**——阶段顺序是写死的 tuple，agent 之间没有任何 tool call，连检索计划这种看着最像『自己规划』的东西都是普通函数算出来的。模型只负责在六个固定位置上产出结构化输出。**所以准确的说法是 agentic workflow：有多个专职的、带 prompt 的处理单元，但编排权在代码手里。**」
+> **「工具调用」（tool call）是什么**：现代模型 API 允许你告诉模型「你可以调用这几个函数」，模型自己决定什么时候调、传什么参数。**这是 multi-agent 系统的基础能力 —— 而这里一个都没有。**
+
+### 一句话答法
+
+> 「**multi-agent system 的定义特征是模型自己决定下一步做什么、调用谁。我们这套里模型一次都没有这个权力** —— 阶段顺序是写死的元组，agent 之间没有任何工具调用，**连检索计划这种看着最像『自己规划』的东西都是普通函数算出来的**。模型只负责在六个固定位置上产出结构化输出。**所以准确的说法是 agentic workflow：有多个专职的、带提示词的处理单元，但编排权在代码手里。**」
+
+> ⚠️ **说成 multi-agent 是超售，面试官一问控制流就露馅。**
 >
-> ⚠️ **说成 multi-agent 是超售，面试官一问控制流就露馅。** 而主动做出这个区分，反而会让人觉得你对这个领域的术语有判断力——**因为现在满世界都在把 workflow 叫成 multi-agent。**
+> ⭐ **而主动做出这个区分，反而会让人觉得你对这个领域的术语有判断力** —— **因为现在满世界都在把 workflow 叫成 multi-agent。**
 
-## 命名要能三向翻译
+## 四、命名要能三向翻译
 
-**简历写的是阶段的全称，代码里是缩写，文档里还有一套代号——被问「你们那个阶段叫什么」要报得出代码里的名字。**
+**简历写的是阶段的全称，代码里是缩写，文档里还有一套代号** —— 被问「你们那个阶段叫什么」要报得出代码里的名字。
 
-| 简历（全称） | 代码 `Stage` 枚举 | 代号 | 文件 |
+| 简历（全称） | 代码里的枚举值 | 代号 | 文件 |
 |---|---|---|---|
 | research | `RESEARCH = "research"` | **Explorer** | `agents/research.py` |
 | verification | `VERIFY = "verify"` | **Auditor** | `agents/verification.py` |
@@ -51,37 +68,42 @@ status: done
 | editing | `EDIT = "edit"` | **Editor** | `agents/editor.py` |
 | illustration | `ILLUSTRATE = "illustrate"` | **Illustrator** | `agents/illustration.py` |
 
-> 代号出现在 docstring 和注释里（比如 `ResearchBundle` 的注释是 *"Output of the Explorer"*），**类名是另一套**（`EditorAgent`、`IllustrationAgent`）。**三套名字都要能对上。**
+> 代号出现在文档字符串和注释里（比如某个数据结构的注释是 *"Output of the Explorer"*），**而类名又是第三套**（`EditorAgent`、`IllustrationAgent`）。**三套名字都要能对上。**
 
-## 另外三个必答
+## 五、另外三个必答
 
-**Q：为什么不用一个大 prompt？**
+### Q：为什么不用一个大提示词一次做完
 
-> 「一个大 prompt 意味着**你没有任何中间检查点**。研究阶段编了个来源、规划阶段用了过期的价格，你只能在最终产出里发现，而且无法归因。拆成六个阶段之后每一步都有**类型化的产物 + 一道 gate**——`stages.py` 里的 stage gate 会拦掉『结构合法但内容空洞』的产物，不合格的根本进不了下一阶段。**而且拆开之后每个阶段可以用不同的模型和不同的 thinking 级别**——verify 那步我们是关掉扩展推理的，因为那里要的是一个逐字比对的读者，不是一个会给自己找理由的推理者。」
-
-**Q：typed stage contract 换来了什么？**
-
-三样：**可替换**（换掉某个阶段的实现不影响其他）、**可测试**（每个阶段单独喂输入验输出，[#14](/docs?section=periplus&item=n14-server-tests) 的 406 个测试就建在这上面）、**可恢复**（产物有类型、能持久化，所以能从任意已完成阶段续跑——Day 10 的内容）。
-
-**Q：后端契约怎么和 React 保持同步？**
-
-```
-Pydantic 模型 (api/schemas.py)
-  → FastAPI 自动生成 OpenAPI schema
-    → npm run generate:api
-       openapi-typescript http://127.0.0.1:8000/openapi.json -o src/api/schema.generated.ts
-         → 前端拿到 TS 类型
-```
-
-> **关键是「生成」而不是「手写」**：后端改字段名，前端重新生成之后是**编译期报错**，不是运行时 undefined。**这就是简历里 `carried through to the React client as types generated from the OpenAPI schema` 的字面出处。**
+> 「一个大提示词意味着**你没有任何中间检查点**。检索阶段编了个来源、规划阶段用了过期的价格，**你只能在最终产出里发现，而且无法归因**。
 >
-> ⚠️ **代价要能说**：生成的类型和后端是强耦合的，后端一改前端就得跟着改——**但这正是你想要的**，问题在编译期暴露比在线上暴露便宜得多。
+> 拆成六个阶段之后每一步都有**类型化的产物 + 一道关卡** —— `stages.py` 里的关卡会拦掉『结构合法但内容空洞』的产物，**不合格的根本进不了下一阶段**。
+>
+> **而且拆开之后每个阶段可以用不同的模型和不同的推理强度** —— 核实那一步我们是**关掉扩展推理**的，因为那里要的是一个逐字比对的读者，**不是一个会给自己的结论找理由的推理者**。」
 
-## Library 导航
+### Q：带类型的阶段契约换来了什么
 
-| 读什么 | 为什么 |
+**三样：**
+
+| | 说明 |
 |---|---|
-| **系统全貌：六阶段总览** | 建立整体图景 |
-| **六个 agent 逐一精读** | 每个 agent 吃什么吐什么 |
-| **Claim / Evidence / Verdict 三层对象模型** | ⭐ Day 9 的核心，今天先看一遍 |
-| **Hermes：stage gate / budget / bounded retry / replay** | ⭐ **今天的重点**，尤其 stage gate 拦什么 |
+| **可替换** | 换掉某个阶段的实现，不影响其他阶段 —— 编排器只认契约 |
+| **可测试** | 每个阶段可以单独喂输入、验输出，[406 个测试](/docs?section=periplus&item=n14-server-tests)就建在这上面 |
+| **可恢复** | 产物有类型、能持久化，**所以能从任意已完成的阶段续跑**（见 [③ 持久化与 resume](/docs?section=periplus&item=d10-resume)） |
+
+### Q：后端契约怎么和 React 保持同步
+
+```
+Python 数据模型（api/schemas.py）
+  → FastAPI 自动生成 OpenAPI 接口描述
+    → 前端跑一条命令：
+       openapi-typescript http://127.0.0.1:8000/openapi.json -o src/api/schema.generated.ts
+         → 得到一份 TypeScript 类型定义
+```
+
+**「OpenAPI」是什么**：一份描述接口的标准格式文件 —— 有哪些接口、每个接口收什么、返回什么。**FastAPI 会根据你的 Python 数据模型自动生成它。**
+
+> ⭐ **关键是「生成」而不是「手写」**：后端改了字段名，前端重新生成之后**是编译期报错，不是运行时 undefined**。
+>
+> **这就是简历里 `carried through to the React client as types generated from the OpenAPI schema` 的字面出处。**
+
+> ⚠️ **代价要能说**：生成的类型和后端是**强耦合**的 —— 后端一改前端就得跟着改。**但这正是你想要的**：问题在编译期暴露，比在线上暴露便宜得多。
