@@ -10,9 +10,9 @@ status: done
 
 # 虚拟列表与生产白屏
 
-> 🔴 **必看**。⚠️ **这一天机制原理以 [Library 的百度笔记](/library?section=baidu&item=notes) 为主**——那边虚拟列表和白屏各有两百多行，写得比我细。
+> 🔴 **必看**。⚠️ **机制原理以 [Library 的百度笔记](/library?section=baidu&item=notes) 为主**——那边虚拟列表和白屏各有两百多行。
 >
-> **这一篇只给三样 Library 没有的**：两段口播稿、Library 导航、以及几个它没覆盖的追问。数字口径见 [#5 DOM 节点](/docs?section=baidu&item=n05-dom-nodes) · [#6 FPS](/docs?section=baidu&item=n06-fps)。
+> **这一篇给三样 Library 没有的**：两段口播稿、术语补齐、以及它没覆盖的追问。数字口径见 [#5 DOM 节点](/docs?section=baidu&item=n05-dom-nodes) · [#6 FPS](/docs?section=baidu&item=n06-fps)。
 
 ## 一、虚拟列表 · 30 秒口播稿
 
@@ -22,7 +22,48 @@ status: done
 >
 > **真正的收益不是「少了多少个节点」，是复杂度的量级变了**——优化前 DOM 数随已加载条数增长，是 O(n)；优化后只随视口高度增长，跟数据量无关，用户滚一万条 DOM 里还是那二十来个。**滚动回到稳定 60 帧。**
 
-**接下来三层追问的答法在**：`transform` vs `top`（只走 composite，跳过 layout 和 paint）、`IntersectionObserver` vs scroll 监听（避免 `getBoundingClientRect` 的强制同步布局）、60 FPS = 每帧 16.67ms 预算。**全在 Library。**
+### ⭐ 先把「为什么节点多了会卡」讲通
+
+**浏览器每渲染一帧要走五步**（这条流水线是所有前端性能问题的地基）：
+
+| 步骤 | 干什么 | 成本随什么涨 |
+|---|---|---|
+| **JS** | 跑你的代码，改 DOM | 代码量 |
+| **Style** | 算每个节点最终应用哪些 CSS 规则 | ⭐ **节点数** |
+| **Layout**（重排） | 算每个节点的**位置和尺寸** | ⭐ **节点数**（最贵的一步） |
+| **Paint**（重绘） | 把每个节点画成像素 | 像素面积 |
+| **Composite**（合成） | 把画好的图层拼起来，交给 GPU | 图层数 |
+
+**「重排」（Layout / reflow）= 重新计算所有节点的几何位置。** 它贵，是因为**一个节点的位置会影响它后面所有节点的位置**——所以成本随节点总数线性涨。
+
+> ⭐ **这就是 500 个节点会掉帧的原因**：不是「节点占内存」，是**每一帧的 Layout 都要把这 500 个都算一遍**。
+>
+> **60 FPS = 每帧只有 16.67 毫秒**（1000 ÷ 60）。这 16.67ms 里浏览器自己要用掉一部分，**真正留给你的 JS 大概只有 10ms**。Layout 一超，这一帧就丢了。
+
+### 虚拟列表的两个结构（spacer 是题眼）
+
+**天真的想法「只渲染可见的十条」有个直接问题：滚动条会消失。** 因为页面里只有十条的高度，浏览器认为内容就那么高。
+
+**所以要拆成两层：**
+
+```
+外层容器（撑满总高度：总条数 × 每条高度）  ← ⭐ 只为骗住滚动条，叫 spacer
+  └── 内层每一条（position: absolute + transform: translateY(该条的偏移量)）
+```
+
+> **外层负责「假装有一万条那么高」，内层负责「只画看得见的那十条」。**
+
+### ⭐ 为什么用 `transform` 而不是 `top`
+
+**这是必背的一张表**，因为它直接对应上面那条流水线：
+
+| 改什么 | 触发哪几步 |
+|---|---|
+| `top` / `left` / `width` / `height` | ⭐ **Layout → Paint → Composite**（全走一遍，最贵） |
+| `background-color` / `box-shadow` | Paint → Composite |
+| `transform` / `opacity` | ⭐ **只走 Composite**（GPU 直接搬图层，CPU 几乎不参与） |
+
+**原因**：改 `top` 是在改「这个元素在文档流里的位置」，会影响别人 → 必须重排。**改 `transform` 是在「把已经画好的那张图搬个位置」，文档流里它没动过** → 不影响任何人，浏览器可以直接交给 GPU 平移。
 
 ## 二、生产白屏 · 30 秒口播稿
 
@@ -34,19 +75,62 @@ status: done
 
 > ⭐ **这条 bullet 的价值全在最后那句转折**：从「修一个 bug」上升到「消除一类 bug」。**只讲排查过程会浪费掉它。**
 
+### ⭐ 三个术语，讲这条之前必须先说清
+
+**① semver（语义化版本）和那两个符号**
+
+版本号 `4.17.21` 读作 `主版本.次版本.修订号`：**主版本变 = 有破坏性改动，次版本变 = 加了功能但兼容，修订号变 = 只修 bug。**
+
+`package.json` 里写的**不是一个版本，是一个允许范围**：
+
+| 写法 | 允许装 | 说明 |
+|---|---|---|
+| `4.17.21` | 只有 4.17.21 | 锁死 |
+| `~4.17.21` | `>=4.17.21 <4.18.0` | 只放行修订号 |
+| ⭐ `^4.17.21` | `>=4.17.21 <5.0.0` | **放行次版本**——`npm 默认给你写的就是这个` |
+
+> ⭐ **`^` 是这次事故的起点**：它赌的是「次版本一定兼容」。**而这个赌注每年都有人输**——库作者认为是「加功能」的改动，在你的用法下就是破坏性的。
+
+**② `package-lock.json`（锁文件）是干什么的**
+
+`package.json` 写的是范围，**锁文件写的是「上次实际装的那一个确切版本」**，连它的依赖的依赖也一起钉死。
+
+**它存在的全部意义就是：让每个人、每台 CI 装出完全一样的 `node_modules`。**
+
+**③ ⭐ 为什么 Node 版本不一致会把锁文件搞坏**
+
+**锁文件有个 `lockfileVersion` 字段，它的格式随 npm 大版本变**（npm 6 是 v1，npm 7+ 是 v2/v3）。**而 npm 版本是跟着 Node 版本走的**——装 Node 就带一个 npm。
+
+**于是**：某人的 Node 版本低/高一截 → 他的 npm 看到一个「格式不对」的锁文件 → **它会按自己的规则重新生成一份** → 重新生成时它会去 registry 拿「符合 `^` 范围的最新版本」→ **那个最新版本带了破坏性改动。**
+
+> ⭐ **整条链的关键一环是「重新生成」**：锁文件不是被人手动改的，是**被工具在他毫不知情的情况下重写的**。
+>
+> **这也是为什么修法是「锁 Node 版本」** —— 不锁住 Node，就锁不住 npm，就锁不住锁文件。
+
+**④ `npm ci` vs `npm install`**
+
+| | 行为 |
+|---|---|
+| `npm install` | ⭐ **可以修改锁文件**——发现 `package.json` 和锁文件对不上时，它会更新锁文件 |
+| ⭐ `npm ci` | **只读锁文件**；对不上就直接报错退出；而且先删掉整个 `node_modules` 从头装 |
+
+> **CI 里必须用 `npm ci`。** 名字里的 ci 就是 continuous integration。**用 `npm install` 等于允许 CI 悄悄改变依赖版本。**
+
 ## 三、Library 导航（按这个顺序读）
 
-| 读什么 | Library 行号 | 为什么必看 |
-|---|---|---|
-| **为什么 500 个 DOM 会掉帧** | `① 149-167` | 渲染流水线 JS→Style→Layout→Paint→Composite，**layout 时间随节点数线性涨** |
-| **虚拟列表核心思想 + spacer** | `② ③ 169-202` | 外层撑总高度保住滚动条，内层 absolute + translateY |
-| ⭐ **`transform` vs `top`** | `④ 203-217` | **必背那张表**：top 触发 Layout+Paint+Composite，transform **只走 Composite**（GPU） |
-| ⭐ **IntersectionObserver** | `⑤ 218-244` | 替代 scroll + `getBoundingClientRect`，**避免强制同步布局** |
-| **60 FPS 预算 + RAIL** | `⑥ 245-254` | 16.67ms/帧，留给 JS 的实际只有 ~10ms |
-| **完整 hook 实现骨架** | `255-324` | 面试要白板写的话看这个 |
-| **动态高度两种方案** | `325-338` | 预估+`ResizeObserver` 测量修正 / offset table + 二分 |
-| **`passive: true`** | `339-346` | 告诉浏览器不会 `preventDefault`，**滚动不用等 JS** |
-| **白屏：semver / lockfile / npm ci** | `716-790` | `^` `~` 放行范围、lockfileVersion 随 npm 走、`npm ci` vs `install` |
+| 读什么 | Library 行号 |
+|---|---|
+| 为什么 500 个 DOM 会掉帧 | `① 149-167` |
+| 虚拟列表核心思想 + spacer | `② ③ 169-202` |
+| `transform` vs `top` | `④ 203-217` |
+| ⭐ **IntersectionObserver**（Library 有，这里没重复） | `⑤ 218-244` |
+| 60 FPS 预算 + RAIL | `⑥ 245-254` |
+| 完整 hook 实现骨架（白板题看这个） | `255-324` |
+| 动态高度两种方案 | `325-338` |
+| `passive: true` | `339-346` |
+| 白屏：semver / lockfile / npm ci | `716-790` |
+
+> **`IntersectionObserver` 那节的题眼**：用 scroll 事件 + `getBoundingClientRect()` 判断某条在不在视口里，会触发**强制同步布局**（forced synchronous layout）——**你在读一个几何属性，浏览器为了给你准确答案，被迫立刻把 Layout 跑一遍**，而且是在 JS 里同步跑的。`IntersectionObserver` 由浏览器在自己的时机异步算好再通知你，绕开了这一步。
 
 ## 四、Library 没覆盖的四个追问
 
@@ -56,9 +140,9 @@ status: done
 
 **主动说「现在会选库」比硬撑「自己写更好」可信得多。**
 
-**Q：`~20` 这个数字到底是节点数还是条目数？**
+**Q：`~20` 到底是节点数还是条目数？**
 
-✅ **已解决**：简历现在写 `live DOM nodes stay near 100 at any scroll depth`。原来的 `roughly 20` 是把条目数写成了节点数（一个 feed 卡片本身就是 8–15 个节点）。**现在这个写法更强**——`at any scroll depth` 说的是「不随滚动深度增长」，正是虚拟列表真正的收益。详见 [#5](/docs?section=baidu&item=n05-dom-nodes)。
+✅ **已解决**：简历现在写 `live DOM nodes stay near 100 at any scroll depth`。原来的 `roughly 20` 是把条目数写成了节点数（**一个 feed 卡片本身就是 8–15 个节点**：外层 div、图片、标题、作者行、播放量、时长角标……）。**`at any scroll depth` 说的是「不随滚动深度增长」，正是虚拟列表真正的收益。** 详见 [#5](/docs?section=baidu&item=n05-dom-nodes)。
 
 **Q：白屏那条「第一个定位到」怎么讲？**
 
@@ -66,8 +150,8 @@ status: done
 
 **Q：排查过程怎么组织？**
 
-**用 observe → hypothesize → verify → fix → prevent 五步讲**，重点在最后两步的分离：**fix 是让这次好，prevent 是让这类不再来。** 这正好呼应第二段口播稿的转折。
+**用 observe → hypothesize → verify → fix → prevent 五步讲**，重点在最后两步的分离：**fix 是让这次好，prevent 是让这类不再来。**
 
 ## 五、当日附加
 
-**幂等在四个场景的四种实现**已经填好了 → [速查 · 幂等的四种实现](/docs?section=cheatsheet&item=idempotency)。**Day 14 Round 3 必考，今天顺手过一遍。**
+**幂等在四个场景的四种实现** → [速查 · 幂等的四种实现](/docs?section=cheatsheet&item=idempotency)。**Round 3 必考。**
