@@ -8,13 +8,13 @@ level: 前置
 status: done
 ---
 
-# #1 · `60-second, usage-scoped keys`
+# 60 秒、单一权限的临时凭证
 
 > 以下全部是必会内容——被问到这条，答不出就是负资产。
 
 ## 对应简历原句
 
-Beyz 第 2 条 bullet（v40）：
+Beyz 第 2 条 bullet：
 
 > Kept the transcription credential out of the browser by **minting 60-second, usage-scoped keys per session behind a plan gate**, held the socket alive across microphone pauses, and logged per-request token usage that backs per-plan quotas; a four-state machine drops overlapping generations.
 

@@ -8,7 +8,7 @@ level: 前置
 status: done
 ---
 
-# #1 补充 · keepAlive 与 10 秒心跳
+# 10 秒心跳：连接的寿命
 
 > [#1](/docs?section=beyz&item=n01-ephemeral-keys) 讲的是 60 秒 TTL（凭证的寿命）。这一篇讲挨着它的另一个数字：10 秒心跳（连接的寿命）。**这两个数字管的是完全不同的事，是这条 bullet 最容易讲混的地方。**
 
