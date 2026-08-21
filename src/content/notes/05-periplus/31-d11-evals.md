@@ -8,79 +8,198 @@ level: S
 status: done
 ---
 
-# 评测这条怎么讲
+# 改一个提示词，怎么知道是变好了还是变坏了
 
-> 🔴 **必看**。⚠️ **这一天你在 Day 1 已经写透了**：[#16 · golden set 四个数字](/docs?section=periplus&item=n16-golden-set)（冻结什么、断言范围、四个 case 逐个精读、oracle 钉死模型判断、`gap_rate` 返回 1.0、三条局限、什么时候该上 LLM judge）。
+> 🔴 **必看**。数字核准和四个用例的逐个精读在 [⑤ 4 case / 8 claim / 8727 tokens](/docs?section=periplus&item=n16-golden-set)。**这一篇讲机制和三块那边没有的内容。**
+
+## 对应简历原句
+
+> **Scored the pipeline against a golden set, not by inspection.** Each case freezes the brief, the retrieved pages and the clock, then **asserts ranges rather than literal output** on evidence-gap rate, citation integrity and token cost. A prompt or control-flow change lands as a before/after diff, every metric marked better or worse.
+
+## 一、要解决什么
+
+**普通软件**：改一行代码，跑测试，红了就是坏了。**因为输出是确定的**，`assert 结果 == 期望` 就够了。
+
+**大模型系统不行**：**输出是自然语言，同一个提示词两次跑出来的句子都可能不同。没有一个「期望值」可以对。**
+
+**于是绝大多数人的做法是 by inspection（肉眼看几个例子）**：改完提示词，手动跑两三个用例，看着还行就上。
+
+**这个做法有四个致命问题：**
+
+| 问题 | 说明 |
+|---|---|
+| **不可重复** | 你看的和同事看的不是同一批输出 |
+| **不可比较** | 「好像好一点」没法量化，**更没法回答「代价是什么」** |
+| **样本偏差** | **你只会去看你想到的那几个用例** |
+| **看不见退化** | 改动让 A 变好、B 变坏，**而你只看了 A** |
+
+> **简历里 `not by inspection` 这个短语，针对的就是这套做法。**
+
+## 二、30 秒口播稿（改一改就能用）
+
+> 大模型系统改一个提示词，怎么知道是变好了还是变坏了？**大多数人是「肉眼看几个例子」—— 不可重复、不可比较，而且你只会去看你想到的那几个。**
 >
-> **这一篇只补 #16 没覆盖的三块**，外加口播稿。
-
-## 30 秒口播稿（改一改就能用）
-
-> LLM 系统改一个 prompt，怎么知道是变好了还是变坏了？**大多数人是「肉眼看几个例子」——不可重复、不可比较，而且你只会去看你想到的那几个 case。**
+> 我们的做法是**冻结输入、断言性质**：每个用例把行程简报、检索到的页面全文、还有「今天是几号」全部冻死，然后断言的**不是「模型该输出哪句话」，而是可计数的性质** —— 产出了几条声明、引用完整性有没有破、判决分布是什么、花了多少 token。
 >
-> 我们的做法是**冻结输入、断言性质**：每个 case 把行程简报、检索到的页面全文、还有时钟全部冻死，然后断言的不是「模型该输出哪句话」，而是**可计数的性质**——产出了几条声明、引用完整性有没有破、判决分布是什么、花了多少 token。
+> **关键设计是核实阶段用一个「读标签的裁判」代替模型**，所以模型判断是常量。**指标只要动，一定是代码动了** —— 这是离线评测唯一能把真实回归和模型漂移分开的办法。**代价是它测的是流水线不是提示词质量，这一点我会主动说。**
+
+## 三、golden set 是什么：冻结输入，断言性质
+
+**「golden set」（黄金集）= 一组冻死了输入的标准用例。**
+
+**核心思路：既然输出没法固定，那就把输入全部固定，然后断言输出的「性质」而不是「内容」。**
+
+**一个用例文件冻结这些东西：**
+
+| 字段 | 冻结了什么 | 为什么必须冻 |
+|---|---|---|
+| `brief` | 用户输入（目的地、日期、必看项） | 输入变了指标当然变 |
+| `corpus` | ⭐ **检索到的页面全文** | 见下 |
+| `as_of` | ⭐ **「今天是几号」** | 见下 |
+| `model` | 裁判的判定标签 | 见第五节 |
+| `stages` | 跑哪几个阶段（目前是检索 + 核实） | |
+| `expect` | 断言列表 | 见第四节 |
+
+### ⭐ 为什么必须冻结检索到的页面
+
+**如果不冻**：你今天改了提示词跑一遍、明天再跑一遍，**搜索引擎返回的页面已经变了**。
+
+**指标动了，你分不清是提示词改好了，还是搜索结果换了。**
+
+> **冻结语料 = 把「检索的随机性」这个变量从实验里消掉。**
+
+### ⭐ 为什么必须冻结时钟
+
+**这个系统的核心判定之一是「这条证据过不过期」**，公式是 `今天 − 页面发布日期 > 新鲜度窗口`。
+
+**不冻时钟，同一个用例明年跑就是不同的答案** —— 一条今天还有效的价格，半年后自然变成过期，**测试自己就红了**。
+
+## 四、⭐ `asserts ranges rather than literal output`（这一节是核心）
+
+**实测一个用例的断言长这样：**
+
+```json
+[
+  {"metric": "claims",            "min": 3, "max": 3,
+   "note": "三条引用都是逐字的，一条都不该被丢掉"},
+  {"metric": "citation_failures",           "max": 0,
+   "note": "这条流水线存在的意义就是守住这个不变量"},
+  {"metric": "verdict.supported", "min": 3, "max": 3},
+  {"metric": "gap_rate",                    "max": 0},
+  {"metric": "stage.verify.attempts", "min": 1, "max": 1,
+   "note": "干净的用例上不该有重试"}
+]
+```
+
+> ⭐ **注意：没有任何一条断言「模型应该输出这句话」。断言的全是可计数的性质** —— 产出了几条声明、溯源有没有断、判决分布是什么、花了几次模型调用。
+
+**为什么这一点这么重要：**
+
+| | 后果 |
+|---|---|
+| **断言字面输出** | ⭐ **每次改提示词都得重写测试** —— 那测试就不是安全网，是负担，**最后一定被删掉** |
+| **断言性质** | **提示词怎么改都行，只要系统的不变量还在，测试就绿** —— 这才是能长期活下去的评测 |
+
+## 五、⭐ 裁判把模型判断钉死，意味着什么
+
+**核实阶段用的不是真模型，是一个「读标签的裁判」**（`evals/offline.py:116-127`）：
+
+> *"This is the ground-truth auditor: **it never reads evidence, it reads the case file.** That is deliberate. **With model judgement pinned, every movement in the verdict distribution is attributable to code** — a freshness window, a no-evidence path, a batch ceiling, a duplicate-ID rejection — **which is the only way an offline suite can tell a real regression from provider drift.**"
+
+**翻译成人话：**
+
+**把模型的判断变成一个常量，那么指标只要动，一定是代码动了** —— **因为唯一的变量就是代码。**
+
+> ⭐ **这解决的是 AI 评测里最烦的问题：provider drift（模型漂移）。**
 >
-> **关键设计是核查阶段用一个读标签的 oracle 代替模型**，所以模型判断是常量。**指标只要动，一定是代码动了**——这是离线评测唯一能把真实回归和模型漂移分开的办法。**代价是它测的是流水线不是 prompt 质量，这一点我会主动说。**
+> 服务商悄悄换了模型版本，你的指标掉了三个点 —— **是你的代码退化了，还是模型变了？** **把模型钉死，这个问题就不存在了。**
 
-## 一、Q1：怎么知道版本 B 真的比 A 好
+### ⚠️ 但这个设计有明确的代价，必须主动说
 
-**靠 `report.py:194` 的 `compare()`** —— 生成一份 Markdown 的前后差异，docstring 说得很准：*"the sentence a change is defended with"*（**一次改动是拿这句话去辩护的**）。
+**它测的是流水线（pipeline），不是提示词质量。**
 
-⭐ **但真正值得讲的是它防了什么**：
+**「我改了核实那个 agent 的提示词，让它变成一个更好的审核员了吗？」—— 这套离线评测回答不了这个问题**，因为裁判根本不看提示词。
 
-> *"Cases present in only one report are listed rather than dropped: **a comparison that quietly ignores a removed case can show an improvement that is really just a missing test.**"*
+**代码自己也写明了**：要回答那个问题，需要**真实的模型对着同一批语料跑**；指标层和报告层是**与服务商无关**的，所以那个模式能接进来而不用重写黄金集。
 
-**删掉一个不通过的 case，指标当然会变好。** 这个设计让「少了一个 case」显式出现在报告里，**而不是伪装成进步**。
+> ⭐ **能主动讲出这个代价，比讲这个设计本身更能体现你理解它。**
 
-> **这和 [`gap_rate` 零 claim 返回 1.0](/docs?section=periplus&item=n16-golden-set) 是同一个思路：写评测的人想过自己的评测会怎么被骗。** 两个例子一起讲很有力。
+## 六、⭐ 怎么避免提示词对着黄金集过拟合（最见功力的一问）
 
-## 二、⭐ Q4：怎么避免 prompt 对着 golden set 过拟合
-
-**这一问 #16 没答，而且它是评测话题里最见功力的一问。**
-
-**先承认风险**：只有四个 case，反复调 prompt 直到四个都过，那就是在拟合这四个 case 而不是在改进系统。
+**先承认风险**：只有四个用例，**反复调提示词直到四个都过，那就是在拟合这四个用例而不是在改进系统**。
 
 **这套设计里有三道结构性的防线：**
 
 | 防线 | 怎么起作用 |
 |---|---|
-| ⭐ **oracle 钉死了模型判断** | 核查阶段读的是 case 标签**不是证据**，所以**改 Auditor 的 prompt 根本不会让指标移动**——想靠调那个 prompt 把 eval 调绿，**结构上就做不到** |
+| ⭐ **裁判钉死了模型判断** | 核实阶段读的是用例标签**不是证据**，所以**改核实那个 agent 的提示词根本不会让指标移动** —— 想靠调那个提示词把评测调绿，**结构上就做不到** |
 | **断言的是范围不是字面值** | 范围留了余地，**不奖励「刚好卡到某个精确值」**的调法 |
-| **`compare()` 会点出消失的 case** | 靠删 case 来刷指标会被看见 |
+| **报告会点出消失的用例** | 靠删用例来刷指标会被看见（见下一节） |
 
-**还有一条纪律层面的**：**加 case 的动机应该是「发现了一个新的失败模式」，不是「想让某个数字变好看」。**
+**还有一条纪律层面的**：**加用例的动机应该是「发现了一个新的失败模式」，不是「想让某个数字变好看」。**
 
-> ⚠️ **诚实的局限要主动说**：**没有 hold-out set**——四个 case 全部参与调优，没有留一组不看的。**四个 case 是种子集，不是覆盖率主张。** 真要防过拟合，标准做法是留出一部分 case 只在发布前跑一次。
+> ⚠️ **诚实的局限要主动说**：**没有留出集（hold-out set）** —— 四个用例全部参与调优，**没有留一组不看的**。
+>
+> **四个用例是种子集，不是覆盖率主张。** 真要防过拟合，**标准做法是留出一部分用例只在发布前跑一次。**
 
-## 三、prompt 版本怎么归因（很细但很能加分）
+## 七、怎么知道版本 B 真的比 A 好
 
-**`prompts.py` 文件头解释了一个反直觉的取舍：**
+**靠 `report.py:194` 的对比函数** —— 生成一份 Markdown 的前后差异，文档字符串说得很准：*"the sentence a change is defended with"*（**一次改动是拿这句话去辩护的**）。
 
-> *"The obvious candidate for that attribution — `ModelCall.prompt_hash` — **cannot do the job across runs**... it digests the *whole* assembled prompt, which for research includes the brief\'s generated id and for verification includes **freshly minted claim and evidence UUIDs**. **Two identical runs therefore produce different digests.**"*
+⭐ **但真正值得讲的是它防了什么：**
 
-**翻译**：`prompt_hash` 摘的是**组装好的完整 prompt**，里面混进了每次都新生成的 UUID。**所以两次完全一样的运行会得到两个不同的哈希**——它能用来在一次 run 内部给重复调用分组（那是它被造出来的用途），**但完全不能当作 prompt 的版本号**。
+> *"Cases present in only one report are listed rather than dropped: **a comparison that quietly ignores a removed case can show an improvement that is really just a missing test.**"*
+>
+> （只在一份报告里出现的用例会被列出来而不是丢掉：**一个悄悄忽略了被删用例的对比，可以显示出一个『进步』，而那其实只是少了一个测试。**）
 
-**解法是改摘 stage 的 system prompt**——真正会随人编辑而变的那段文本。
+**删掉一个不通过的用例，指标当然会变好。** 这个设计让「少了一个用例」**显式出现在报告里，而不是伪装成进步**。
+
+> ⭐ **这和 [`gap_rate` 零声明时返回 1.0](/docs?section=periplus&item=n16-golden-set) 是同一个思路：写评测的人想过自己的评测会怎么被骗。** 两个例子一起讲很有力。
+
+## 八、提示词版本怎么归因（很细但很能加分）
+
+**`prompts.py` 的文件头解释了一个反直觉的取舍：**
+
+> *"The obvious candidate for that attribution — `ModelCall.prompt_hash` — **cannot do the job across runs**... it digests the *whole* assembled prompt, which for research includes the brief's generated id and for verification includes **freshly minted claim and evidence UUIDs**. **Two identical runs therefore produce different digests.**"*
+
+**翻译**：那个「提示词哈希」字段摘的是**组装好的完整提示词**，**里面混进了每次都新生成的随机编号**。**所以两次完全一样的运行会得到两个不同的哈希** —— 它能用来在**一次运行内部**给重复调用分组（那是它被造出来的用途），**但完全不能当作提示词的版本号**。
+
+**解法是改摘各阶段的系统提示词** —— **真正会随人编辑而变的那段文本。**
 
 ⭐ **而且这段注释还坦白了实现上的将就：**
 
-> *"It reaches into the agent modules\' private constants on purpose: **that is the stopgap, and the discomfort is the signal.**"*
+> *"It reaches into the agent modules' private constants on purpose: **that is the stopgap, and the discomfort is the signal.**"*
+>
+> （它是故意去够 agent 模块的私有常量的：**这就是那个权宜之计，而这份别扭本身就是信号。**）
 
-> **「这个别扭本身就是信号」** —— 承认当前实现是权宜之计、正确做法是把 prompt 提到一个带版本的模块里。**面试里引这一句，能同时证明两件事：你在意归因的严谨性，而且你知道自己的临时方案临时在哪。**
+> ⭐ **「这个别扭本身就是信号」** —— 承认当前实现是权宜之计、**正确做法是把提示词提到一个带版本的模块里**。
+>
+> **面试里引这一句，能同时证明两件事：你在意归因的严谨性，而且你知道自己的临时方案临时在哪。**
 
-## 四、其余四问直接跳回 #16
+## 九、⭐ 必须主动说的三条局限
 
-| 问题 | 去哪 |
-|---|---|
-| **为什么断言范围而不是字面输出** | [#16 · 三](/docs?section=periplus&item=n16-golden-set)（断字面 = 每改一次 prompt 就得重写测试） |
-| **golden set 冻结了什么** | [#16 · 二](/docs?section=periplus&item=n16-golden-set)（brief / corpus / clock，各有各的理由） |
-| **什么时候该上 LLM judge，怎么验证它** | [#16 · 九](/docs?section=periplus&item=n16-golden-set)（**这里没有 LLM judge**，绝不能说成用了；验证 judge 要算和人工标注的一致率，而且 judge 版本也要钉住） |
-| **`gap_rate` 零 claim 为什么返回 1.0** | [#16 · 六](/docs?section=periplus&item=n16-golden-set)（返回 0.0 会让空跑通过阈值） |
+**别等被问。在评测这个话题上主动交代局限是纯加分** —— 因为**懂行的人知道任何评测都有局限，你不说他就觉得你不知道。**
 
-## 五、必须主动说的三条局限
+1. **只覆盖检索和核实两个阶段** —— 六个阶段里的后四个还没有用例
+2. **测的是流水线不是提示词质量** —— 裁判把模型判断钉死了
+3. **四个用例、八条声明是种子集，不是覆盖率主张**
 
-**别等被问**——在评测这个话题上主动交代局限是纯加分，因为懂行的人知道任何评测都有局限，你不说他就觉得你不知道。
+## 十、什么时候才该上 LLM judge（预期追问）
 
-1. **只覆盖 research 和 verify 两个阶段**，后四个阶段没有 case
-2. **测的是流水线不是 prompt 质量**（oracle 钉死了模型判断）
-3. **四个 case、八条 claim 是种子集，不是覆盖率主张**
+**「LLM-as-a-judge」= 用另一个大模型来给输出打分。**
+
+> ⚠️ **这套里没有 LLM judge。** 它用的是「把模型判断钉死 + 断言指标范围」。**绝不能说成「我项目里用了」。**
+
+**那什么时候该上？**
+
+**当你要评价的东西没法用规则断言时** —— 比如「这段文案读起来自然吗」「这个行程安排合理吗」。**引用完整性、新鲜度窗口、判决分布这些能用代码算的，就不该交给模型判。**
+
+**怎么验证 judge 本身**（这是追问的第二层，很多人答不上）：
+
+- **人工标注一批样本，算 judge 和人工的一致率**
+- ⭐ **judge 自己也会漂** —— 它也是个模型，服务商一升级它的判断就变，**所以 judge 的版本也要钉住**
+- judge 有已知偏好：**偏爱长回答、偏爱它自己家族的模型输出**
+
+**答法**
+
+> 「我们这套里没有 LLM judge，用的是把模型判断钉死之后断言指标范围。**LLM judge 适合评价没法用规则断言的东西**，比如行文质量；能用代码算的引用完整性和新鲜度就不该交给模型。**而且上 judge 之前得先验证 judge** —— 拿人工标注算一致率，还得把 judge 的模型版本钉住，**否则它自己就是个漂移源。**」
