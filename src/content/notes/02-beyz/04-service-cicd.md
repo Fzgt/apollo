@@ -122,7 +122,7 @@ await db.insert(upgradeReminders).values({ userId: user.id, sentAt: new Date() }
 | **给邮件服务商传幂等键** | 多数服务商支持这个头，**把去重推到最后一层** |
 | **调度层保证只有一个实例在跑** | 分布式锁，或者用支持单例的调度器 |
 
-> ⭐ **「唯一索引兜底」这一招和 [③ Stripe 的重复投递](/docs?section=beyz&item=stripe-billing)、[百度提现的幂等键](/docs?section=baidu&item=d6-withdraw) 是完全同一个模式：把不变量放在数据层，不放在应用层的 if 判断里。三个项目串起来讲，是[跨项目追问](/docs?section=cheatsheet&item=crosscut)的现成答案。**
+> ⭐ **「唯一索引兜底」这一招和 [③ Stripe 的重复投递](/docs?section=beyz&item=stripe-billing)、[百度提现的幂等键](/docs?section=baidu&item=withdrawal) 是完全同一个模式：把不变量放在数据层，不放在应用层的 if 判断里。三个项目串起来讲，是[跨项目追问](/docs?section=cheatsheet&item=crosscut)的现成答案。**
 
 ## 三、为什么 cron 定成每分钟
 

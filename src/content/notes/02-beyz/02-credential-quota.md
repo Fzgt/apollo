@@ -284,7 +284,7 @@ if (subscribedPlan === SubscriptionPlan.Free) throw new Error("Unauthorized");
 2. **前端的数据可能不全** —— 消息列表来自当前页面，**换个设备、开个新标签页，这个计数就重新开始了**
 3. **前端拦截只改变行为，不提供保证**
 
-> **这和[百度提现](/docs?section=baidu&item=d6-withdraw)那条是同一句话：前端减少无效负载，正确性必须来自服务端。**
+> **这和[百度提现](/docs?section=baidu&item=withdrawal)那条是同一句话：前端减少无效负载，正确性必须来自服务端。**
 
 ### 两条出路，选一条
 
@@ -449,4 +449,4 @@ WHERE user_id = ? AND remaining > 0;
 
 ⭐ **把「余额必须大于 0」这个条件写进 SQL 的 WHERE 里，靠「这条语句影响了几行」判断成功与否 —— 而不是先查再写。因为数据库执行单条 UPDATE 是原子的，两个并发请求只有一个能让条件成立。**
 
-> **这条能和 [③ Stripe 的终身档保护](/docs?section=beyz&item=stripe-billing)、[百度提现的余额约束](/docs?section=baidu&item=d6-withdraw) 串成一句话：把不变量放在数据层，而不是应用层的判断里。** 应用层的判断会因为并发、重启、多实例失效，**数据库的约束不会。**
+> **这条能和 [③ Stripe 的终身档保护](/docs?section=beyz&item=stripe-billing)、[百度提现的余额约束](/docs?section=baidu&item=withdrawal) 串成一句话：把不变量放在数据层，而不是应用层的判断里。** 应用层的判断会因为并发、重启、多实例失效，**数据库的约束不会。**

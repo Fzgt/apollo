@@ -116,7 +116,7 @@ status: doing
 
 ## 4. 5M+ daily page views
 
-**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#4 · 5M+ daily page views](/docs?section=baidu&item=n04-daily-pv)
+**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#4 · 5M+ daily page views](/docs?section=baidu&item=virtual-list)
 
 是日均 PV 还是别的口径？整个平台的数还是这个页面的数？我的个人贡献该怎么表述才不越界？
 
@@ -136,7 +136,7 @@ status: doing
 
 ## 5. DOM 节点恒定 ~100
 
-**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#5 · DOM 节点恒定 ~100](/docs?section=baidu&item=n05-dom-nodes)
+**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#5 · DOM 节点恒定 ~100](/docs?section=baidu&item=virtual-list)
 
 怎么统计的（DevTools Elements 计数 / `document.querySelectorAll`）？不同 viewport 高度、不同 overscan 配置下这个数会变吗？
 
@@ -156,7 +156,7 @@ status: doing
 
 ## 6. 30 → 60 FPS
 
-**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#6 · 30 → 60 FPS](/docs?section=baidu&item=n06-fps)
+**出处**：百度虚拟列表 · ✅ 已完成，详解见 [#6 · 30 → 60 FPS](/docs?section=baidu&item=virtual-list)
 
 什么工具（Performance 面板 / FPS meter）？什么设备、什么交互场景？60 是稳定值还是峰值？
 
@@ -176,7 +176,7 @@ status: doing
 
 ## 7. 2,000+ peak QPS
 
-**出处**：百度提现 · ✅ 已完成，详解见 [#7 · 2,000+ peak QPS](/docs?section=baidu&item=n07-qps)
+**出处**：百度提现 · ✅ 已完成，详解见 [#7 · 2,000+ peak QPS](/docs?section=baidu&item=withdrawal)
 
 峰值还是持续值？来自监控还是压测？这是系统规模还是我个人实现的部分？我测的是哪一层——网关、服务还是前端请求数？
 
@@ -200,7 +200,7 @@ status: doing
 
 **2026-08-19：已改措辞，这句话不在简历上了。** 原因是它最难自证——零资损是财务对账结论，前端测不出来：谁告诉你的？口径是活动期间还是全量？拿得出对账报告吗？换成了三个可证的动作（请求锁、幂等 key、不确定按失败处理）。**句子删了，话题还会被问，答法见详解。**
 
-✅ 已完成，详解见 [#8 · 零资损（已从简历删除）](/docs?section=baidu&item=n08-zero-loss)
+✅ 已完成，详解见 [#8 · 零资损（已从简历删除）](/docs?section=baidu&item=withdrawal)
 
 | 项 | 填写 |
 |---|---|
@@ -218,7 +218,7 @@ status: doing
 
 ## 9. 10+ incompatible packages
 
-**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#9 · 10+ incompatible packages](/docs?section=baidu&item=n09-incompatible)
+**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#9 · 10+ incompatible packages](/docs?section=baidu&item=webpack-migration)
 
 具体是哪几类不兼容（loader API 变更 / Node polyfill 移除 / 插件未适配）？能举 1–2 个代表案例并说清怎么定位的吗？
 
@@ -238,7 +238,7 @@ status: doing
 
 ## 10. ~15% bundle reduction
 
-**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#10 · ~15% bundle reduction](/docs?section=baidu&item=n10-bundle-size) · 另见 [SplitChunks 实践](/docs?section=baidu&item=n10b-splitchunks)
+**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#10 · ~15% bundle reduction](/docs?section=baidu&item=webpack-migration) · 另见 [SplitChunks 实践](/docs?section=baidu&item=webpack-migration)
 
 比较范围是什么（首屏 chunk / 全量产物）？压缩方式一致吗（gzip 前后）？production 模式对 production 模式？
 
@@ -258,7 +258,7 @@ status: doing
 
 ## 11. 70% build-time reduction
 
-**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#11 · 70% build-time reduction](/docs?section=baidu&item=n11-build-time)
+**出处**：百度 Webpack 迁移 · ✅ 已完成，详解见 [#11 · 70% build-time reduction](/docs?section=baidu&item=webpack-migration)
 
 cold build 还是 warm build？本地还是 CI？样本几次取平均？机器配置是什么？**这个数最可能来自 filesystem cache 的 warm build，一定要说清。**
 
