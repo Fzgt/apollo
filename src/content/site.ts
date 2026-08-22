@@ -10,6 +10,3 @@ export const REPO_DEV_URL = 'https://github.dev/Fzgt/apollo';
 export const BLOG_REPO = 'Fzgt/Blog';
 export const BLOG_REPO_URL = `https://github.com/${BLOG_REPO}`;
 export const BLOG_ISSUES_URL = `${BLOG_REPO_URL}/issues`;
-
-/** Argus 跑在本机（有头 Chrome + 本地 FastAPI），/jobs 页里的跳转指向它 */
-export const ARGUS_URL = 'http://127.0.0.1:8787';

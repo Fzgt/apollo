@@ -24,7 +24,7 @@ export function writeSession(key: string, value: unknown): void {
 }
 
 /** 顶栏页签。记的是「这个页签最后停在哪个完整地址」 */
-const TAB_ROOTS = ['/docs', '/library', '/blog', '/jobs', '/'] as const;
+const TAB_ROOTS = ['/docs', '/library', '/blog', '/'] as const;
 
 function tabRootOf(pathname: string): string | undefined {
   return TAB_ROOTS.find((root) =>
