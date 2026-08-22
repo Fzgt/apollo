@@ -56,7 +56,7 @@ status: done
 |---|---|
 | **entitlement**（Stripe 的 `subscribedPlan`） | 用户换设备、清缓存之后权限还得在 |
 | **run state + 阶段产物**（Periplus） | 进程会挂，续跑要知道上次到哪 |
-| **「已发过提醒」**（Beyz cron 的 `upgradeReminders`） | 服务重启、换机器都不能重发 |
+| 「**已发过提醒**」（Beyz cron 的 `upgradeReminders`） | 服务重启、换机器都不能重发 |
 | **幂等 key 的处理记录**（提现） | 跨请求、跨设备去重的唯一依据 |
 
 | 可以只在客户端 | 为什么 |

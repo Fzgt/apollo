@@ -64,7 +64,7 @@ status: done
 USABLE_VERDICTS = frozenset({SUPPORTED, PARTIAL, STALE})
 ```
 
-> ⭐ **`stale` 是「可用」的** —— 它的语义是**「可用，但要带上时效提醒」**，**不是「不能给用户看」**。
+> ⭐ **`stale` 是「可用」的** —— 它的语义是「**可用，但要带上时效提醒**」，**不是「不能给用户看」**。
 >
 > 而 `unsupported` / `contradicted` / `no_evidence` **都不可用**。
 

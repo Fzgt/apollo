@@ -360,7 +360,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 **出处**：Periplus evals · ✅ 已完成，详解见 [#16 · golden set 相关数字](/docs?section=periplus&item=n16-golden-set)
 
-✅ 已实测：4 个 case、8 条 claim、8727 tokens、0 引用失败、全套 0.009s。**别把 case 数说多，四个就是四个。**主动交代它是种子集不是覆盖率主张。
+✅ 已实测：4 个 case、8 条 claim、8727 tokens、0 引用失败、全套 0.009s。**别把 case 数说多，四个就是四个。** 主动交代它是种子集不是覆盖率主张。
 
 | 项 | 填写 |
 |---|---|

@@ -37,8 +37,11 @@ export function TableOfContents({ content, className }: TableOfContentsProps) {
       if (!match) continue;
 
       const level = match[1].length;
-      const text = match[2].trim();
-      const base = slugify(text);
+      const raw = match[2].trim();
+      // id 用原文算（slugify 本来就会把 ` 和 * 去掉），显示用剥掉行内标记的版本，
+      // 否则目录里会出现 `video: true` 这样带反引号和星号的条目。
+      const text = raw.replace(/`([^`]*)`/g, '$1').replace(/\*\*?([^*]*)\*?\*/g, '$1');
+      const base = slugify(raw);
       const n = (slugSeen.get(base) ?? 0) + 1;
       slugSeen.set(base, n);
 
@@ -85,8 +88,10 @@ export function TableOfContents({ content, className }: TableOfContentsProps) {
 
   return (
     <nav className={cn('text-sm', className)}>
-      <h4 className="font-semibold text-foreground mb-4">{'本页目录'}</h4>
-      <ul className="space-y-2">
+      <h4 className="mb-4 font-semibold text-foreground">{'本页目录'}</h4>
+      {/* 长文的目录会比视口还高。不给它自己的滚动条的话，sticky 容器整个被撑出
+          屏幕，后半截永远够不着——那正是「目录坏了」的样子。 */}
+      <ul className="max-h-[calc(100vh-13rem)] space-y-2 overflow-y-auto overscroll-contain pr-2">
         {headings.map((heading) => (
           <li
             key={heading.id}

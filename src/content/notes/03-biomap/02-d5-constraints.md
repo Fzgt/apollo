@@ -16,7 +16,7 @@ status: done
 
 ## ⭐ 统领这一天的一句话
 
-> **「文档是约定，ESLint 是约束。」**
+> 「**文档是约定，ESLint 是约束。**」
 >
 > **约定靠人记得住，约束靠工具挡得住。** 团队一大、人一换，约定就会漂 —— **唯一不会漂的是「做不到」。**
 
@@ -49,7 +49,7 @@ app/ ──→ features/ ──→ components/ hooks/ lib/ types/ utils/
 
 ### 用什么规则强制
 
-**`import/no-restricted-paths` 这条 ESLint 规则**的作用是：**「在某个目录里，不许 import 另一个目录的东西」**。代码里定了五条（`:126-172`）：
+**`import/no-restricted-paths` 这条 ESLint 规则**的作用是：「**在某个目录里，不许 import 另一个目录的东西**」。代码里定了五条（`:126-172`）：
 
 | 规则 | 挡住什么 |
 |---|---|

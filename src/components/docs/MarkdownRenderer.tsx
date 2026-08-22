@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { isValidElement, useEffect, useRef, useState, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn, slugify } from '@/lib/utils';
@@ -139,14 +139,29 @@ function CodeBlock({ className, children }: { className?: string; children: stri
   );
 }
 
+/**
+ * 标题文本。不能用 String(children)：标题里只要有 `code` 或 **粗体**，
+ * children 就是一个 React 节点数组，String() 会得到 "[object Object]"，
+ * 算出来的 id 跟 TableOfContents 从原文算的对不上，目录那一项就点不动了。
+ */
+function nodeText(node: ReactNode): string {
+  if (node === null || node === undefined || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(nodeText).join('');
+  if (isValidElement(node)) {
+    return nodeText((node.props as { children?: ReactNode }).children);
+  }
+  return '';
+}
+
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
   // 同名标题会 slugify 成同一个 id，页面里就出现多个相同 id：点目录任何一条
   // 都跳到第一个，滚动高亮也认错。这里按「文档内第几次出现」补后缀。
   // 每次渲染新建计数器，react-markdown 按文档顺序调用这些组件，所以结果稳定。
   // TableOfContents 用同一套规则，两边 id 才对得上。
   const slugSeen = new Map<string, number>();
-  const headingId = (children: React.ReactNode) => {
-    const base = slugify(String(children));
+  const headingId = (children: ReactNode) => {
+    const base = slugify(nodeText(children));
     const n = (slugSeen.get(base) ?? 0) + 1;
     slugSeen.set(base, n);
     return n === 1 ? base : `${base}-${n}`;
