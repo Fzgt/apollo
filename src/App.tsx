@@ -9,6 +9,7 @@ const HomePage = lazy(() => import('./pages/HomePage'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
 const LibraryPage = lazy(() => import('./pages/LibraryPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
+const ResumePage = lazy(() => import('./pages/ResumePage'));
 
 /** 私人笔记站：设个标题，顺手挂上 noindex */
 function PageMeta() {
@@ -48,6 +49,7 @@ const App = () => (
         <Route path="/docs" element={<DocsPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/blog" element={<BlogPage />} />
+        <Route path="/resume" element={<ResumePage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

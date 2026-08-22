@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { label: '复习', href: '/docs' },
   { label: '资料', href: '/library' },
   { label: '博客', href: '/blog' },
+  { label: '简历', href: '/resume' },
 ];
 
 export function SiteNavbar() {
