@@ -1,10 +1,11 @@
-import { isValidElement, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 // 中文里 `是**「粗体」**` 这种写法，按 CommonMark 的定界符规则不构成强调
 // （** 前是汉字、后是标点），会原样渲染成星号。这个插件放宽了 CJK 相邻的判定。
 import remarkCjkFriendly from 'remark-cjk-friendly';
-import { cn, slugify } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { headingIdByLine } from '@/lib/headings';
 import { Copy, Check } from 'lucide-react';
 
 interface MarkdownRendererProps {
@@ -142,65 +143,46 @@ function CodeBlock({ className, children }: { className?: string; children: stri
   );
 }
 
-/**
- * 标题文本。不能用 String(children)：标题里只要有 `code` 或 **粗体**，
- * children 就是一个 React 节点数组，String() 会得到 "[object Object]"，
- * 算出来的 id 跟 TableOfContents 从原文算的对不上，目录那一项就点不动了。
- */
-function nodeText(node: ReactNode): string {
-  if (node === null || node === undefined || typeof node === 'boolean') return '';
-  if (typeof node === 'string' || typeof node === 'number') return String(node);
-  if (Array.isArray(node)) return node.map(nodeText).join('');
-  if (isValidElement(node)) {
-    return nodeText((node.props as { children?: ReactNode }).children);
-  }
-  return '';
-}
-
 export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
-  // 同名标题会 slugify 成同一个 id，页面里就出现多个相同 id：点目录任何一条
-  // 都跳到第一个，滚动高亮也认错。这里按「文档内第几次出现」补后缀。
-  // 每次渲染新建计数器，react-markdown 按文档顺序调用这些组件，所以结果稳定。
-  // TableOfContents 用同一套规则，两边 id 才对得上。
-  const slugSeen = new Map<string, number>();
-  const headingId = (children: ReactNode) => {
-    const base = slugify(nodeText(children));
-    const n = (slugSeen.get(base) ?? 0) + 1;
-    slugSeen.set(base, n);
-    return n === 1 ? base : `${base}-${n}`;
-  };
+  // 锚点 id 由 headingIdByLine 从原文算好，渲染时按 AST 给的行号查。
+  // 不能在渲染过程中递增计数器来给重名标题编号——严格模式和并发渲染会把
+  // 同一棵子树渲染两遍，计数器翻倍，id 全变成 `xxx-2`，而目录算的是 `xxx`，
+  // 于是 getElementById 一个都找不到：目录跳不动，也不会高亮当前章节。
+  const idByLine = useMemo(() => headingIdByLine(content), [content]);
+  const lineId = (node?: { position?: { start?: { line?: number } } }) =>
+    idByLine.get(node?.position?.start?.line ?? -1);
 
   return (
     <div className={cn('prose-docs max-w-full [overflow-wrap:anywhere]', className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkCjkFriendly]}
         components={{
-          h1: ({ children }) => {
-            const id = headingId(children);
+          h1: ({ children, node }) => {
+            const id = lineId(node);
             return (
               <h1 id={id} className="mb-6 mt-8 scroll-mt-24 border-b border-border pb-4 text-3xl font-bold text-foreground first:mt-0 md:text-4xl">
                 {children}
               </h1>
             );
           },
-          h2: ({ children }) => {
-            const id = headingId(children);
+          h2: ({ children, node }) => {
+            const id = lineId(node);
             return (
               <h2 id={id} className="mb-4 mt-10 scroll-mt-24 text-2xl font-semibold text-foreground md:text-3xl">
                 {children}
               </h2>
             );
           },
-          h3: ({ children }) => {
-            const id = headingId(children);
+          h3: ({ children, node }) => {
+            const id = lineId(node);
             return (
               <h3 id={id} className="mb-3 mt-8 scroll-mt-24 text-xl font-semibold text-foreground md:text-2xl">
                 {children}
               </h3>
             );
           },
-          h4: ({ children }) => {
-            const id = headingId(children);
+          h4: ({ children, node }) => {
+            const id = lineId(node);
             return (
               <h4 id={id} className="text-lg font-semibold text-foreground mb-2 mt-6 scroll-mt-24">
                 {children}

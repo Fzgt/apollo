@@ -1,11 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { cn, scrollToAnchor, slugify } from '@/lib/utils';
-
-interface TocItem {
-  id: string;
-  text: string;
-  level: number;
-}
+import { cn, scrollToAnchor } from '@/lib/utils';
+import { plainHeadingText, scanHeadings } from '@/lib/headings';
 
 interface TableOfContentsProps {
   content: string;
@@ -15,69 +10,60 @@ interface TableOfContentsProps {
 export function TableOfContents({ content, className }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>('');
 
-  // Extract headings from markdown content
-  const headings = useMemo(() => {
-    const items: TocItem[] = [];
-    // 和 MarkdownRenderer 保持同一套去重规则：同名标题按出现次数补后缀。
-    // 两处必须扫到完全一样的标题集合，否则计数错位、id 就对不上：
-    //   1. 渲染端 1–4 级都参与计数，所以这里也扫到 4 级，只是目录只收前三级；
-    //   2. 围栏代码块里以 # 开头的行（shell 注释、Dockerfile 注释）不是标题，
-    //      markdown 解析器不会把它们当标题，正则会——所以要跳过围栏内部。
-    const slugSeen = new Map<string, number>();
-    let inFence = false;
+  // 标题与 id 都由 scanHeadings 算，和 MarkdownRenderer 用的是同一个纯函数——
+  // 两边必须逐字一致，否则 getElementById 找不到元素，高亮和跳转都失效。
+  const headings = useMemo(
+    () =>
+      scanHeadings(content)
+        .filter((h) => h.level <= 3)
+        .map((h) => ({ id: h.id, text: plainHeadingText(h.text), level: h.level })),
+    [content]
+  );
 
-    for (const line of content.split('\n')) {
-      if (/^\s*(```|~~~)/.test(line)) {
-        inFence = !inFence;
-        continue;
-      }
-      if (inFence) continue;
-
-      const match = /^(#{1,4})\s+(.+)$/.exec(line);
-      if (!match) continue;
-
-      const level = match[1].length;
-      const raw = match[2].trim();
-      // id 用原文算（slugify 本来就会把 ` 和 * 去掉），显示用剥掉行内标记的版本，
-      // 否则目录里会出现 `video: true` 这样带反引号和星号的条目。
-      const text = raw.replace(/`([^`]*)`/g, '$1').replace(/\*\*?([^*]*)\*?\*/g, '$1');
-      const base = slugify(raw);
-      const n = (slugSeen.get(base) ?? 0) + 1;
-      slugSeen.set(base, n);
-
-      if (level <= 3) {
-        items.push({ id: n === 1 ? base : `${base}-${n}`, text, level });
-      }
-    }
-
-    return items;
-  }, [content]);
-
-  // Track scroll position to highlight active heading
+  // 当前读到哪一节：每次滚动**现查**元素，不缓存节点。
+  //
+  // 原来用的是 IntersectionObserver：effect 里一次性 observe 28 个标题元素。
+  // 问题是正文那棵子树在首屏之后会被整个替换掉，观察器盯着的是一批已经
+  // 脱离文档的旧节点（实测 isConnected=false），于是回调永远不触发，
+  // 目录从头到尾不高亮。顺带它还有个毛病：判定带只有约 100px 高，
+  // 快速滚动一帧跨过去就整节跳过了。
+  //
+  // 现在改成滚动时按 id 重新取元素、比较位置，重挂载多少次都不受影响。
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
-        });
-      },
-      {
-        rootMargin: '-80px 0px -80% 0px',
-        threshold: 0,
-      }
-    );
+    if (headings.length === 0) return;
 
-    // Observe all headings
-    headings.forEach((heading) => {
-      const element = document.getElementById(heading.id);
-      if (element) {
-        observer.observe(element);
-      }
-    });
+    let frame = 0;
 
-    return () => observer.disconnect();
+    const update = () => {
+      frame = 0;
+      // 略低于固定导航栏：标题滚到这条线以上就算「已经读到」
+      const line = 100;
+      let current = headings[0].id;
+
+      for (const heading of headings) {
+        const element = document.getElementById(heading.id);
+        if (!element) continue;
+        if (element.getBoundingClientRect().top > line) break;
+        current = heading.id;
+      }
+
+      setActiveId(current);
+    };
+
+    // rAF 节流：一帧最多读一次布局，避免滚动时反复触发同步布局
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, [headings]);
 
   const handleClick = (id: string) => scrollToAnchor(id);
