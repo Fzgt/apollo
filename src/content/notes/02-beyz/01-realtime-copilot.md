@@ -36,6 +36,18 @@ status: done
 >
 > 结果是：**面试官说完，一两秒内屏幕开始出字。**
 
+**English —— 面试要说的就是这一段，别临场翻译**
+
+> It's a **real-time interview copilot**. It captures **tab and system audio** — the interviewer's voice coming out of the meeting app, **not the user's own microphone**. That direction matters. The browser **slices the audio every 250 milliseconds and streams it straight to Deepgram**; our server never touches the audio at all.
+>
+> What comes back is of two kinds: **interim guesses that get overwritten**, and **finalized text that won't change again**. They update by opposite rules, so the client **keeps two separate pieces of state** and joins them — that's why you never see duplicated words on screen.
+>
+> There's a trap in the trigger: **a final transcript does not mean the person is done speaking** — one long sentence with a breath in the middle produces several finals. So the actual trigger is Deepgram's **utterance-end event, fired after two seconds of silence**. That calls our own server, and GPT-4o's answer **streams back token by token**.
+>
+> The result: **the interviewer stops talking, and text starts appearing within a second or two.**
+
+> ⭐ **几个换成中文思路就会说错的地方**：转写的两种结果是 **interim / finalized**（不是 temporary / final）；「触发」用 **fires** 或 **triggers**；「服务端不碰音频」说 **never touches the audio**，比 "doesn't handle" 干净；「一两秒内出字」用 **within a second or two**，不要说 "in one or two seconds"。
+
 ## 一、整条链路长什么样
 
 ```
@@ -56,7 +68,7 @@ status: done
 navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
 ```
 
-浏览器里拿声音有两个接口，**方向完全相反**：
+浏览器里拿声音有两个接口（**屏幕共享** = screen sharing / display capture），**方向完全相反**：
 
 | 接口 | 拿到的是 |
 |---|---|
@@ -108,7 +120,9 @@ new MediaRecorder(mediaStream).start(250)
 
 `MediaRecorder` 是浏览器内置的录音器。`start(250)` 的意思是：**每隔 250 毫秒，把这段时间录到的音频打包成一块交给你。**
 
-⭐ **不传这个参数会怎样：它会一直录，直到你调 `stop()` 才一次性把全部数据给你。** 对实时转写来说等于完全没有流。**所以这一个参数就是流式和批式的开关** —— 这句话本身就是个很好的答题点。
+⭐ **不传这个参数会怎样：它会一直录，直到你调 `stop()` 才一次性把全部数据给你。**
+
+> **说英文时**：「流式」是 **streaming**，「批式」是 **batch**；「把音频切成小块」用 **chunk** 这个词 —— `MediaRecorder emits a chunk every 250 ms`。 对实时转写来说等于完全没有流。**所以这一个参数就是流式和批式的开关** —— 这句话本身就是个很好的答题点。
 
 **为什么是 250：**
 
@@ -141,9 +155,9 @@ if (e.data.size > 0) connection.send(e.data);
 
 **SSE 出局。** SSE（Server-Sent Events）是浏览器发一个普通 HTTP 请求、服务端不关闭响应而是持续往里写数据 —— 它**只能服务端往客户端推**。而这里音频必须**持续上行**。用 SSE 的话上行还得另开一条 HTTP 通道，**等于用两套机制维护一个逻辑上的单一数据流**。
 
-**轮询出局。** 两个理由：上行做不了流 —— 每 250 毫秒发一个 HTTP 请求，**每次都要带完整的 HTTP header（常常上 KB），而一块音频才几 KB，协议开销和数据本身一个量级**；下行拿不到实时性 —— 识别结果什么时候出来不确定，**间隔短就是空转，间隔长就是延迟，而临时结果的全部价值恰恰在于「立刻」**。
+**轮询（polling）出局。** 两个理由：上行做不了流 —— 每 250 毫秒发一个 HTTP 请求，**每次都要带完整的 HTTP header（常常上 KB），而一块音频才几 KB，协议开销和数据本身一个量级**；下行拿不到实时性 —— 识别结果什么时候出来不确定，**间隔短就是空转，间隔长就是延迟，而临时结果的全部价值恰恰在于「立刻」**。
 
-**WebSocket 留下。** 一次握手之后两边随时发，**每条消息只有 2–14 字节的帧头**。
+**WebSocket 留下。** 一次**握手（handshake）**之后两边随时发，**每条消息只有 2–14 字节的帧头（frame header）**。
 
 ### 那 WebRTC 呢（这一问八成会来）
 
@@ -166,8 +180,8 @@ if (e.data.size > 0) connection.send(e.data);
 
 | 类型 | 标志 | 含义 |
 |---|---|---|
-| **interim**（临时） | `is_final: false` | 「我现在**猜**你说的是这个」—— **后面还会推新的把它覆盖掉** |
-| **final**（定稿） | `is_final: true` | 「**这一小段录音我处理完了**，这几个字不会再改」 |
+| **interim**（临时结果） | `is_final: false` | 「我现在**猜**你说的是这个」—— **后面还会推新的把它覆盖掉** |
+| **final**（定稿 / 最终结果） | `is_final: true` | 「**这一小段录音我处理完了**，这几个字不会再改」 |
 
 ### 天真做法为什么会炸
 
@@ -299,7 +313,7 @@ const submitQuestion = async () => {
   setStatus(Generating);
 ```
 
-**先建立一个模型**：识别出来的字都往一个**暂存区**里放；每次检测到「说完了」，系统做一个决定 —— **发，还是不发**。
+**先建立一个模型**：识别出来的字都往一个**暂存区（buffer）**里放；每次检测到「说完了」，系统做一个决定 —— **发，还是不发**。
 
 ⭐ **「发出去」和「清空暂存区」是绑在一起的一个动作。不发，就也不清空。**
 
@@ -346,7 +360,7 @@ const { textStream } = await streamText({ model: openai("gpt-4o"), ... });
 for await (const text of textStream) stream.update(text);        // 模型吐一块就往前端推一块
 ```
 
-**只带最近 4 条历史**：省 token，也省首字时间 —— **提示词越短，模型第一个字出来越快**。**代价是二十分钟前的上下文丢了**，面试官问「你刚才提到的那个项目」，模型看不到。
+**只带最近 4 条历史**：省 token，也省**首字时间（time to first token，TTFT）** —— **提示词越短，模型第一个字出来越快**。**代价是二十分钟前的上下文丢了**，面试官问「你刚才提到的那个项目」，模型看不到。
 
 前端这边：
 
@@ -359,7 +373,7 @@ for await (const delta of readStreamableValue(suggestion)) {
 
 **`startTransition` 是干嘛的**：模型的字一个一个回来，每秒几十个，**每个都触发一次界面更新就是每秒几十次重新渲染**。`startTransition` 告诉 React「**这个更新不着急，可以被打断**」—— React 会把它们合并，并且在用户点击这类更急的事情发生时优先处理那个。
 
-> **不加会怎样**：答案越长，每次重渲染越贵，**到后面输入框会开始卡 —— 因为渲染答案在和用户交互抢主线程。**
+> **不加会怎样**：答案越长，每次重渲染越贵，**到后面输入框会开始卡 —— 因为渲染答案在和用户交互抢主线程（main thread）。**
 
 **顺带一个能挡住追问的点**：「流式回答怎么保证顺序？」—— **服务端和客户端两边都是 `for await` 逐个消费一个有序序列，前一块处理完才轮到下一块，这里根本不存在并发。** 真正的并发被四态机挡掉了（见 [② 凭证、配额与四态机](/docs?section=beyz&item=credential-quota)）。
 
@@ -385,7 +399,9 @@ for await (const delta of readStreamableValue(suggestion)) {
 
 ### ⚠️ 全仓库没有一行在记时间
 
-**「埋点」就是在代码里打时间戳、把「这一步花了多久」记录并上报。这个项目一处都没有。** 生成结束的回调里只记了 token 用量，**没记耗时**。
+**「埋点」（instrumentation）就是在代码里打时间戳、把「这一步花了多久」记录并上报。这个项目一处都没有。**
+
+> **说英文时**：别把埋点说成 "burying points"。「我们没有埋延迟的点」说 **we had no latency instrumentation**；「打点上报」是 **emit / report a metric**；P95 读作 **the 95th percentile**。 生成结束的回调里只记了 token 用量，**没记耗时**。
 
 **所以能说的是「链路是流式的、每一段都不攒批」，说不出 P50 / P95。**
 
@@ -411,7 +427,7 @@ newConnection.addListener(Close, () => {
 
 | 做法 | 说明 |
 |---|---|
-| **指数退避重连** | 1 秒 → 2 秒 → 4 秒 → 8 秒 → 封顶 30 秒，**再加一点随机抖动**，避免很多客户端同时重连打爆服务端 |
+| **指数退避重连（exponential backoff）** | 1 秒 → 2 秒 → 4 秒 → 8 秒 → 封顶 30 秒，**再加一点随机抖动（jitter）**，避免很多客户端同时重连打爆服务端 |
 | **重连要重新铸凭证** | 那把临时钥匙只有 60 秒有效期，**不能复用** |
 | **断开期间的音频** | 三选一：丢掉（转写出现空洞）/ 本地缓冲重连后补发（要限上限）/ **暂停录制并明确提示「连接中断」**。**面试场景第三个最诚实** —— 与其给一段有空洞的转写让用户以为面试官没说话，不如明说断了 |
 | **区分主动停和意外断** | 现在两者走的是同一个关闭事件。要做重连就必须能分辨，**否则用户点了停止，代码还在勤勤恳恳地重连** |
@@ -426,7 +442,7 @@ newConnection.addListener(Close, () => {
 if (e.data.size > 0) connection.send(e.data);   // 直接发，没检查缓冲区
 ```
 
-浏览器的 WebSocket 有个 `bufferedAmount` 属性，表示「已经调用 send 但还没真正发出去的字节数」，**这里没看它**。正常网络下问题不大（每块几 KB、每秒 4 个），**但网络严重降级时会形成恶性循环**：缓冲堆积 → 发出去的音频越来越滞后 → 识别结果延迟越来越大 → **屏幕上的字比实际说话慢好几秒，用户会以为系统卡死了**。
+浏览器的 WebSocket 有个 `bufferedAmount` 属性，表示「已经调用 send 但还没真正发出去的字节数」（**发送缓冲区** = send buffer），**这里没看它**。正常网络下问题不大（每块几 KB、每秒 4 个），**但网络严重降级时会形成恶性循环**：缓冲堆积 → 发出去的音频越来越滞后 → 识别结果延迟越来越大 → **屏幕上的字比实际说话慢好几秒，用户会以为系统卡死了**。
 
 ⭐ **正确做法是超过阈值就丢掉最旧的一块，而不是排队 —— 因为一段五秒前的音频现在才发过去，转写出来也已经没有价值了。「实时系统里，过期的数据不如没有数据。」**
 
@@ -455,3 +471,45 @@ if (e.data.size > 0) connection.send(e.data);   // 直接发，没检查缓冲�
 | **一次性返回完整答案** | 首字时间从几百毫秒变成好几秒 |
 | **`getUserMedia` 抓麦克风** | 听到的是**自己**说话，**方向反了** |
 | **浏览器自带的 Web Speech API** | ⭐ **它只接受麦克风输入，没有任何入口能把一条已有的音频流喂进去** —— 而我们要听的正是标签页里的声音，**这一条就判死刑**。另外 Safari 基本不可用，Chrome 上其实也是把音频送到 Google 的服务器 |
+
+## 十三、本篇术语英文对照（读完扫一眼）
+
+⭐ **这些是「中文想得出、英文卡壳」的那批。API 名（`getDisplayMedia`、WebSocket、Deepgram）本来就是英文，不列。**
+
+| 中文 | 英文 | 用在句子里 |
+|---|---|---|
+| 屏幕共享 / 采集 | screen sharing · display capture | *audio captured through screen sharing* |
+| 标签页音频 / 系统音频 | tab audio · system audio | |
+| 音轨 | track（`audio track` / `video track`） | *we stop and remove the video track* |
+| 切片 / 一块音频 | **chunk** | *a chunk every 250 ms* |
+| 流式 ↔ 批式 | **streaming ↔ batch** | *that one parameter is the switch between streaming and batch* |
+| 临时结果 ↔ 定稿 | **interim ↔ finalized**（`is_final`） | *interim and finalized transcripts* |
+| 转写 | **transcript**（名词）· transcribe（动词） | ⚠️ 不是 translation |
+| 合并 / 对齐两段状态 | **reconcile** | *reconciled in the client* |
+| 暂存区 | buffer | *the buffer isn't cleared* |
+| 一句话说完 | **utterance end** | *the utterance-end event fires* |
+| 静默 | silence | *after two seconds of silence* |
+| 握手 | handshake | |
+| 长连接 | persistent connection | |
+| 轮询 | polling | |
+| 帧头 | frame header | |
+| 心跳 / 保活 | **keep-alive**（动词 `keep the socket alive`） | *held the socket alive* |
+| 断线重连 | reconnect | |
+| 指数退避 | **exponential backoff** | |
+| 随机抖动 | **jitter** | *backoff with jitter* |
+| 背压 | **backpressure** | |
+| 发送缓冲区 | send buffer（`bufferedAmount`） | |
+| 丢弃（旧数据） | **drop** | *drop the oldest chunk rather than queue it* |
+| 首字时间 | **time to first token（TTFT）** | |
+| 逐 token 返回 | **token by token** | *streamed back token by token* |
+| 主线程 | main thread | *rendering competes with input for the main thread* |
+| 埋点 / 度量 | **instrumentation** · emit a metric | ⚠️ 不是 "burying points" |
+| 分位数 | percentile（*the 95th percentile*） | |
+| 失败分支 / 兜底 | failure path · fallback | |
+| 最小权限 | least privilege | |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. **转写**是 `transcript` 不是 `translation` —— 说错这个整句就废了
+> 2. **「合并临时和定稿」**用 `reconcile`，简历上就是这个词；说 `merge` 也行但 `reconcile` 更准（它含「解决冲突」的意思）
+> 3. **「丢弃重叠的生成」**用 `drop`，不要用 `discard`（偏「主动扔掉」）或 `cancel`（那是取消，语义完全不同）—— 简历里 `a four-state machine drops overlapping generations` 用的就是 `drop`
