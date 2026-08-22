@@ -1,4 +1,53 @@
 {
-  "generatedAt": null,
-  "days": []
+  "generatedAt": "2026-08-22T11:02:36.618268+00:00",
+  "days": [
+    {
+      "date": "2026-08-22",
+      "runId": 10,
+      "startedAt": "2026-08-22T10:49:21.689021+00:00",
+      "durationMin": 13,
+      "keywords": [
+        "frontend engineer",
+        "full stack engineer",
+        "software engineer"
+      ],
+      "sources": [
+        {
+          "name": "seek",
+          "fetched": 177,
+          "newJobs": 9,
+          "state": "ok",
+          "error": null
+        },
+        {
+          "name": "indeed",
+          "fetched": 106,
+          "newJobs": 12,
+          "state": "ok",
+          "error": null
+        },
+        {
+          "name": "jora",
+          "fetched": 180,
+          "newJobs": 31,
+          "state": "ok",
+          "error": null
+        },
+        {
+          "name": "linkedin",
+          "fetched": 180,
+          "newJobs": 63,
+          "state": "ok",
+          "error": null
+        }
+      ],
+      "newJobs": 115,
+      "canonicalNew": 89,
+      "indeedNew": 12,
+      "otherNew": 103,
+      "status": "done",
+      "note": null,
+      "fatal": null
+    }
+  ]
 }
