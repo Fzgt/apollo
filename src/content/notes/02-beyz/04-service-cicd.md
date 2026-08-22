@@ -13,6 +13,10 @@ status: done
 > **简历原句**
 >
 > **Sole author of a NestJS and Fastify service** for subscription emails and scheduled payment reminders — **Dockerized, cron-triggered, deployed to EC2 under PM2 through GitHub Actions** — and of the repo's **first CI gate**: lint, typecheck and build on every push.
+>
+> ---
+>
+> 独立开发了一个 NestJS + Fastify 服务，负责订阅邮件与定时付款提醒 —— 容器化、cron 触发，经 GitHub Actions 部署到 EC2 并由 PM2 托管；同时搭起了这个仓库的第一道 CI 关卡：每次 push 都跑 lint、类型检查和构建。
 
 ## 这条 bullet 在讲什么
 

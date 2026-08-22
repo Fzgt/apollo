@@ -13,6 +13,10 @@ status: done
 > **简历原句**
 >
 > **Kept the transcription credential out of the browser** by minting **60-second, usage-scoped keys** per session **behind a plan gate**, **held the socket alive** across microphone pauses, and **logged per-request token usage** that backs per-plan quotas; **a four-state machine drops overlapping generations**.
+>
+> ---
+>
+> 让转写凭证不落进浏览器：在套餐校验之后，为每个会话签发 60 秒、只带用量上报权限的临时密钥；麦克风暂停期间保持连接存活；按请求记录 token 用量，作为各套餐配额的依据。一个四状态机负责丢弃重叠的生成请求。
 
 ## 这条 bullet 在讲什么
 

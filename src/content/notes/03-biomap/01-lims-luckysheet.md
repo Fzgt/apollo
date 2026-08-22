@@ -13,6 +13,10 @@ status: done
 > **简历原句**
 >
 > Developed the **LIMS platform in Vue 3 and TypeScript** for sample management and SOP workflows, integrating the **Luckysheet SDK** and a **CLI for one-command project scaffolding**.
+>
+> ---
+>
+> 用 Vue 3 与 TypeScript 开发 LIMS 平台的样本管理与 SOP 流程，集成 Luckysheet SDK，并做了一条命令初始化项目的 CLI。
 
 ## 这条 bullet 在讲什么
 

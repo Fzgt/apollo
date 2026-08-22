@@ -13,6 +13,10 @@ status: done
 > **简历原句**
 >
 > Built a **design system on Radix UI, Storybook and CVA**, plus an **MSW mock layer** that let **frontend delivery run independent of backend progress**.
+>
+> ---
+>
+> 基于 Radix UI、Storybook 与 CVA 搭建设计系统，并用 MSW mock 层让前端交付不再被后端进度卡住。
 
 ## 这条 bullet 在讲什么
 

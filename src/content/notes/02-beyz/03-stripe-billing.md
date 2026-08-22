@@ -13,6 +13,10 @@ status: done
 > **简历原句**
 >
 > **Owned the paid conversion path** — Stripe Checkout, trials and lifetime purchases on Next.js, tRPC and Drizzle — with **plan eligibility enforced in typed server actions** and **entitlements written only by signature-verified webhooks** across six subscription events, **none of which can downgrade a lifetime purchase**.
+>
+> ---
+>
+> 独立负责付费转化链路 —— 基于 Next.js、tRPC 与 Drizzle 的 Stripe Checkout、试用与买断。套餐资格在带类型的 server action 里校验，权益只由验签通过的 webhook 写入，覆盖六个订阅事件，且其中没有任何一个能把买断降级。
 
 ## 这条 bullet 在讲什么
 

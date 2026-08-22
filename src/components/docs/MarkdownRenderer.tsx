@@ -1,6 +1,9 @@
 import { isValidElement, useEffect, useRef, useState, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+// 中文里 `是**「粗体」**` 这种写法，按 CommonMark 的定界符规则不构成强调
+// （** 前是汉字、后是标点），会原样渲染成星号。这个插件放宽了 CJK 相邻的判定。
+import remarkCjkFriendly from 'remark-cjk-friendly';
 import { cn, slugify } from '@/lib/utils';
 import { Copy, Check } from 'lucide-react';
 
@@ -170,7 +173,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
   return (
     <div className={cn('prose-docs max-w-full [overflow-wrap:anywhere]', className)}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkCjkFriendly]}
         components={{
           h1: ({ children }) => {
             const id = headingId(children);

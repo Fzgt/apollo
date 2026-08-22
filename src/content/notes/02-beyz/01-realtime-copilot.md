@@ -13,6 +13,10 @@ status: done
 > **简历原句**
 >
 > Built the real-time interview copilot end to end: tab and system audio captured through **getDisplayMedia**, streamed over a **WebSocket** to Deepgram's live recognizer, with **interim and finalized transcripts reconciled in the client** and **utterance-end events** triggering GPT-4o answers **streamed back token by token**.
+>
+> ---
+>
+> 端到端实现实时面试 copilot：用 getDisplayMedia 捕获标签页与系统音频，经 WebSocket 推流到 Deepgram 的实时识别器；在客户端把临时转写与最终转写合并成一份文本，并由「一句话说完」事件触发 GPT-4o，答案逐 token 流式返回。
 
 ## 这东西到底是什么
 

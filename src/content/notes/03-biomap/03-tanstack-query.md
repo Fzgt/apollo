@@ -13,6 +13,10 @@ status: done
 > **简历原句**
 >
 > **Layered TanStack Query in three tiers — API functions, queryOptions factories, typed hooks** — **single-source cache keys**, **mutation-driven invalidation** and **hover prefetch**: detail pages open instantly, **with no request at all**.
+>
+> ---
+>
+> 把 TanStack Query 分成三层 —— API 函数、queryOptions 工厂、带类型的 hook —— 缓存键单一来源、由 mutation 驱动失效、悬停预取：详情页秒开，而且一个请求都不发。
 
 > ⚠️ **参照实现在 `Prometheus` 那个仓库，不是 BioMap 本体。** 被问到时照实说：这套结构是我在自己的项目里沉淀成现在这个样子的。
 

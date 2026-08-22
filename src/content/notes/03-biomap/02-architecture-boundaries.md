@@ -13,6 +13,10 @@ status: done
 > **简历原句**
 >
 > Led the **React 18 and TypeScript architecture** for Digital OS, the team's core consumer-facing product, **enforcing feature boundaries with custom ESLint rules**.
+>
+> ---
+>
+> 主导团队核心对客产品 Digital OS 的 React 18 + TypeScript 架构，用自定义 ESLint 规则把模块边界从「约定」变成「约束」。
 
 ## ⭐ 这条 bullet 的统领句
 
