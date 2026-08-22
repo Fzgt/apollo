@@ -98,7 +98,7 @@ async function withdraw(orderId) {
 
 > **后端拿这个 key 建唯一索引兜底**：第二次插入直接违反唯一约束，数据库层面就失败了。
 >
-> ⭐ **这和 [Stripe webhook](/docs?section=beyz&item=n02-stripe-events)、[Beyz 的 cron 去重](/docs?section=beyz&item=d4-service) 是完全同一个模式：把不变量放在数据层。** 应用层的判断会因为并发、重启、多实例失效，**数据库的唯一索引不会。**
+> ⭐ **这和 [Stripe webhook](/docs?section=beyz&item=stripe-billing)、[Beyz 的 cron 去重](/docs?section=beyz&item=service-cicd) 是完全同一个模式：把不变量放在数据层。** 应用层的判断会因为并发、重启、多实例失效，**数据库的唯一索引不会。**
 
 ## 五、defensive fallback：金融场景的错误处理原则
 

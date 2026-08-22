@@ -56,7 +56,7 @@ status: doing
 
 ## 1. 60-second, usage-scoped keys
 
-**出处**：Beyz 凭证 · ✅ 已完成，详解见 [#1 · 60 秒临时凭证](/docs?section=beyz&item=n01-ephemeral-keys)
+**出处**：Beyz 凭证 · ✅ 已完成，详解见 [#1 · 60 秒临时凭证](/docs?section=beyz&item=credential-quota)
 
 为什么是 60 秒不是 5 分钟？谁签发的（服务端哪个路由）？过期之后前端怎么续？`usage:write` 这个 scope 具体允许什么、禁止什么？
 
@@ -76,7 +76,7 @@ status: doing
 
 ## 2. six subscription events
 
-**出处**：Beyz Stripe · ✅ 已完成，详解见 [#2 · six subscription events](/docs?section=beyz&item=n02-stripe-events)
+**出处**：Beyz Stripe · ✅ 已完成，详解见 [#2 · six subscription events](/docs?section=beyz&item=stripe-billing)
 
 哪六个事件？能不能当场报出名字？每个事件改了 entitlement 的哪一位？漏掉一个会发生什么？
 

@@ -50,7 +50,7 @@ status: done
 | **Playwright** | ✅ WinterFell 的 bench harness（`bench/*.mjs` 五个探针） | 直接讲那套探针怎么量 draw call 和管线编译 |
 | **Vitest** | ✅ **Periplus 的 web（`vitest run`）和 Prometheus 都在用** | 有支撑，可以讲 |
 | **Jest** | ⚠️ **只有 `@testing-library/jest-dom`——那是个匹配器库，不是 Jest 本身** | **这个词是零支撑的**。被问到就说「实际用的是 Vitest，API 兼容 Jest」 |
-| **AWS** | ✅ **Beyz 的邮件服务部署在 EC2** | 讲 GitHub Actions → SSH → EC2 → docker-compose 那条链（[④ 部署与 CI/CD](/docs?section=beyz&item=d4-deploy)） |
+| **AWS** | ✅ **Beyz 的邮件服务部署在 EC2** | 讲 GitHub Actions → SSH → EC2 → docker-compose 那条链（[④ 部署与 CI/CD](/docs?section=beyz&item=service-cicd)） |
 | **Jenkins** | ❌ 本机零代码 | 概念层：和 GitHub Actions 的区别是**自托管 vs 托管**、插件生态更老更全、**但要自己维护 agent** |
 | **MongoDB** | ❌ 本机零代码 | 概念层：文档模型适合 schema 多变、嵌套读多写少；**和我实际用的 PostgreSQL 的区别是没有强 schema 和事务保证**（虽然新版有多文档事务） |
 | **Cloudflare** | ❌ 本机零代码 | 概念层：CDN + 边缘计算 + DNS；**Workers 是跑在边缘的 serverless，冷启动比 Lambda 快但运行时受限** |

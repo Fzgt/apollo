@@ -91,7 +91,7 @@ export type QueryConfig<T> = Omit<ReturnType<T>, 'queryKey' | 'queryFn'>;
 
 所以调用方能覆盖 `enabled`、`staleTime` 这些配置，**但 `queryKey` 和 `queryFn` 在类型层面被删掉了 —— 传进去直接编译报错。**
 
-> **和 [Beyz 的四态机](/docs?section=beyz&item=d3-statemachine)、[Stripe 的终身档保护](/docs?section=beyz&item=n02b-convergence) 是同一个思想：把「不该发生的事」从「靠自觉」变成「做不到」。**
+> **和 [Beyz 的四态机](/docs?section=beyz&item=credential-quota)、[Stripe 的终身档保护](/docs?section=beyz&item=stripe-billing) 是同一个思想：把「不该发生的事」从「靠自觉」变成「做不到」。**
 
 **生产级**：用一个 **key 工厂**统一管（`postKeys.all` / `postKeys.lists()` / `postKeys.detail(slug)`），**收益是失效粒度可控** —— 可以只作废列表，不动详情。
 

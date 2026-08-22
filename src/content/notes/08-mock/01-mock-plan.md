@@ -44,7 +44,7 @@ status: done
 
 | 项目 | 去哪拿草稿 |
 |---|---|
-| Beyz ① | [① 数据流全图](/docs?section=beyz&item=d2-pipeline) 顶部 |
+| Beyz ① | [① 数据流全图](/docs?section=beyz&item=realtime-copilot) 顶部 |
 | 百度 ③ ④ | [③ 提现](/docs?section=baidu&item=d6-withdraw) · [④ Webpack](/docs?section=baidu&item=d6-webpack) 顶部 |
 | 百度 ② ⑤ | [②⑤ 虚拟列表与生产白屏](/docs?section=baidu&item=d7-speak) 顶部（两段） |
 | Periplus ① ② ③ ⑤ | 各自必看篇顶部 |

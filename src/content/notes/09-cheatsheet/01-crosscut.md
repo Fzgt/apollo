@@ -65,7 +65,7 @@ status: done
 | `confirmedTranscript` | 断线重连后重新拼即可 |
 | hover prefetch 的缓存 | 丢了最多多发一次请求 |
 
-> ⚠️ **一个反例要主动交代**：Beyz 的**提问配额判定只在客户端**（服务端只拦 Free 档）。**按上面的判据它本该在服务端——这是我知道要补的地方**（[② 用量与配额](/docs?section=beyz&item=d3-quota)）。
+> ⚠️ **一个反例要主动交代**：Beyz 的**提问配额判定只在客户端**（服务端只拦 Free 档）。**按上面的判据它本该在服务端——这是我知道要补的地方**（[② 用量与配额](/docs?section=beyz&item=credential-quota)）。
 
 > 提示：Beyz 的四态状态机 vs Periplus 的 run state；entitlement 为什么只能由 webhook 写。
 

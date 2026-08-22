@@ -81,7 +81,7 @@ blog 引了 comments 的一个工具函数
 
 | 做法 | 说明 |
 |---|---|
-| ⭐ **规则必须进 CI** | 规则不进持续集成等于没有 —— 和 [Beyz 的 CI gate](/docs?section=beyz&item=d4-deploy) 是同一个道理 |
+| ⭐ **规则必须进 CI** | 规则不进持续集成等于没有 —— 和 [Beyz 的 CI gate](/docs?section=beyz&item=service-cicd) 是同一个道理 |
 | **规模大了上专门的工具** | `dependency-cruiser` 能生成依赖图、定义更复杂的架构规则、输出可视化 |
 | **规则要和目录结构一起演进** | 加了新功能就要加规则，**否则它会慢慢变成摆设** |
 
