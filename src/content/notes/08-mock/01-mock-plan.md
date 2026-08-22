@@ -48,7 +48,7 @@ status: done
 | 百度 ③ ④ | [③ 提现](/docs?section=baidu&item=withdrawal) · [④ Webpack](/docs?section=baidu&item=webpack-migration) 顶部 |
 | 百度 ② ⑤ | [②⑤ 虚拟列表与生产白屏](/docs?section=baidu&item=virtual-list) 顶部（两段） |
 | Periplus ① ② ③ ⑤ | 各自必看篇顶部 |
-| WinterFell ① ② ③ ④ | [①④ 渲染管线与那次冻结](/docs?section=winterfell&item=d12-render) 顶部（四段） |
+| WinterFell ① ② ③ ④ | [①④ 渲染管线与那次冻结](/docs?section=winterfell&item=fog-freeze) 顶部（四段） |
 | BioMap | [③ TanStack Query](/docs?section=biomap&item=tanstack-query) 的「先立住」那段 |
 
 > **没有草稿的几条自己写**——写不出 30 秒版，说明那条你还没真的想清楚。

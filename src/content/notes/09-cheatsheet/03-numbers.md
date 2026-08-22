@@ -318,7 +318,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 14. 406 server tests
 
-**出处**：Periplus · ✅ 已完成，详解见 [#14 · 406 server tests](/docs?section=periplus&item=n14-server-tests)
+**出处**：Periplus · ✅ 已完成，详解见 [#14 · 406 server tests](/docs?section=periplus&item=scripted-seams)
 
 ✅ 已实测确为 406（16 个测试文件求和，其中 `test_evals.py` 38 个）。**剩下要能答的是测试类型构成**：单测 / 集成 / eval 各多少？面试前重跑一次 `uv run pytest --collect-only -q`。
 
@@ -338,7 +338,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 15. about a second end to end
 
-**出处**：Periplus · ✅ 已完成，详解见 [#15 · about a second end to end](/docs?section=periplus&item=n15-end-to-end)
+**出处**：Periplus · ✅ 已完成，详解见 [#15 · about a second end to end](/docs?section=periplus&item=scripted-seams)
 
 哪台机器？什么命令？串行还是并行跑的？包不包含 collection 时间？这个「一秒」指的是测试套件还是一次 run？
 
@@ -358,7 +358,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 16. golden set 相关数字
 
-**出处**：Periplus evals · ✅ 已完成，详解见 [#16 · golden set 相关数字](/docs?section=periplus&item=n16-golden-set)
+**出处**：Periplus evals · ✅ 已完成，详解见 [#16 · golden set 相关数字](/docs?section=periplus&item=golden-set-evals)
 
 ✅ 已实测：4 个 case、8 条 claim、8727 tokens、0 引用失败、全套 0.009s。**别把 case 数说多，四个就是四个。** 主动交代它是种子集不是覆盖率主张。
 
@@ -378,7 +378,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 17. 1,020 generated layouts
 
-**出处**：WinterFell · ✅ 已完成，详解见 [#17 · 1,020 generated layouts](/docs?section=winterfell&item=n17-layouts)
+**出处**：WinterFell · ✅ 已完成，详解见 [#17 · 1,020 generated layouts](/docs?section=winterfell&item=level-fairness)
 
 ✅ **已实测（2026-08-19 复跑）**：`node bench/fairness.mjs --sections 20 --trials 51`，20 × 51 = **1,020**，报告表头原话 `# Obstacle-layout fairness (51 generated layouts per section)`。**480 是脚本默认值（12 × 40），不是简历口径**——两个数没有冲突，简历那次是显式传参跑的。
 
@@ -402,7 +402,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 18. 129 → 76 draw calls
 
-**出处**：WinterFell · ✅ 已完成，详解见 [#18 · 129 → 76 draw calls](/docs?section=winterfell&item=n18-draw-calls)
+**出处**：WinterFell · ✅ 已完成，详解见 [#18 · 129 → 76 draw calls](/docs?section=winterfell&item=instancing)
 
 哪个 probe 测的？同场景同设备吗？`bench/run.mjs:123` 那个 `fps.p50 > 115` 的过滤条件为什么这么筛，要能解释。
 
@@ -422,7 +422,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 19. 2.6× triangles
 
-**出处**：WinterFell · ✅ 已完成，详解见 [#19 · 2.6× triangles](/docs?section=winterfell&item=n19-triangles)
+**出处**：WinterFell · ✅ 已完成，详解见 [#19 · 2.6× triangles](/docs?section=winterfell&item=instancing)
 
 三角形为什么反而涨了（26,230 → 69,112）？和 draw call 下降是什么关系？对实际帧率的影响是什么？**这条的价值就在于它是反向数字，主动讲出来比被问出来强。**
 
@@ -442,7 +442,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 20. no gap narrower than 15 units
 
-**出处**：WinterFell · ✅ 已完成，详解见 [#20 · no gap narrower than 15 units](/docs?section=winterfell&item=n20-gap)
+**出处**：WinterFell · ✅ 已完成，详解见 [#20 · no gap narrower than 15 units](/docs?section=winterfell&item=level-fairness)
 
 「单位」在这个场景里是什么？15 这个阈值怎么定的？和飞行器碰撞半径是什么关系？（注意：早先的「14 units」是**看错了列**，14 来自 "how wide"，实测 15–20。）
 

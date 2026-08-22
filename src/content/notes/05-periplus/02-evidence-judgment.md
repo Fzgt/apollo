@@ -1,5 +1,5 @@
 ---
-title: "② 证据与裁决"
+title: "② 证据与判断分离"
 tier: must
 section: Periplus
 icon: workflow
@@ -8,13 +8,21 @@ level: S
 status: done
 ---
 
-# 为什么关键判断不交给模型
+# ② 证据与判断分离
 
-> 🔴 **必看**。这一篇讲的是简历里最硬的一句：**`application code — not prompts — enforces citation membership and freshness windows`**（引用归属和新鲜度窗口是应用代码强制的，不是提示词）。
+> **简历原句**
+>
+> **Split evidence from judgment**: the research stage emits **claims bound to exact source quotes**, a separate verification stage rules on them, and **application code — not prompts — enforces citation membership and freshness windows**. **A claim with no supporting quote never advances.**
+>
+> ---
+>
+> 把证据和判断拆开：检索阶段产出的每条声明都绑定原文逐字引用，由独立的核实阶段裁决；引用归属和新鲜度窗口由应用代码强制，而不是靠提示词。没有支撑引用的声明永远进不了下一阶段。
 
-## 对应简历原句
+## 这条 bullet 在讲什么
 
-> **Split evidence from judgment**: the research stage emits claims bound to exact source quotes, a separate verification stage rules on them, and **application code — not prompts — enforces citation membership and freshness windows**. A claim with no supporting quote never advances.
+⭐ **大模型系统最常见的失败是编造来源** —— 它说「根据官网，门票 45 澳元」，**但那句话原文里根本没有**。
+
+**常规做法是在提示词里写「务必引用真实来源」。这条 bullet 的全部内容就是在说：那不管用，因为提示词是请求，不是约束。**
 
 ## 一、先说清三个对象
 
@@ -148,7 +156,7 @@ FRESHNESS_DAYS = {
 | **测试稳定** | 不注入的话，一个测「30 天内的价格应该判有效」的用例，**过几个月会自己变红** —— 这叫「时间炸弹测试」 |
 | **重放可复现** | 同一次运行重跑一遍，判决结果完全一样 |
 
-> ⭐ **时间在这里是业务输入，不是环境噪音** —— 新鲜度判定直接吃它。**这和 [④ 注入时钟](/docs?section=periplus&item=n14-server-tests) 是同一个道理。**
+> ⭐ **时间在这里是业务输入，不是环境噪音** —— 新鲜度判定直接吃它。**这和 [④ 注入时钟](/docs?section=periplus&item=scripted-seams) 是同一个道理。**
 
 ### ② 日期抽取只认发布者声明的
 

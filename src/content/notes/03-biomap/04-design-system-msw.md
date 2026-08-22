@@ -25,7 +25,7 @@ status: done
 | | 面试价值 | 为什么 |
 |---|---|---|
 | **设计系统** | 中 | 是「知道该用什么工具、以及为什么」的题，能讲清就够 |
-| ⭐ **MSW** | **高** | **它是一道有明确正确答案的设计题** —— 「拦截位置决定你在测什么」，而且能和 [Periplus 的 seam](/docs?section=periplus&item=n14-server-tests) 串成一条通用原则 |
+| ⭐ **MSW** | **高** | **它是一道有明确正确答案的设计题** —— 「拦截位置决定你在测什么」，而且能和 [Periplus 的 seam](/docs?section=periplus&item=scripted-seams) 串成一条通用原则 |
 
 ⭐ **而且这条和 [② 架构边界](/docs?section=biomap&item=architecture-boundaries) 是同一个思想的第二次应用**：那边是「让用错的依赖方向做不到」，这边是「让前端交付不依赖后端进度」—— **两条都是把一个靠人自觉维持的约定，换成一个工具兜住的约束。**
 
@@ -66,7 +66,7 @@ status: done
 
 ⭐ **一句话：MSW 拦在网络层，所以你测的是真实的请求路径。**
 
-> ⭐ **这和 [Periplus 的 scripted seam](/docs?section=periplus&item=n14-server-tests) 是完全同一个原则** —— 那边替换模型调用时**只覆写了「把请求发出去」那一个方法**，提示词组装、格式校验、修复重试全都还在真跑；抓网页那边换的是 HTTP 客户端的传输层，**robots 解析、限流、重定向跟随全是真测的**。
+> ⭐ **这和 [Periplus 的 scripted seam](/docs?section=periplus&item=scripted-seams) 是完全同一个原则** —— 那边替换模型调用时**只覆写了「把请求发出去」那一个方法**，提示词组装、格式校验、修复重试全都还在真跑；抓网页那边换的是 HTTP 客户端的传输层，**robots 解析、限流、重定向跟随全是真测的**。
 >
 > **两个项目串起来是一条可以直接说出口的通用原则：「替换点要放在最接近进程边界的位置。越靠外，被测的真实代码越多。」**
 

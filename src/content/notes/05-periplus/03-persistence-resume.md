@@ -1,5 +1,5 @@
 ---
-title: "③ 持久化与 resume"
+title: "③ 持久化与断点续跑"
 tier: must
 section: Periplus
 icon: workflow
@@ -8,13 +8,19 @@ level: S
 status: done
 ---
 
-# 崩在半路，怎么接着跑
+# ③ 持久化与断点续跑
 
-> 🔴 **必看**。⚠️ **④ scripted seam 那半边在另外两篇**：[④ 406 server tests](/docs?section=periplus&item=n14-server-tests)（四个替换点、三种注入手法、为什么注入时钟）和 [④ 约一秒跑完](/docs?section=periplus&item=n15-end-to-end)。**这一篇只讲 ③。**
+> **简历原句**
+>
+> **Persisted run state, stage artifacts and a pgvector evidence cache in PostgreSQL** under **per-run token and time budgets**. **A run that dies mid-pipeline resumes from the last completed stage.**
+>
+> ---
+>
+> 在每次运行各自的 token 与时间预算下，把运行状态、阶段产物和 pgvector 证据缓存持久化到 PostgreSQL。流水线中途挂掉的运行可以从最后一个已完成阶段续跑。
 
-## 对应简历原句
+## 这条 bullet 在讲什么
 
-> **Persisted run state, stage artifacts and a pgvector evidence cache in PostgreSQL under per-run token and time budgets. A run that dies mid-pipeline resumes from the last completed stage.**
+**表面是「我做了断点续传」。但真正值钱的是三个边界判断**：⭐ **什么样的产物才算合法的续跑起点、预算续跑时为什么不能重置、以及「无从恢复」和「重新开始」为什么是两回事。** 这三个都在第三节。
 
 ## 一、要解决什么
 
@@ -115,7 +121,7 @@ status: done
 
 **「向量」是什么**：把一段文字转换成一串数字，**意思相近的文字，数字也相近**。这样就能问「有没有和这段话意思差不多的、我已经抓过的内容」。
 
-**失效靠的是 [② 那套新鲜度窗口](/docs?section=periplus&item=d9-evidence)** —— **缓存本身不设过期时间，是消费它的时候按日期判断过没过期。**
+**失效靠的是 [② 那套新鲜度窗口](/docs?section=periplus&item=evidence-judgment)** —— **缓存本身不设过期时间，是消费它的时候按日期判断过没过期。**
 
 > ⭐ **这个区分值得说**：**缓存不负责判断「新不新鲜」，只负责「别重复干活」。新鲜度是业务语义，归判断过期的那个函数管。**
 
@@ -140,6 +146,6 @@ CREATE INDEX evidence_cache_embedding_idx
 >
 > （空库只会得到一个单簇的索引，在积累够行数之前它退化成全表扫描。**那是一个正确但慢的索引 —— 绝不会给出错的答案。**）
 
-> ⭐ 「**宁可慢也不能错**」 —— 和 [② 那条「宁可没有日期也不要猜一个」](/docs?section=periplus&item=d9-evidence) 是同一个价值观。
+> ⭐ 「**宁可慢也不能错**」 —— 和 [② 那条「宁可没有日期也不要猜一个」](/docs?section=periplus&item=evidence-judgment) 是同一个价值观。
 
 **还有一个「失败也不炸」的设计**：算向量失败或数据库出错时，缓存**返回「没找到相似的」而不是抛异常** —— 所以 **PostgreSQL 抖一下只会导致重复抓一次页面，不会让整个 run 挂掉。**

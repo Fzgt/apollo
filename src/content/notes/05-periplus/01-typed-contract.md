@@ -1,5 +1,5 @@
 ---
-title: "① 六阶段与 typed contract"
+title: "① 六阶段与类型化契约"
 tier: must
 section: Periplus
 icon: workflow
@@ -8,9 +8,21 @@ level: S
 status: done
 ---
 
-# 六个阶段，和编排器不知道的事
+# ① 六阶段与类型化契约
 
-> 🔴 **必看**。⚠️ 机制细节以 [Library 的 Periplus 笔记](/library?section=periplus&item=ai) 为主（618 行，六个 agent 逐一精读）。**这一篇给口播稿、命名对照、和那个会决定你可信度的追问。**
+> **简历原句**
+>
+> Built a **six-stage agentic workflow** — research, verification, planning, writing, editing and illustration — where the **orchestrator knows only typed stage contracts**, carried through to the React client as **types generated from the OpenAPI schema**.
+>
+> ---
+>
+> 构建六阶段 agentic 工作流 —— 检索、核实、规划、写作、编辑与配图 —— 编排器只认识带类型的阶段契约；这套契约一路延伸到 React 客户端，类型由 OpenAPI schema 生成。
+
+## 这条 bullet 在讲什么
+
+⭐ **它讲的是「控制权在谁手里」。**
+
+现在满世界都在把流水线叫成 multi-agent system。**这条 bullet 的措辞选择本身就是个判断题** —— 而且它能用三条代码依据证明自己没有超售。**第三节是这一篇最该背下来的部分。**
 
 ## 一、这个系统在干什么
 
@@ -87,8 +99,8 @@ status: done
 | | 说明 |
 |---|---|
 | **可替换** | 换掉某个阶段的实现，不影响其他阶段 —— 编排器只认契约 |
-| **可测试** | 每个阶段可以单独喂输入、验输出，[406 个测试](/docs?section=periplus&item=n14-server-tests)就建在这上面 |
-| **可恢复** | 产物有类型、能持久化，**所以能从任意已完成的阶段续跑**（见 [③ 持久化与 resume](/docs?section=periplus&item=d10-resume)） |
+| **可测试** | 每个阶段可以单独喂输入、验输出，[406 个测试](/docs?section=periplus&item=scripted-seams)就建在这上面 |
+| **可恢复** | 产物有类型、能持久化，**所以能从任意已完成的阶段续跑**（见 [③ 持久化与 resume](/docs?section=periplus&item=persistence-resume)） |
 
 ### Q：后端契约怎么和 React 保持同步
 
