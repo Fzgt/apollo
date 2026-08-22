@@ -90,7 +90,7 @@ if (!sig) return new Response("Missing signature", { status: 400 });
 event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
 ```
 
-**验签的原理**：Stripe 和你共享一个密钥。**它用这个密钥对请求正文的原始字节算出一个签名放在请求头里**，你用同样的密钥重新算一遍，对得上才说明是它发的。
+**验签（signature verification）的原理**：Stripe 和你共享一个密钥。**它用这个密钥对请求正文的原始字节算出一个签名放在请求头里**，你用同样的密钥重新算一遍，对得上才说明是它发的。
 
 ### ⭐ 为什么必须用原始字节（webhook 验签最经典的坑）
 
@@ -167,7 +167,7 @@ enum SubscriptionEvent {
 
 ## 四、重复投递怎么处理
 
-**Stripe 保证「至少投递一次」，意味着同一个事件可能来两次**（网络重试、它那边的重投）。
+**Stripe 保证「至少投递一次」（at-least-once delivery），意味着同一个事件可能来两次**（网络重试、它那边的重投）。
 
 **代码里没有「记下处理过哪些事件 ID」的去重表。但大部分处理天然不怕重复 —— 因为它们写的是绝对值，不是增量：**
 
@@ -185,7 +185,7 @@ db.update(users).set({ credits: credits + 1 })    // ❌ 增量，重复就多�
 
 ## 五、⚠️ 事件乱序 —— 这是真弱点，主动交代
 
-**Stripe 不保证事件按发生顺序到达。**
+**Stripe 不保证事件按发生顺序到达（乱序 = out-of-order delivery）。**
 
 **会翻车的例子**：用户先升到 God、紧接着降回 Standard。两个「订阅变更」事件**乱序到达** → 最终数据库里写成了 God，**用户白拿高档位**。
 
@@ -303,3 +303,38 @@ if (containsLifetimePlan) {
 - 已经买过的用户不能再领试用
 
 ⭐ **合起来还是那句职责划分：服务端函数管「你有没有资格发起购买」，webhook 管「你实际买到了什么」。前者可以拒绝，但永远不能给予。**
+
+## 十、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 收银台 | **Checkout**（Stripe 的产品名，直接用） |
+| 权益 | **entitlement**（*entitlements written only by webhooks*） |
+| 事实来源 | **source of truth** |
+| 验签 | **signature verification**（*signature-verified webhooks*） |
+| 原始字节 / 原始请求体 | **raw body / raw bytes** |
+| 重试 | **retry**（*Stripe retries 5xx, not 4xx*） |
+| 至少投递一次 | **at-least-once delivery** |
+| 重复投递 | **duplicate delivery** |
+| 去重 | **deduplication / dedupe** |
+| 幂等 | **idempotent · idempotency** |
+| 乱序到达 | **out-of-order delivery** |
+| 收敛 | **convergence**（*both orderings converge*） |
+| 终态 | **final state / end state** |
+| 竞态 | **race** |
+| 无条件覆盖 | **unconditional write / overwrite** |
+| 降级（套餐） | **downgrade** ↔ **upgrade** |
+| 买断 / 终身版 | **lifetime purchase** |
+| 试用 | **trial** |
+| 续费 | **renewal** |
+| 暂停 ↔ 恢复 | **pause ↔ resume** |
+| 到期后取消 | **cancel at period end** |
+| 资格判定 | **eligibility check** |
+| 服务端动作 | **server action**（Next.js 的术语） |
+| 挽留邮件 | **win-back / retention email** |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 「权益」是 **entitlement**，不是 `permission` —— permission 偏「能不能操作」，entitlement 是「买到了什么」
+> 2. 「验签过的 webhook」说 **signature-verified**，简历原句就是这个
+> 3. 「两种顺序都收敛到正确结果」用 **converge** —— 这个词能一口气说清你想表达的东西，比 "both end up correct" 专业得多

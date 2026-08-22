@@ -55,7 +55,7 @@ status: done
 
 **② polyfill，以及为什么 Webpack 会「自动注入」**
 
-**polyfill = 用能跑的代码补上一个环境里缺失的能力。**
+**polyfill（垫片）= 用能跑的代码补上一个环境里缺失的能力。**
 
 Node 里有 `crypto`、`path`、`buffer` 这些**内置模块**，浏览器里没有。⭐ **Webpack 4 及以前，你在浏览器代码里 `require('crypto')`，它会悄悄替你换成一个用 JS 重写的浏览器版实现塞进包里。**
 
@@ -63,11 +63,11 @@ Node 里有 `crypto`、`path`、`buffer` 这些**内置模块**，浏览器里�
 
 **③ tree shaking（摇树）**
 
-**把「引进来了但从来没用到」的代码从产物里删掉。** ⭐ **它依赖 ES 模块的静态结构** —— `import { a } from 'x'` 不运行代码就能看出你只用了 `a`；而 `require('x').a` 是运行时才知道的，**摇不动**。
+**tree shaking（摇树）= 把「引进来了但从来没用到」的代码从产物里删掉。** ⭐ **它依赖 ES 模块的静态结构** —— `import { a } from 'x'` 不运行代码就能看出你只用了 `a`；而 `require('x').a` 是运行时才知道的，**摇不动**。
 
 **④ contenthash 与长效缓存**
 
-产物文件名写成 `main.a3f9c2.js`，⭐ **那串哈希是文件内容算出来的**：内容没变 → 哈希不变 → **浏览器直接用缓存，一个字节都不下载**；内容变了 → 文件名变 → 当成新文件下载。**这就叫长效缓存。**
+产物文件名写成 `main.a3f9c2.js`，⭐ **那串哈希是文件内容算出来的**：内容没变 → 哈希不变 → **浏览器直接用缓存，一个字节都不下载**；内容变了 → 文件名变 → 当成新文件下载。**这就叫长效缓存（long-term caching）。**
 
 ## 二、⭐ 10+ 不兼容包：按类讲，别背包名清单
 
@@ -208,7 +208,7 @@ diff before.txt after.txt
 
 | 口径 | 关键 |
 |---|---|
-| **算哪些文件** | ⚠️ **sourcemap 是最大的陷阱** —— `.map` 常常比 `.js` 还大，**但用户根本不下载它**。正确口径：**只算用户实际会下载的产物，不含 sourcemap** |
+| **算哪些文件** | ⚠️ **sourcemap（源码映射）是最大的陷阱** —— `.map` 常常比 `.js` 还大，**但用户根本不下载它**。正确口径：**只算用户实际会下载的产物，不含 sourcemap** |
 | **压缩方式** | ⭐ **gzip 会把一部分差异「吃掉」** —— 减掉的如果是重复度高的代码，raw 降 15%、gzip 后可能只降 8%。**推荐报 gzip（那是用户真实下载量），但必须说明报的是哪个** |
 | **构建模式** | ⭐ **只有 production 的数字有意义** —— development 不 minify、不 tree shaking，体积能大好几倍。**这个问题看起来基础，但它是个筛人的问题** |
 
@@ -297,3 +297,36 @@ cache: {
 > Led a Webpack 3-to-5 migration across 10+ incompatible packages: split vendor and runtime into separately-hashed chunks so a business change no longer invalidates them, dropped the automatic Node polyfills, and turned on the filesystem cache — bundle size down ~15%, warm local builds down 70%.
 
 **三个动作各自对上自己的结果**，顺带把冷/热口径也补进去了。
+
+## 八、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 打包器 | **bundler** |
+| 依赖图 | **dependency graph** |
+| 产物 / 输出 | **build output · artifacts** |
+| 破坏性变化 | **breaking change** |
+| 垫片 | **polyfill** |
+| 摇树 | **tree shaking** |
+| 死代码 | **dead code** |
+| 代码分割 | **code splitting** |
+| 拆出 vendor / runtime | **extract vendor and runtime chunks** |
+| 内容哈希 | **contenthash** |
+| 长效缓存 | **long-term caching** |
+| 缓存失效 | **cache invalidation**（*a business change invalidates them*） |
+| 缓存命中率 | **cache hit rate** |
+| 确定性的模块 id | **deterministic module ids** |
+| 移位 | **shift**（*inserting a module shifts every id after it*） |
+| 持久化缓存 | **persistent / filesystem cache** |
+| 冷构建 ↔ 热构建 | **cold build ↔ warm build**（简历用 `warm`） |
+| 中间产物 | **intermediate artifacts** |
+| 源码映射 | **sourcemap** |
+| 压缩 / 混淆 | **minify**（gzip 是 **compression**，两回事） |
+| 体积回归 | **size regression**（*fail the PR if the bundle grows*） |
+| 反直觉的一句 | ⭐ *code splitting redistributes size, it doesn't reduce it* |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. **minify ≠ compress** —— minify 是删空格改短变量名，gzip 是压缩传输；报体积时要说清是 **raw / minified / gzipped** 哪一个
+> 2. 「冷构建反而更慢」说 **the cold build actually got slightly slower; the win is on every warm build after it**
+> 3. 「拆分不减体积」说 **splitting redistributes size; the 15% came from dropping the Node polyfills and better tree shaking**

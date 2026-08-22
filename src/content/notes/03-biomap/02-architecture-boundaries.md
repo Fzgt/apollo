@@ -120,10 +120,36 @@ blog 引了 comments 的一个工具函数
 
 ### 预期追问：barrel export 要不要用
 
-**「barrel export」是指在一个目录下放一个 `index.ts`，把这个目录里的东西统一再导出一遍**，让外面 `import { A, B } from '@/features/blog'` 而不是逐个写路径。
+**「barrel export」（桶式导出）是指在一个目录下放一个 `index.ts`，把这个目录里的东西统一再导出一遍**，让外面 `import { A, B } from '@/features/blog'` 而不是逐个写路径。
 
 | 好处 | 代价 |
 |---|---|
 | 外部只认一个入口，**内部文件怎么挪都不影响调用方** —— 这正好配合上面的边界规则：**一个功能对外只有一个门** | ⚠️ **容易制造循环引用**（A 引 barrel，barrel 又引 B，B 又引 A）；**对打包工具的摇树优化不友好**，可能把整个目录拉进产物 |
 
 > **答法**：「用，但只在功能目录的对外边界上用，**内部文件之间直接引具体路径**。滥用 barrel 是循环引用最常见的来源 —— 而循环引用正是我们用规则禁掉的东西，**所以这两件事必须一起想。**」
+
+## 六、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 架构边界 | **architectural boundary**（*enforcing feature boundaries*） |
+| 约定 ↔ 约束 | **convention ↔ constraint**（⭐ *documentation is a convention, ESLint is a constraint*） |
+| 强制 / 落到实处 | **enforce**（*enforced by a lint rule*） |
+| 依赖方向 | **dependency direction** |
+| 分层 | **layering** |
+| 大泥球 | **big ball of mud** |
+| 功能隔离 | **feature isolation** |
+| 循环引用 | **circular dependency / import cycle** |
+| 模块初始化顺序 | **module initialisation order** |
+| 通用层 | **shared layer** |
+| 组装层 | composition layer |
+| 桶式导出 | **barrel export** |
+| 摇树优化 | **tree shaking** |
+| 腐化 / 劣化 | **rot / erode**（*architecture erodes*） |
+| 编译期报错 ↔ 运行时报错 | **compile-time error ↔ runtime error** |
+| 可独立删除 | **independently deletable** |
+
+> ⭐ **两个最容易说错的**：
+>
+> 1. 这条 bullet 的统领句英文版：**"Documentation is a convention; a lint rule is a constraint."** 背下来，它比任何细节都值钱
+> 2. 「把不该发生的事变成做不到」说 **make the wrong thing impossible, not just discouraged**

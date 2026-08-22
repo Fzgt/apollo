@@ -100,7 +100,7 @@ async function withdraw(orderId) {
 2. 用户在**不同设备 / 不同标签页**同时操作
 3. ⭐ **页面刷新后再点** —— 刷新等于整块内存清零，锁没了
 
-**所以真正的保证必须来自后端幂等**：每个提现请求带一个**幂等 key**（这笔操作专属的随机串），后端把处理过的 key 存下来，**同 key 再来就直接返回上次的结果，不再执行扣款**。
+**所以真正的保证必须来自后端幂等**：每个提现请求带一个**幂等 key（idempotency key）**（这笔操作专属的随机串），后端把处理过的 key 存下来，**同 key 再来就直接返回上次的结果，不再执行扣款**。
 
 **前端的配合是关键的一半：**
 
@@ -112,7 +112,7 @@ async function withdraw(orderId) {
 
 ## 五、defensive fallback：金融场景的错误处理原则
 
-⭐ **默认失败，只有明确成功才展示成功。**
+⭐ **默认失败，只有明确成功才展示成功**（这套做法叫 **defensive fallback**）**。**
 
 | 结果 | 怎么处理 |
 |---|---|
@@ -170,7 +170,7 @@ QPS = (窗口结束时的计数 - 窗口开始时的计数) / 窗口长度
 **压测的几个概念，能说出来就说明你真见过：**
 
 - **梯度加压**：从低 QPS 一档档往上加，不是一上来就打满
-- ⭐ **拐点 / 容量水位**：QPS 还在涨、但 **P99 延迟开始飙升、错误率开始上升**的那个点才是真实容量。**容量不是「打得进去多少」，是「打进去还不崩的最大值」**
+- ⭐ **拐点 / 容量水位（capacity / saturation point）**：QPS 还在涨、但 **P99 延迟开始飙升、错误率开始上升**的那个点才是真实容量。**容量不是「打得进去多少」，是「打进去还不崩的最大值」**
 - ⭐ **完整的压测结论长什么样**：不是「能扛 2000 QPS」，而是「压到 2000 时 P99 延迟 120ms、错误率 0，继续加到 2600 时 P99 涨到 800ms」
 - **影子库 / 压测标记**：线上压测必须把压测流量写进影子表。⭐ **金融场景尤其不能污染真实资金数据**
 
@@ -180,7 +180,7 @@ QPS = (窗口结束时的计数 - 窗口开始时的计数) / 窗口长度
 
 | 层 | 做了什么 |
 |---|---|
-| **接入层** | **限流**（令牌桶/漏桶，宁可拒绝一部分也不能全崩）、**排队/验证码削峰**、**熔断降级** |
+| **接入层** | **限流（rate limiting）**（令牌桶 token bucket / 漏桶 leaky bucket，宁可拒绝一部分也不能全崩）、**排队/验证码削峰**、**熔断降级** |
 | **应用层** | 无状态 → **加机器就能线性扩容**。⭐ **QPS 是集群指标不是单机指标** —— 20 台机器分摊 2000 QPS，单机只有 100 |
 | ⭐ **数据层（真正的瓶颈）** | **提现是写操作，缓存救不了写**。分库分表按用户 ID 哈希打散、读写分离；⭐ **热点账户问题** —— 如果所有提现都从同一个资金池账户扣钱，**所有事务都在抢同一行的行锁，分库分表也救不了**，要把账户拆成多个分桶 |
 | **一致性** | 幂等键**建唯一索引**；余额不变量**写进 SQL 的 WHERE** |
@@ -240,3 +240,45 @@ WHERE user_id = ? AND balance >= ?;
 | **前端还能做什么？** | 限流（没配额时按钮 disabled）、活动开始瞬间排队/验证码削峰 —— ⚠️ **但这些都是体验优化，不是正确性保证** |
 
 ⭐ **一句话收尾：前端减少无效负载，后端提供正确性。**
+
+## 十、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 提现 | **withdrawal** |
+| 在途请求 | **in-flight request**（*drops in-flight duplicates*） |
+| 请求锁 | **request locking** |
+| 请求去重 | **request deduplication** |
+| 首次立即执行 | **leading edge** ↔ trailing edge |
+| 幂等 / 幂等键 | **idempotent · idempotency key** |
+| 刷新后仍有效 | **survive reloads**（简历原句） |
+| 兜底 / 防御式处理 | **defensive fallback** |
+| 结果不确定 | **uncertain outcome** |
+| 代价不对称 | **asymmetric cost** |
+| 唯一索引 | **unique index** |
+| 业务不变量 | **business invariant** |
+| 事务 | **transaction** |
+| 限流 | **rate limiting**（令牌桶 **token bucket**、漏桶 **leaky bucket**） |
+| 削峰 | **shed / smooth the peak** |
+| 熔断 | **circuit breaker** |
+| 降级 | **degrade gracefully** |
+| 水平扩容 | **scale horizontally** |
+| 分库分表 | **sharding** |
+| 读写分离 | **read/write splitting** |
+| 热点账户 | **hot row / hot account**（行锁竞争 = **row-lock contention**） |
+| 异步化 | **move it off the request path** |
+| 峰值 ↔ 持续 | **peak ↔ sustained** |
+| 统计窗口 | **the window**（*rate over a 1-minute window*） |
+| 压测 | **load testing** |
+| 梯度加压 | **ramp up** |
+| 影子库 | **shadow table / shadow traffic** |
+| 对账 | **reconciliation**（*reconciliation found no discrepancies*） |
+| 差错 / 差异 | **discrepancy** |
+| 单边账 | **unmatched record** |
+| 资损 | **financial loss** |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 整条 bullet 的收尾句：**"The client reduces useless load; correctness comes from the backend."** 背下来
+> 2. 「前端不扛 QPS，前端贡献 QPS」说 **the client doesn't absorb QPS, it contributes to it**
+> 3. 「零资损是对账的结论」说 **that's a reconciliation result, not something I measured**

@@ -36,18 +36,6 @@ status: done
 >
 > 结果是：**面试官说完，一两秒内屏幕开始出字。**
 
-**English —— 面试要说的就是这一段，别临场翻译**
-
-> It's a **real-time interview copilot**. It captures **tab and system audio** — the interviewer's voice coming out of the meeting app, **not the user's own microphone**. That direction matters. The browser **slices the audio every 250 milliseconds and streams it straight to Deepgram**; our server never touches the audio at all.
->
-> What comes back is of two kinds: **interim guesses that get overwritten**, and **finalized text that won't change again**. They update by opposite rules, so the client **keeps two separate pieces of state** and joins them — that's why you never see duplicated words on screen.
->
-> There's a trap in the trigger: **a final transcript does not mean the person is done speaking** — one long sentence with a breath in the middle produces several finals. So the actual trigger is Deepgram's **utterance-end event, fired after two seconds of silence**. That calls our own server, and GPT-4o's answer **streams back token by token**.
->
-> The result: **the interviewer stops talking, and text starts appearing within a second or two.**
-
-> ⭐ **几个换成中文思路就会说错的地方**：转写的两种结果是 **interim / finalized**（不是 temporary / final）；「触发」用 **fires** 或 **triggers**；「服务端不碰音频」说 **never touches the audio**，比 "doesn't handle" 干净；「一两秒内出字」用 **within a second or two**，不要说 "in one or two seconds"。
-
 ## 一、整条链路长什么样
 
 ```

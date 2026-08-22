@@ -30,9 +30,9 @@ status: done
 
 | 对象 | 是什么 | 谁产出 |
 |---|---|---|
-| **Claim（声明）** | 一句要告诉用户的话，比如「歌剧院门票 45 澳元」 | 检索阶段 |
-| **Evidence（证据）** | **从某个网页上原样摘下来的一段文字**，加上它的网址和发布日期 | 检索阶段 |
-| **Verdict（判决）** | 这条声明**到底立不立得住** | ⭐ **核实阶段，绝不由检索阶段写** |
+| **Claim（声明 / 主张）** | 一句要告诉用户的话，比如「歌剧院门票 45 澳元」 | 检索阶段 |
+| **Evidence（证据）** | **从某个网页上原样摘下来的一段文字**（逐字引用 = **verbatim quote**），加上它的网址和发布日期 | 检索阶段 |
+| **Verdict（判决 / 裁定）** | 这条声明**到底立不立得住** | ⭐ **核实阶段，绝不由检索阶段写** |
 
 **「声明绑定到确切的原文引用」的意思是**：检索阶段不能只说「门票 45 澳元」，**它必须同时给出那句话的原文出处**。
 
@@ -78,7 +78,7 @@ USABLE_VERDICTS = frozenset({SUPPORTED, PARTIAL, STALE})
 
 ## 四、新鲜度窗口是按声明类型分的
 
-**「新鲜度窗口」= 这类声明的证据，多老就算过期了。**
+**「新鲜度窗口」（freshness window）= 这类声明的证据，多老就算过期了。**
 
 ```python
 # models.py:156-165
@@ -147,7 +147,7 @@ FRESHNESS_DAYS = {
 >
 > （`as_of` 让重放和新鲜度测试保持稳定。它默认取当前的世界标准时日期，**绝不取模型推断出来的日期**。）
 
-**「注入」的意思是**：这个函数不自己去问系统「现在几点」，而是**由调用方把日期传进来**。
+**「注入」（injection）的意思是**：这个函数不自己去问系统「现在几点」，而是**由调用方把日期传进来**。
 
 **为什么要这样：**
 
@@ -169,3 +169,34 @@ FRESHNESS_DAYS = {
 > ⭐ **宁可没有日期（退回抓取时间这个保守值），也不要一个猜出来的日期** —— 因为**整条新鲜度规则都建立在它上面**。
 >
 > **能引这句注释，说明你理解「确定性是要一路守到底的」，不是只在最后一步做个检查。**
+
+## 七、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 编造来源 / 幻觉 | **fabricated citation · hallucination** |
+| 声明 / 主张 | **claim** |
+| 证据 | **evidence** |
+| 逐字引用 | **verbatim quote / exact source quote** |
+| 判决 / 裁定 | **verdict**（动词 *rule on a claim*） |
+| 有支撑 ↔ 无支撑 | **supported ↔ unsupported** |
+| 部分支撑 | **partial** |
+| 被反证 | **contradicted** |
+| 过期 | **stale** |
+| 没有证据 | **no evidence** |
+| 引用归属 | **citation membership** |
+| 溯源 | **provenance** |
+| 新鲜度窗口 | **freshness window** |
+| 腐坏 / 失效 | **rot**（*how fast its evidence rots*） |
+| 注入（时钟） | **inject**（*the clock is injected, never read directly*） |
+| 确定性计算 | **deterministic computation** |
+| 提示词是请求不是约束 | ⭐ *a prompt is a request, not a constraint* |
+| 集合成员检查 | **set-membership check** |
+| 纯函数 | **pure function** |
+| 保守兜底 | **conservative fallback** |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 这条 bullet 的核心句：**"Application code — not prompts — enforces citation membership and freshness windows."** 简历原句，逐字背
+> 2. 「提示词是请求不是约束」：**a prompt is a request, not a constraint** —— 一句话解释为什么不靠提示词
+> 3. 「宁可没有日期也不要猜一个」说 **a guessed date would hand the freshness rule a number nobody stands behind**

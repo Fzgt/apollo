@@ -35,7 +35,7 @@ status: done
 | **网页** | 随时改版、随时 404 |
 | **时间** | `now()` 每次都不同 —— **而这个系统的过期判定直接吃时间** |
 
-**直接对着真实依赖写测试，结果是**：测试**随机变红**（这种叫 flaky test）、跑一次要几十秒到几分钟、**每跑一次都花钱**、CI 里没网就全挂。
+**直接对着真实依赖写测试，结果是**：测试**随机变红**（这种叫 **flaky test**，不稳定测试）、跑一次要几十秒到几分钟、**每跑一次都花钱**、CI 里没网就全挂。
 
 > **于是大多数 AI 项目的选择是：干脆不写测试，或者只留几个冒烟测试装装样子。**
 >
@@ -45,7 +45,7 @@ status: done
 
 **术语出处**：Michael Feathers 的《修改代码的艺术》。
 
-> **seam = 你能在不修改这个位置的代码的前提下，改变程序行为的地方。**
+> **seam（接缝）= 你能在不修改这个位置的代码的前提下，改变程序行为的地方。**
 
 **做法：在每一个「字节要离开进程」的位置放一个 seam** —— **生产环境接真货，测试环境接脚本。**
 
@@ -117,7 +117,7 @@ class Clock(Protocol):
     def monotonic(self) -> float: ...
 ```
 
-**`Protocol` 是 Python 的「结构化类型」** —— 它不要求你继承它，**只要你有这两个方法，你就算是一个 Clock**。
+**`Protocol` 是 Python 的「结构化类型」（structural typing）** —— 它不要求你继承它，**只要你有这两个方法，你就算是一个 Clock**。
 
 > **真实时钟和假时钟都没有继承 `Clock`。它们只是「长得像」就能用。**
 >
@@ -343,3 +343,32 @@ cd server && uv run pytest
 > 「这个仓库是公开的，`cd server && python -m pytest` 就能跑，**不需要任何 key 也不需要联网 —— 您现在就能验证。**」
 
 > ⭐ **一个能被当场验证的数字，会让面试官对你其他所有数字的信任度一起上升。**
+
+## 十四、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 接缝 | **seam**（*a scripted seam behind every external dependency*） |
+| 替换点 | **substitution point** |
+| 进程边界 | **process boundary**（⭐ *put the seam as close to the process boundary as possible*） |
+| 打桩 / 假实现 | **stub · fake · mock**（三者有别，见下） |
+| 不稳定测试 | **flaky test** |
+| 确定性 | **determinism** |
+| 假时钟 | **fake clock** |
+| 时间炸弹测试 | **time-bomb test** |
+| 注入 | **inject · dependency injection** |
+| 抽象基类 | **abstract base class** |
+| 结构化类型 | **structural typing**（Python `Protocol`） |
+| 传输层 | **transport layer** |
+| 重定向跟随 | **redirect following** |
+| 速率限制 | **rate limiting** |
+| 收集到的用例 ↔ 实际执行 | **collected ↔ executed**（406 collected, 403 passed, 3 skipped） |
+| 有条件跳过 | **conditionally skipped** |
+| 串行 ↔ 并行 | **serial ↔ parallel**（`pytest-xdist`） |
+| 端到端 | **end to end**（⚠️ 这里指整个套件，不是一次流水线） |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. **stub / fake / mock 的区别**：stub 返回写死的值；**fake 是个能用的简化实现**（假时钟就是 fake）；mock 还会断言「你调了我几次」。被问到能分清是加分项
+> 2. 核心判据一句话：**"The seam goes as close to the process boundary as possible — the further out it is, the more real code the test still exercises."**
+> 3. 「一秒是证据不是成绩」说 **the second is evidence that no test path leaks out of the process, not a performance claim**

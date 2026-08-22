@@ -47,7 +47,7 @@ status: done
 | | 定义特征 |
 |---|---|
 | **multi-agent system**（多智能体系统） | ⭐ **模型自己决定下一步做什么、该调用谁** —— 控制权在模型手里 |
-| **agentic workflow**（智能体工作流） | 有多个**专职的、带提示词的**处理单元，**但编排权在代码手里** |
+| **agentic workflow**（智能体工作流） | 有多个**专职的、带提示词的**处理单元，**但编排权（orchestration）在代码手里** |
 
 ### 三条硬依据，都能当场指代码
 
@@ -57,7 +57,7 @@ status: done
 | **② 零个工具调用** | `grep -rn "tools=\|tool_choice\|function_call" periplus/llm/ periplus/agents/` **返回空**。**模型没有任何调用外部能力的口子** —— 它只被要求在固定位置产出结构化输出 |
 | **③ 连「看起来像自己规划」的部分都是代码算的** | `research.py:107` 那个函数的文档字符串直接写着 *"Build a stable search plan **without spending a model call**"*（**不花一次模型调用**就把检索计划算出来） |
 
-> **「工具调用」（tool call）是什么**：现代模型 API 允许你告诉模型「你可以调用这几个函数」，模型自己决定什么时候调、传什么参数。**这是 multi-agent 系统的基础能力 —— 而这里一个都没有。**
+> **「工具调用」（tool call / function calling）是什么**：现代模型 API 允许你告诉模型「你可以调用这几个函数」，模型自己决定什么时候调、传什么参数。**这是 multi-agent 系统的基础能力 —— 而这里一个都没有。**
 
 ### 一句话答法
 
@@ -112,10 +112,35 @@ Python 数据模型（api/schemas.py）
          → 得到一份 TypeScript 类型定义
 ```
 
-**「OpenAPI」是什么**：一份描述接口的标准格式文件 —— 有哪些接口、每个接口收什么、返回什么。**FastAPI 会根据你的 Python 数据模型自动生成它。**
+**「OpenAPI」是什么**：一份描述接口的标准格式文件（**接口描述** = API schema） —— 有哪些接口、每个接口收什么、返回什么。**FastAPI 会根据你的 Python 数据模型自动生成它。**
 
 > ⭐ **关键是「生成」而不是「手写」**：后端改了字段名，前端重新生成之后**是编译期报错，不是运行时 undefined**。
 >
 > **这就是简历里 `carried through to the React client as types generated from the OpenAPI schema` 的字面出处。**
 
 > ⚠️ **代价要能说**：生成的类型和后端是**强耦合**的 —— 后端一改前端就得跟着改。**但这正是你想要的**：问题在编译期暴露，比在线上暴露便宜得多。
+
+## 六、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 智能体工作流 | **agentic workflow** ↔ **multi-agent system** |
+| 编排器 / 编排 | **orchestrator · orchestration** |
+| 控制流 | **control flow**（*the control flow is hard-coded*） |
+| 阶段 | **stage** |
+| 契约 | **contract**（*typed stage contracts*） |
+| 结构化输出 | **structured output** |
+| 工具调用 | **tool call / function calling** |
+| 关卡 | **gate**（*a gate rejects structurally valid but empty output*） |
+| 产物 | **artifact** |
+| 可替换 / 可测 / 可恢复 | **swappable · testable · resumable** |
+| 接口描述 | **API schema**（OpenAPI） |
+| 类型生成 | **generated types**（*types generated from the OpenAPI schema*） |
+| 强耦合 | **tightly coupled** |
+| 编译期报错 | **compile-time error** |
+| 超售 | **overclaim**（⚠️ *calling it multi-agent would be an overclaim*） |
+
+> ⭐ **两个最容易说错的**：
+>
+> 1. 区分那两个词的一句话：**"In a multi-agent system the model decides what happens next. Here it never does — the stage order is a fixed tuple and there are zero tool calls."**
+> 2. 「编排权在代码手里」说 **the orchestration lives in code, not in the model**

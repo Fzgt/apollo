@@ -40,11 +40,11 @@ status: done
 
 **主应用是 Next.js，部署在无状态平台上。**
 
-**「无状态平台」是什么意思**：这类平台（Vercel、Lambda 之类）上，你的代码**只有在有请求进来时才被唤醒**，处理完就休眠。⭐ **它不会自己醒来。**
+**「无状态平台」（stateless / serverless platform）是什么意思**：这类平台（Vercel、Lambda 之类）上，你的代码**只有在有请求进来时才被唤醒**，处理完就休眠。⭐ **它不会自己醒来。**
 
 **而定时任务恰恰需要一个「自己会醒」的东西** —— 每分钟醒一次，查数据库，决定要不要发邮件。**无状态平台上没有这个语义。**
 
-⭐ **这叫按运行模型拆服务，不是按业务域拆：**
+⭐ **这叫按运行模型（runtime model）拆服务，不是按业务域拆：**
 
 | 运行模型 | 适合放哪 |
 |---|---|
@@ -59,7 +59,7 @@ status: done
 
 ## 二、⭐ 怎么保证同一封邮件不发两遍（这条 bullet 最值钱的一问）
 
-**先定义幂等**：一个操作**执行一次和执行多次，结果一样**。⭐ **发邮件天然不幂等 —— 发两次用户就收到两封。**
+**先定义幂等（idempotent）**：一个操作**执行一次和执行多次，结果一样**。⭐ **发邮件天然不幂等 —— 发两次用户就收到两封。**
 
 ### 靠一张表，不靠调度频率
 
@@ -163,7 +163,7 @@ constructor(
 ) { }
 ```
 
-**「依赖注入」的意思是**：这个类需要什么，就在构造函数里声明，**由框架负责造好了递给它** —— 而不是自己 `new` 一个。**好处是测试时可以塞一个假的进去。**
+**「依赖注入」（dependency injection，DI）的意思是**：这个类需要什么，就在构造函数里声明，**由框架负责造好了递给它** —— 而不是自己 `new` 一个。**好处是测试时可以塞一个假的进去。**
 
 **两种方式的区别**：`MailerService` 是个类，框架能从类型信息里认出它；而**数据库连接不是一个类，是工厂函数造出来的对象**，没有类型可以匹配，**所以要用一个字符串名字来标识**。
 
@@ -276,7 +276,7 @@ COPY . .                                # ③ 再拷源码
 RUN pnpm run build
 ```
 
-**先解释 Docker 的分层缓存**：镜像是**一层一层叠起来**的，每条指令一层。构建时从上往下比对：⭐ **某一层的输入没变就直接复用上次的结果；一旦有一层变了，它和它之后的所有层全部重建。**
+**先解释 Docker 的分层缓存（layer caching）**：镜像是**一层一层叠起来**的，每条指令一层。构建时从上往下比对：⭐ **某一层的输入没变就直接复用上次的结果；一旦有一层变了，它和它之后的所有层全部重建。**
 
 **如果写反了（常见错误）：**
 
@@ -301,7 +301,7 @@ volumes:
   - /usr/src/app/node_modules   # ← 单独保住镜像里的依赖目录
 ```
 
-**先解释「挂载」（volume）**：它让容器里的某个路径**直接指向宿主机上的一个目录**。改宿主机的文件，容器里立刻能看到 —— **这是开发时的热重载用法**。
+**先解释「挂载」（volume mount）**：它让容器里的某个路径**直接指向宿主机上的一个目录**。改宿主机的文件，容器里立刻能看到 —— **这是开发时的热重载用法**。
 
 **但它出现在生产配置里，会产生一个直接后果：**
 
@@ -339,3 +339,44 @@ async triggerCronManually() {
 > **答法**：「这是当时留的调试口子，名字起得比它做的事大。**上生产前应该删掉，或者至少加鉴权并改成 POST。**」
 >
 > ⭐ **主动指出自己代码里的疤，收益比看起来大 —— 它证明你现在的标准高于当时的产出，而面试官招的是现在的你。**
+
+## 十一、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 无状态平台 | **stateless / serverless platform** |
+| 常驻进程 | **long-running process** |
+| 定时任务 | **cron job / scheduled job** |
+| 轮询 ↔ 事件驱动 | **polling ↔ event-driven** |
+| 延时任务 | **delayed job** |
+| 任务队列 | **job queue** |
+| 退避重试 | **retry with backoff** |
+| 幂等 | **idempotent** |
+| 反连接 | **anti-join** |
+| 唯一索引 | **unique index** |
+| 至少一次 ↔ 至多一次 | **at-least-once ↔ at-most-once** |
+| 恰好一次 | **exactly-once**（⚠️ 跨系统时说它*不存在*） |
+| 原子性 | **atomicity**（*no atomicity across systems*） |
+| 分布式事务 | **distributed transaction** |
+| 依赖注入 | **dependency injection（DI）** |
+| 适配器 | **adapter** |
+| 容器化 | **containerized / Dockerized** |
+| 分层缓存 | **layer caching** |
+| 多阶段构建 | **multi-stage build** |
+| 挂载 | **volume mount** |
+| 编排层 | **orchestration layer** |
+| 重启策略 | **restart policy** |
+| 优雅退出 | **graceful shutdown** |
+| 信号转发 | **signal forwarding** |
+| 健康检查 | **health check** |
+| 回滚 | **roll back** |
+| 关卡 / 门禁 | **gate**（*the repo's first CI gate*） |
+| 保护分支 | **branch protection** |
+| 构建一次到处部署 | **build once, deploy anywhere** |
+| 不可变产物 | **immutable artifact** |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 「恰好一次」**在跨系统场景下不存在** —— 要说 **exactly-once doesn't exist across system boundaries; you get at-least-once plus idempotent consumption**，这句是这条 bullet 的杀手锏
+> 2. 「CI 关卡」用 **gate**，简历里就是 `the repo's first CI gate`
+> 3. 「在生产机上构建」是 **building on the production host**，说它是 **an anti-pattern**

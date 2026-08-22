@@ -26,7 +26,7 @@ status: done
 
 ## 一、什么是 draw call，为什么它是瓶颈
 
-**draw call（绘制调用）= CPU 对 GPU 说一次「画这个东西」。**
+**draw call（绘制调用 / 绘制命令）= CPU 对 GPU 说一次「画这个东西」。**
 
 **关键在于：它的成本主要在 CPU 那一侧，不在 GPU。** 每发一次绘制命令，图形驱动要做状态校验、可能要切换着色器/贴图/顶点缓冲、把命令打包送进队列。
 
@@ -166,7 +166,7 @@ if (capped.length) {
 
 **视锥剔除（frustum culling）= 渲染前先判断「这个物体在不在视锥里」，不在就直接跳过，连提交都不提交。**
 
-**three.js 默认对每个物体做这件事**：每帧遍历场景，拿每个物体的**包围体**（一个能装下它的球或盒子，用来做廉价的粗略判断）和视锥求交，**不相交就跳过**。
+**three.js 默认对每个物体做这件事**：每帧遍历场景，拿每个物体的**包围体（bounding volume）**（一个能装下它的球或盒子，用来做廉价的粗略判断）和视锥求交，**不相交就跳过**。
 
 > **这是个非常划算的优化**：一次廉价的球体求交测试，就省掉了整个物体的顶点处理。
 >
@@ -253,3 +253,33 @@ frustum culling
 > ⭐ **面试官读到这一句会认真起来**，因为绝大多数简历只报收益。**一个把取舍的两边都量出来、还说清了机制的候选人，可信度和其他所有数字一起上升。**
 >
 > **讲的时候可以直接点出来**：「这条我特意把代价也写上了，因为只报绘制命令下降是不完整的 —— **它是用三角形数换来的。**」
+
+## 十三、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 绘制命令 | **draw call** |
+| 受绘制命令限制 | **draw-call bound**（对应 *GPU-bound* / *CPU-bound*） |
+| 实例化渲染 | **instancing · InstancedMesh** |
+| 变换矩阵 | **transform matrix**（*sharing one matrix set*） |
+| 合批 | **batching**（*collapsed into two meshes*） |
+| 视锥 | **frustum** |
+| 视锥剔除 | **frustum culling**（*per-instance frustum culling*） |
+| 包围体 / 包围盒 | **bounding volume · bounding box** |
+| 剔除粒度 | **culling granularity** |
+| 提交的三角形 | **triangles submitted**（⚠️ 不是画面上多了三角形） |
+| 顶点着色器 | **vertex shader** |
+| 裁剪阶段 | **clipping** |
+| 富余产能 | **headroom**（*the GPU still has headroom*） |
+| 帧率上限 / 饱和 | **frame cap · saturated**（*FPS does not separate them*） |
+| 软件光栅化 | **software rasterisation** |
+| 无头测量装置 | **headless harness** |
+| 受控实验 | **controlled experiment**（2×2 = *a two-by-two*） |
+| 采样窗口 | **sampling window** |
+| 分块实例化 | **chunked instancing** |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 「用瓶颈资源换非瓶颈资源」说 **we spent GPU headroom to buy back CPU time** —— 这是这笔交易划算的全部理由
+> 2. 「提交的三角形涨了」一定要说 **submitted**，并补一句 **the image is identical**，否则听起来像画质变了
+> 3. 「帧率区分不了这四个场景」说 **FPS is saturated at the compositor cap, so it can't separate them**

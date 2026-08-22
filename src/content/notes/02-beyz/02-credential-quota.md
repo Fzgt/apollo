@@ -62,7 +62,7 @@ status: done
 
 **思路是个转向：既然浏览器守不住秘密，那就别给它值钱的秘密。** 给它一把又**小**又**短命**的钥匙。
 
-- **小** → 限定**权限**：只能开一扇门
+- **小** → 限定**权限（scope）**：只能开一扇门
 - **短命** → 限定**寿命**：很快自己作废
 
 ⭐ **安全模型从「保证密钥不泄露」（浏览器里做不到）变成了「假设它一定会泄露，但泄露了也不值钱」。安全工程里管这个叫缩小「爆炸半径」（blast radius）。**
@@ -91,7 +91,7 @@ fetch("/api/deepgram", { cache: "no-store" })
 
 ### 为什么是 60 秒
 
-⭐ **最关键的一句先说：60 秒约束的不是通话时长，是握手窗口。**
+⭐ **最关键的一句先说：60 秒约束的不是通话时长，是握手窗口（handshake window）。**
 
 这把钥匙的全部使命就是完成**一次 WebSocket 握手**。握手一成，连接自己立住，钥匙从此再也用不上。
 
@@ -114,7 +114,7 @@ fetch("/api/deepgram", { cache: "no-store" })
 
 ### scope 限了什么：最坏情况能量化
 
-代码里是 `scopes: ["usage:write"]`，**只有一个**。这是**最小权限原则**的教科书用法：不是「给它够用的权限」，是「给它**刚好只够用**的权限」。
+代码里是 `scopes: ["usage:write"]`，**只有一个**。这是**最小权限原则（principle of least privilege）**的教科书用法：不是「给它够用的权限」，是「给它**刚好只够用**的权限」。
 
 **靠代码本身就能推的两条：**
 
@@ -138,9 +138,9 @@ fetch("/api/deepgram", { cache: "no-store" })
 
 | 旋钮 | 控制什么 | 这里取值 | 调它的代价 |
 |---|---|---|---|
-| **有效期** | 泄露后还能用多久 | **60 秒** | 太短会误伤慢网络下的正常建连 |
+| **有效期（TTL，time to live）** | 泄露后还能用多久 | **60 秒** | 太短会误伤慢网络下的正常建连 |
 | **权限范围** | 泄露后能干什么 | **只有一个「提交转写」** | 太窄会导致功能不可用 |
-| **作废** | 出事后怎么止损 | ⭐ **不需要 —— 它自己过期** | 长期密钥才需要，代价是全线中断 |
+| **作废（revocation）** | 出事后怎么止损 | ⭐ **不需要 —— 它自己过期** | 长期密钥才需要，代价是全线中断 |
 
 ⭐ **有效期和权限范围是「事前」把损失面压小，作废是「事后」止损。临时凭证的价值在于把问题从事后挪到了事前 —— 你不需要一套作废机制，因为不会有需要作废的东西长期存在。**
 
@@ -159,7 +159,7 @@ if (microphoneState !== MicrophoneState.Open && connectionState === SOCKET_STATE
 }
 ```
 
-**为什么需要它**：**Deepgram 的实时连接有空闲超时 —— 10 秒收不到任何东西，服务端主动关连接。** 站在它的角度很合理：一条连接在它那边占着识别引擎的资源，客户端不发音频了它凭什么一直养着。
+**为什么需要它**：**Deepgram 的实时连接有空闲超时（idle timeout）—— 10 秒收不到任何东西，服务端主动关连接。** 站在它的角度很合理：一条连接在它那边占着识别引擎的资源，客户端不发音频了它凭什么一直养着。
 
 **面试中途用户把麦克风暂停超过 10 秒，连接就没了** —— 而重连意味着重新铸钥匙、重新握手、转写上下文断掉。
 
@@ -174,7 +174,7 @@ if (microphoneState !== MicrophoneState.Open && connectionState === SOCKET_STATE
 
 麦克风一开，代码立刻把心跳定时器清掉，交给音频流接管。**同一个「保活」职责，在两种状态下由两个机制承担，永远只有一个在跑** —— 这是个很干净的设计。
 
-**心跳发的是什么**：不是音频，是一条 JSON 文本帧 `{ "type": "KeepAlive" }`。**为什么不发一段静音顶替**：静音也是音频，Deepgram 会处理它、会计费、还可能吐出空转写污染结果；**而发 0 字节的包 Deepgram 会直接关连接。** 心跳走的是完全独立的信令通道，不进识别管线。
+**心跳（heartbeat / keep-alive）发的是什么**：不是音频，是一条 JSON 文本帧 `{ "type": "KeepAlive" }`。**为什么不发一段静音顶替**：静音也是音频，Deepgram 会处理它、会计费、还可能吐出空转写污染结果；**而发 0 字节的包 Deepgram 会直接关连接。** 心跳走的是完全独立的信令通道，不进识别管线。
 
 ### ⚠️ 这个 10 秒选得有问题（主动讲，是加分项）
 
@@ -184,7 +184,7 @@ if (microphoneState !== MicrophoneState.Open && connectionState === SOCKET_STATE
 
 - `setInterval` **从来不保证准时**，它保证的是「不早于」10000 ms，事件循环一忙就往后拖
 - 还要加上到 Deepgram 的网络延迟（几十到几百毫秒）
-- ⭐ **浏览器对后台标签页的定时器有节流** —— 而面试场景下这个标签**大概率不在前台**
+- ⭐ **浏览器对后台标签页的定时器有节流（timer throttling）** —— 而面试场景下这个标签**大概率不在前台**
 
 **所以这个心跳结构上就是踩线到达甚至迟到的。它在实践中没大面积炸，多半是靠服务端有点宽容度，不是靠设计。**
 
@@ -307,7 +307,7 @@ enum CopilotStatus {
 }
 ```
 
-**「状态机」就是「这几种情形 + 它们之间允许怎么跳」这一整套规则。** 代码里的转移只有五处：初始进 `Ready`；连接开且麦克风启动进 `Listening`；提交问题进 `Generating`；答案流结束进 `Done`；用户点停止回 `Ready`。
+**「状态机」（state machine）就是「这几种情形 + 它们之间允许怎么跳」这一整套规则。** 代码里的转移只有五处：初始进 `Ready`；连接开且麦克风启动进 `Listening`；提交问题进 `Generating`；答案流结束进 `Done`；用户点停止回 `Ready`。
 
 ### ⭐ 最有说服力的答法是算组合数
 
@@ -353,7 +353,7 @@ const submitQuestion = useCallback(async () => {
 
 **这里依赖数组是空的 `[]`**，意思是「**这个函数只在首次渲染时创建一次，之后永远是同一个**」。
 
-⭐ **问题就在这**：函数被创建的那一刻 `status` 是 `Ready`，**函数把那一刻的 `Ready` 记在了自己身上**（JavaScript 里这叫闭包捕获）。之后 `status` 变成 `Generating`，**这个函数里读到的还是 `Ready`** —— 守卫永远不命中。
+⭐ **问题就在这**：函数被创建的那一刻 `status` 是 `Ready`，**函数把那一刻的 `Ready` 记在了自己身上**（JavaScript 里这叫**闭包捕获**，closure capture）。之后 `status` 变成 `Generating`，**这个函数里读到的还是 `Ready`** —— 守卫永远不命中。
 
 ```js
 const statusRef = useRef(status);
@@ -436,7 +436,7 @@ for await (const delta of readStreamableValue(suggestion)) {
 
 ## 十一、并发下会重复扣减吗（预期追问）
 
-**问题本身**：两个请求同时到达，各自读到「还剩 5 次」，各自扣一次写回「还剩 4 次」—— **扣了两次，只少了一次**。
+**问题本身**（这类叫**竞态条件**，race condition）：两个请求同时到达，各自读到「还剩 5 次」，各自扣一次写回「还剩 4 次」—— **扣了两次，只少了一次**。
 
 **现在不会发生**，因为配额判定是**读当前消息条数**（一个绝对值），不是「余额减一」这种增量操作。⭐ **读绝对值天然幂等：同一条消息不会因为判定跑了两次就被算成两条。**
 
@@ -450,3 +450,45 @@ WHERE user_id = ? AND remaining > 0;
 ⭐ **把「余额必须大于 0」这个条件写进 SQL 的 WHERE 里，靠「这条语句影响了几行」判断成功与否 —— 而不是先查再写。因为数据库执行单条 UPDATE 是原子的，两个并发请求只有一个能让条件成立。**
 
 > **这条能和 [③ Stripe 的终身档保护](/docs?section=beyz&item=stripe-billing)、[百度提现的余额约束](/docs?section=baidu&item=withdrawal) 串成一句话：把不变量放在数据层，而不是应用层的判断里。** 应用层的判断会因为并发、重启、多实例失效，**数据库的约束不会。**
+
+## 十二、本篇术语英文对照
+
+⭐ **只列「中文想得出、英文卡壳」的。API 名和 `usage:write` 这类字面量不列。**
+
+| 中文 | 英文 |
+|---|---|
+| 凭证 / 密钥 | credential · key（长期的叫 **long-lived key**） |
+| 临时凭证 | **ephemeral credential** |
+| 签发 / 铸一把钥匙 | **mint**（*mint a short-lived key*） |
+| 有效期 | **TTL（time to live）** |
+| 权限范围 | **scope** |
+| 作废 / 吊销 | **revoke · revocation** |
+| 套餐门禁 | **plan gate**（*behind a plan gate*） |
+| 认证 ↔ 授权 | **authentication ↔ authorization** |
+| 最小权限原则 | **principle of least privilege** |
+| 爆炸半径 | **blast radius** |
+| 提权 | **privilege escalation** |
+| 限流 | **rate limiting** |
+| 握手窗口 | handshake window |
+| 空闲超时 | **idle timeout** |
+| 心跳 / 保活 | **heartbeat · keep-alive** |
+| 余量 | **headroom / margin**（*zero margin*） |
+| 定时器节流 | timer throttling |
+| 用量 / 配额 | **usage · quota** |
+| 落库 / 记一条 | log · record（*logged per-request token usage*） |
+| 状态机 | **state machine**（*a four-state machine*） |
+| 状态转移 | **transition** |
+| 守卫 | **guard**（*the guard returns early*） |
+| 丢弃（重叠的生成） | **drop** |
+| 闭包捕获 | **closure capture** |
+| 陈旧值 | **stale value** |
+| 迟到的响应 | **late-arriving response** |
+| 竞态条件 | **race condition** |
+| 唯一索引 | **unique index / unique constraint** |
+| 绝对值写入 ↔ 增量写入 | absolute write ↔ **incremental write** |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 「签发一把临时密钥」用 **mint**，简历上就是这个词；说 `generate` 不算错但弱
+> 2. 「凭证不落进浏览器」说 **kept the credential out of the browser**，不要说 `didn't put`
+> 3. 「余量为零」是 **zero margin / no headroom** —— 讲 10 秒心跳那个批评时要用它

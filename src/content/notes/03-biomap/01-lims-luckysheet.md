@@ -38,8 +38,8 @@ status: done
 
 | | 心智模型 | 谁拥有 DOM |
 |---|---|---|
-| **Vue / React（声明式）** | 你**描述状态**，框架决定 DOM 长什么样 | ⭐ **框架** —— 它随时可能重新渲染、替换节点 |
-| **Luckysheet / ECharts（命令式）** | 你给它一个容器，调 `create()`，之后**调方法指挥它** | ⭐ **它自己** —— 它在那块 DOM 里想怎么改就怎么改 |
+| **Vue / React（声明式，declarative）** | 你**描述状态**，框架决定 DOM 长什么样 | ⭐ **框架** —— 它随时可能重新渲染、替换节点 |
+| **Luckysheet / ECharts（命令式，imperative）** | 你给它一个容器，调 `create()`，之后**调方法指挥它** | ⭐ **它自己** —— 它在那块 DOM 里想怎么改就怎么改 |
 
 **不划清界限的典型症状**：Vue 一次重新渲染把 SDK 建好的 DOM 冲掉了；SDK 改了 DOM 但 Vue 不知道；**两边各存一份状态然后不同步**。
 
@@ -118,7 +118,7 @@ const handleUpdate = () => {
 const saveSopTemplate = debounce((data) => { ...发请求... }, 2000, { leading: false });
 ```
 
-**「防抖」的意思是：连续触发时只在停下来之后执行一次。** 用户连续编辑会疯狂触发 `updated` 钩子，**不防抖就是每敲一个字发一个请求**。
+**「防抖」（debounce）的意思是：连续触发时只在停下来之后执行一次。** 用户连续编辑会疯狂触发 `updated` 钩子，**不防抖就是每敲一个字发一个请求**。
 
 **`leading: false` 是什么**：默认的防抖会**先执行一次**再等；设成 false 表示**不在第一次就发，等停手 2 秒再发**。⭐ **对保存这种操作是对的 —— 第一次就发没有意义，因为用户还在改。**
 
@@ -135,7 +135,7 @@ const onResize = debounce((entries) => {
 
 **背景**：Luckysheet 的尺寸自适应做得不好，视口变了要调 `create()` **整个重建**。⭐ **而重建代价很大 —— 整张表重新渲染，还会丢掉用户的选区。**
 
-**所以加了两道闸**：**600 毫秒防抖** + **20 像素的死区**。滚动条出现/消失、浏览器界面微调这类几像素的抖动被挡在外面。
+**所以加了两道闸**：**600 毫秒防抖** + **20 像素的死区（dead zone）**。滚动条出现/消失、浏览器界面微调这类几像素的抖动被挡在外面。
 
 ⭐ **这是个很好的「我知道代价所以加了阈值」的例子 —— 不是无脑响应每一次 resize。**
 
@@ -152,10 +152,37 @@ const onResize = debounce((entries) => {
 | 现状 | 问题 | 更好的做法 |
 |---|---|---|
 | `window.luckysheet` 全局脚本 | 没类型、不参与打包、要自己管加载时序 | 用有 npm 包和类型定义的库；或者自己写一层类型声明包装 |
-| **整条链路挤在一个 `.vue` 文件里** | 视图和 SDK 的生命周期管理混在一起 | ⭐ **抽成一个 `useLuckysheet()` 组合式函数** —— 内部管创建/销毁/尺寸变化，**对外只暴露事件和方法** |
+| **整条链路挤在一个 `.vue` 文件里** | 视图和 SDK 的生命周期管理混在一起 | ⭐ **抽成一个 `useLuckysheet()` 组合式函数（composable）** —— 内部管创建/销毁/尺寸变化，**对外只暴露事件和方法** |
 | 靠重建来适应尺寸 | 重建代价大，会丢选区 | 优先找 SDK 自己的 `resize()` 接口；没有才退回重建 |
 | ⚠️ **没有显式销毁** | 路由切走可能泄漏 | 在组件卸载的钩子里销毁实例、解绑观察器 |
 
 > ⭐ **一句话答法**
 >
 > 「命令式 SDK 和声明式框架的冲突就一句话 —— **两边都想拥有同一块 DOM**。解法是划一块飞地：给它一个 Vue 完全不碰的空 div，然后**只在交界处开两座桥 —— 表格到应用走事件，应用到表格走显式调用**，绝不让响应式系统穿过边界。数据同步靠它自己的更新钩子，存之前把几 MB 的单元格矩阵置空只留结构。**换成 ECharts、Monaco、Mapbox 是完全一样的处理方式。** 现在做的话我会把这套抽成一个组合式函数，把创建、销毁、尺寸变化的生命周期封在里面，而不是摊在视图文件里。」
+
+## 六、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 声明式 ↔ 命令式 | **declarative ↔ imperative** |
+| 第三方 SDK | third-party SDK |
+| 飞地 / 划一块 DOM 出去 | **enclave**（*carve out a DOM enclave*） |
+| 裸容器 / 空 div | plain container · **unmanaged DOM node** |
+| 交界处 / 边界 | **boundary**（*only cross the boundary through events and explicit calls*） |
+| 桥 | **bridge** |
+| 显式调用 | **explicit call** |
+| 响应式系统 | **reactivity system** |
+| 生命周期钩子 | **lifecycle hook** |
+| 组合式函数 | **composable**（Vue）· custom hook（React） |
+| 卸载时销毁 | **dispose / tear down on unmount** |
+| 内存泄漏 | **memory leak** |
+| 防抖 ↔ 节流 | **debounce ↔ throttle** |
+| 死区 / 阈值 | **dead zone · threshold** |
+| 重建 | **rebuild / re-initialise** |
+| 选区 | **selection**（*rebuilding loses the user's selection*） |
+| 脚手架 | **scaffolding**（*a CLI for one-command project scaffolding*） |
+
+> ⭐ **两个最容易说错的**：
+>
+> 1. 「命令式 SDK 和声明式框架抢同一块 DOM」说 **both want to own the same piece of the DOM** —— `own` 这个词是关键
+> 2. 「脚手架」是 **scaffolding**，简历上就是这个词，不要说 `framework` 或 `template tool`

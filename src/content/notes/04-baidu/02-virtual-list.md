@@ -48,9 +48,9 @@ status: done
 |---|---|---|
 | **JS** | 跑你的代码，改 DOM | 代码量 |
 | **Style** | 算每个节点最终应用哪些 CSS 规则 | ⭐ **节点数** |
-| **Layout**（重排） | 算每个节点的**位置和尺寸** | ⭐ **节点数**（最贵的一步） |
-| **Paint**（重绘） | 把每个节点画成像素 | 像素面积 |
-| **Composite**（合成） | 把画好的图层拼起来交给 GPU | 图层数 |
+| **Layout**（重排 / reflow） | 算每个节点的**位置和尺寸** | ⭐ **节点数**（最贵的一步） |
+| **Paint**（重绘 / repaint） | 把每个节点画成像素 | 像素面积 |
+| **Composite**（合成 / compositing） | 把画好的图层拼起来交给 GPU | 图层数 |
 
 **「重排」（reflow）= 重新计算所有节点的几何位置。** 它贵，是因为⭐ **一个节点的位置会影响它后面所有节点的位置**，所以成本随节点总数线性涨。
 
@@ -113,7 +113,7 @@ status: done
 
 ### overscan 是个取舍，不是越小越好
 
-`overscan` 是在可视区上下**多渲染**几条作为缓冲：
+`overscan`（**缓冲区**，也叫 overscan）是在可视区上下**多渲染**几条作为缓冲：
 
 | overscan | DOM 数 | 快速滚动时 |
 |---|---|---|
@@ -181,7 +181,7 @@ status: done
 | 3 | **scroll 加 `passive: true`** | 告诉浏览器「我不会 `preventDefault()`」，**浏览器可以立即开始滚动而不等 JS 跑完** | 录制里 scroll handler 不再阻塞合成 |
 | 4 | ⭐ **IntersectionObserver 替代 scroll + `getBoundingClientRect()`** | 后者每次滚动都**强制同步布局** | ⭐ **DevTools 会直接标出来** —— Main 轨道黄色三角 + `Forced reflow is a likely performance bottleneck` |
 
-**第 4 条值得单独讲**：⭐ **「强制同步布局」是指你在 JS 里读一个几何属性（比如 `getBoundingClientRect()`），浏览器为了给你准确答案，被迫立刻把 Layout 同步跑一遍。** `IntersectionObserver` 由浏览器在自己的时机异步算好再通知你，**绕开了这一步**。
+**第 4 条值得单独讲**：⭐ **「强制同步布局」（forced synchronous layout，也叫 layout thrashing）是指你在 JS 里读一个几何属性（比如 `getBoundingClientRect()`），浏览器为了给你准确答案，被迫立刻把 Layout 同步跑一遍。** `IntersectionObserver` 由浏览器在自己的时机异步算好再通知你，**绕开了这一步**。
 
 ⭐ **而且那个警告不是你推断出来的，是浏览器自己报的** —— 「优化前 DevTools 一直在报 forced reflow，改用 IntersectionObserver 之后警告消失了」，这是能拿出来的具体证据。
 
@@ -230,3 +230,40 @@ status: done
 ⭐ **主动说「现在会选库」比硬撑「自己写更好」可信得多。**
 
 **顺带一个诚实的补充**：这个 feed 的卡片**高度本来就不一致**（有的带封面图有的不带），所以 `visibleCount` 本身随滚动位置浮动 —— ⭐ **这是 `near 100` 里那个 `near` 的第二个来源**。动态高度的标准处理是「预估高度 + `ResizeObserver` 测量修正」或者「偏移量表 + 二分查找」。
+
+## 九、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 虚拟列表 | **virtualized list**（*a virtualized React feed*） |
+| 信息流 | **feed** |
+| 无限滚动 | **infinite scroll** |
+| 视口 | **viewport** |
+| 渲染流水线 | **the rendering pipeline** |
+| 重排 | **layout / reflow** |
+| 重绘 | **paint / repaint** |
+| 合成 | **compositing** |
+| 强制同步布局 | **forced synchronous layout · layout thrashing** |
+| 掉帧 | **dropped frames** |
+| 长帧 | **long frame** |
+| 帧预算 | **frame budget**（*16.67 ms per frame*） |
+| 长任务 | **long task** |
+| 主线程 | **main thread** |
+| 撑高度的占位容器 | **spacer** |
+| 缓冲条数 | **overscan** |
+| 白闪 | **blank flash** |
+| 存活节点 | **live DOM nodes** |
+| 节点 ↔ 元素 | **node ↔ element**（⚠️ node 含文本节点，两者能差近一倍） |
+| 分离节点（泄漏） | **detached DOM nodes** |
+| 降速模拟 | **CPU throttling**（*4× slowdown*） |
+| 快速甩动 | **fling / flick scroll** |
+| 方差 | **variance**（*jank comes from frame-time variance*） |
+| 卡顿 | **jank** |
+| 埋点 / 上报 | **instrumentation · report** |
+| 曝光量 | **impressions**（⚠️ 别和 page views 混） |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 「复杂度的量级变了」说 **DOM count stopped growing with the data and became a function of viewport height** —— 比说 "O(n) to O(1)" 更让人信服
+> 2. 「稳定 60 帧」的定义要说 **no frame over 16.67 ms**，不要说 "the average was 60"
+> 3. 「承载 5M PV」用 **serving**，⚠️ 绝不能说 `brought` 或 `grew`

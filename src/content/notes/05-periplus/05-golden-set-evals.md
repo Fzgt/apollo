@@ -53,7 +53,7 @@ status: done
 
 ## 三、golden set 是什么：冻结输入，断言性质
 
-**「golden set」（黄金集）= 一组冻死了输入的标准用例。**
+**「golden set」（黄金集 / 标准用例集）= 一组冻死了输入的标准用例。**
 
 **核心思路：既然输出没法固定，那就把输入全部固定，然后断言输出的「性质」而不是「内容」。**
 
@@ -118,7 +118,7 @@ status: done
 
 **把模型的判断变成一个常量，那么指标只要动，一定是代码动了** —— **因为唯一的变量就是代码。**
 
-> ⭐ **这解决的是 AI 评测里最烦的问题：provider drift（模型漂移）。**
+> ⭐ **这解决的是 AI 评测里最烦的问题：provider drift（服务商漂移）。**
 >
 > 服务商悄悄换了模型版本，你的指标掉了三个点 —— **是你的代码退化了，还是模型变了？** **把模型钉死，这个问题就不存在了。**
 
@@ -134,7 +134,7 @@ status: done
 
 ## 六、⭐ 怎么避免提示词对着黄金集过拟合（最见功力的一问）
 
-**先承认风险**：只有四个用例，**反复调提示词直到四个都过，那就是在拟合这四个用例而不是在改进系统**。
+**先承认风险**（这叫**过拟合**，overfitting）：只有四个用例，**反复调提示词直到四个都过，那就是在拟合这四个用例而不是在改进系统**。
 
 **这套设计里有三道结构性的防线：**
 
@@ -194,7 +194,7 @@ status: done
 
 ## 十、什么时候才该上 LLM judge（预期追问）
 
-**「LLM-as-a-judge」= 用另一个大模型来给输出打分。**
+**「LLM-as-a-judge」（用模型当裁判）= 用另一个大模型来给输出打分。**
 
 > ⚠️ **这套里没有 LLM judge。** 它用的是「把模型判断钉死 + 断言指标范围」。**绝不能说成「我项目里用了」。**
 
@@ -360,3 +360,35 @@ def gap_rate(self) -> float:
 **用例文件里写的那些指标名（`gap_rate`、`verdict.supported`、`stage.verify.attempts`）不是随手起的 —— 它们是一份契约。**
 
 > **改指标名就等于改契约，所有用例文件都要跟着改。** 这也是为什么它们的命名规则很规整。
+
+## 十六、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 黄金集 | **golden set** |
+| 肉眼检查 | **inspection**（简历原句 *not by inspection*） |
+| 冻结输入 | **freeze the inputs** |
+| 语料 | **corpus** |
+| 断言范围 | **assert ranges**（*ranges rather than literal output*） |
+| 字面输出 | **literal output** |
+| 不变量 | **invariant** |
+| 缺口率 | **gap rate** |
+| 引用完整性 | **citation integrity** |
+| 断链 | **dangling reference** |
+| 对照 / 基线 | **control · baseline** |
+| 前后对比 | **before/after diff** |
+| 回归 | **regression** |
+| 服务商漂移 | **provider drift** |
+| 钉死模型判断 | **pin model judgement** |
+| 过拟合 | **overfitting** |
+| 留出集 | **hold-out set** |
+| 种子集 | **seed set**（⚠️ *not a coverage claim*） |
+| 一致率 | **agreement rate**（评价 LLM judge 用） |
+| 提示词版本归因 | **prompt version attribution** |
+| 权宜之计 | **stopgap**（*the discomfort is the signal*） |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 「断言性质而不是字面输出」说 **we assert properties, not exact strings** —— 这是这条 bullet 的核心
+> 2. 「把模型判断钉死，指标一动就一定是代码动了」：**with model judgement pinned, every movement is attributable to code**
+> 3. 「零声明返回 1.0」的理由：**an empty run has not achieved a perfect gap rate** —— 讲这个细节时强调 *the eval was designed against being gamed*

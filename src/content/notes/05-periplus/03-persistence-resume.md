@@ -54,7 +54,7 @@ status: done
 
 ### ② ⭐ 预算续跑时不重置（这条最值钱）
 
-**先说「预算」是什么**：一次 run 有四个上限 —— **最多发多少次检索、最多抓多少个网页、最多花多少 token、最多跑多少秒**。
+**先说「预算」（budget）是什么**：一次 run 有四个上限 —— **最多发多少次检索、最多抓多少个网页、最多花多少 token、最多跑多少秒**。
 
 `budget.py` 文件头原话：
 
@@ -119,7 +119,7 @@ status: done
 
 **存的是抓取到的证据段落 + 它的向量**，目的是**同一段证据不重复抓、不重复算向量**。
 
-**「向量」是什么**：把一段文字转换成一串数字，**意思相近的文字，数字也相近**。这样就能问「有没有和这段话意思差不多的、我已经抓过的内容」。
+**「向量」（embedding）是什么**：把一段文字转换成一串数字，**意思相近的文字，数字也相近**。这样就能问「有没有和这段话意思差不多的、我已经抓过的内容」。
 
 **失效靠的是 [② 那套新鲜度窗口](/docs?section=periplus&item=evidence-judgment)** —— **缓存本身不设过期时间，是消费它的时候按日期判断过没过期。**
 
@@ -149,3 +149,33 @@ CREATE INDEX evidence_cache_embedding_idx
 > ⭐ 「**宁可慢也不能错**」 —— 和 [② 那条「宁可没有日期也不要猜一个」](/docs?section=periplus&item=evidence-judgment) 是同一个价值观。
 
 **还有一个「失败也不炸」的设计**：算向量失败或数据库出错时，缓存**返回「没找到相似的」而不是抛异常** —— 所以 **PostgreSQL 抖一下只会导致重复抓一次页面，不会让整个 run 挂掉。**
+
+## 六、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 一次运行 | **a run** |
+| 持久化 | **persist**（*persisted run state*） |
+| 阶段产物 | **stage artifacts** |
+| 续跑 / 断点恢复 | **resume**（*resumes from the last completed stage*） |
+| 重放 | **replay** |
+| 续跑边界 | **replay boundary** |
+| 关卡 | **gate**（*gate-passed artifact*） |
+| 尝试 | **attempt**（*a rejected attempt stays retrievable*） |
+| 预算 / 上限 | **budget · ceiling** |
+| 计数器带入初值 | **seeded**（⭐ *seeded with what the run already spent, not reset*） |
+| 抢占 | **preempt**（*it cannot preempt a stage in flight*） |
+| 幂等 | idempotent |
+| 占位历史 | placeholder history |
+| 向量 | **embedding** |
+| 向量检索 | **vector search** |
+| 余弦相似度 | **cosine similarity** |
+| 近似最近邻 | **approximate nearest neighbour（ANN）** |
+| 索引退化成全表扫描 | **degrades to a full scan** |
+| 优雅失败 | **fail soft**（*returns no match instead of throwing*） |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 「预算不重置而是带入已花的量」说 **the tracker is seeded with what the run already spent, not reset to zero** —— 这是这条最值钱的一句
+> 2. 「无从恢复 ≠ 重新开始」说 **restarting would silently pretend the failed attempt never happened**
+> 3. 「正确但慢的索引，绝不给错答案」：**a correct, if slow, index — never a wrong answer**

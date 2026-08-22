@@ -40,8 +40,8 @@ status: done
 
 | | 是什么 | 谁说了算 |
 |---|---|---|
-| **客户端状态** | 弹窗开没开、表单填了什么、选中哪个 tab | **你说了算** —— 它只存在于这个页面里 |
-| **服务端状态** | 文章列表、用户资料、订单 | ⭐ **真身在服务器上，你手里只有一份可能已经过期的副本** |
+| **客户端状态（client state）** | 弹窗开没开、表单填了什么、选中哪个 tab | **你说了算** —— 它只存在于这个页面里 |
+| **服务端状态（server state）** | 文章列表、用户资料、订单 | ⭐ **真身在服务器上，你手里只有一份可能已经过期的副本** |
 
 **因为「只是一份副本」，它天然带一堆问题：**
 
@@ -72,7 +72,7 @@ export const usePosts = ({ options = {}, queryConfig } = {}) =>
   useQuery({ ...getPostsQueryOptions(options), ...queryConfig });
 ```
 
-**先解释 `queryKey` 是什么**：TanStack Query 内部有一个缓存表，⭐ **`queryKey` 就是这份数据在表里的钥匙**。两个地方用同一把钥匙，读到的就是同一份缓存；钥匙不一样，就是两份互不相干的数据。
+**先解释 `queryKey`（缓存键）是什么**：TanStack Query 内部有一个缓存表，⭐ **`queryKey` 就是这份数据在表里的钥匙**。两个地方用同一把钥匙，读到的就是同一份缓存；钥匙不一样，就是两份互不相干的数据。
 
 | 层 | 买到什么 |
 |---|---|
@@ -143,7 +143,7 @@ onSuccess: () => queryClient.invalidateQueries({ queryKey: ['comments', postId] 
 | **已经知道新值，不想再发请求** | `setQueryData` —— 直接把新值写进缓存 |
 | 要即时反馈、失败能回滚 | **乐观更新** |
 
-> **「乐观更新」是什么**：用户点赞时**先假装成功**（立刻改界面），再发请求，**失败了再改回去**。
+> **「乐观更新」（optimistic update）是什么**：用户点赞时**先假装成功**（立刻改界面），再发请求，**失败了再改回去**。
 >
 > ⭐ **提它要能说代价**：回滚逻辑要自己写，失败时用户会看到内容「跳回去」—— **所以只在成功率高、即时感重要的场景用**（点赞、勾选待办）。
 
@@ -176,7 +176,7 @@ const prefetchPost = () => queryClient.prefetchQuery(getPostQueryOptions(post.sl
 <article onMouseEnter={prefetchPost} onClick={跳转}>
 ```
 
-**思路**：鼠标停到卡片上，到真正点下去，**通常还有 200–500 毫秒**。这段时间白白浪费了，**用来提前把详情数据拉回来正好** —— ⭐ **用户点进去时数据已经在缓存里，一个请求都不发，页面直接出内容。这就是简历里 `with no request at all` 的字面意思。**
+**思路**（这叫**悬停预取**，hover prefetch）：鼠标停到卡片上，到真正点下去，**通常还有 200–500 毫秒**。这段时间白白浪费了，**用来提前把详情数据拉回来正好** —— ⭐ **用户点进去时数据已经在缓存里，一个请求都不发，页面直接出内容。这就是简历里 `with no request at all` 的字面意思。**
 
 ### 诚实答案：会浪费一部分
 
@@ -232,3 +232,37 @@ const prefetchPost = () => queryClient.prefetchQuery(getPostQueryOptions(post.sl
 | **什么环境** | Lighthouse 默认对移动端做 4 倍 CPU 降速 + 慢速 4G。**同一个页面移动端和桌面端能差三倍** |
 | **样本多少** | 实验室数据单次波动大，**至少 5 次取中位数**；真实用户数据看 **75 分位**（官方口径，不是平均值） |
 | ⭐ **优化前是多少** | **这条最重要** —— **没有基线，这个数字就只是「这个页面本来就快」，跟你的架构一点关系都没有** |
+
+## 八、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 服务端状态 ↔ 客户端状态 | **server state ↔ client state** |
+| 副本 | **copy**（*you only hold a possibly-stale copy*） |
+| 缓存键 | **cache key / queryKey** |
+| 单一来源 | **single source**（*single-source cache keys*） |
+| 三层 | **three tiers**（*layered in three tiers*） |
+| 工厂函数 | **factory**（*queryOptions factory*） |
+| 类型化 hook | **typed hook** |
+| 新鲜 ↔ 过时 | **fresh ↔ stale** |
+| 无人使用 / 待回收 | **inactive** |
+| 失效 | **invalidate · invalidation**（*mutation-driven invalidation*） |
+| 重新请求 | **refetch** |
+| 声明式的 | **declarative**（*invalidate is declarative; refetch is imperative*） |
+| 写入缓存 | **prime / set the cache**（`setQueryData`） |
+| 乐观更新 | **optimistic update** |
+| 回滚 | **roll back** |
+| 预取 | **prefetch**（*hover prefetch*） |
+| 缓存命中 | **cache hit** ↔ **miss** |
+| 垃圾回收时间 | **gcTime**（旧名 `cacheTime`） |
+| 指数退避 | exponential backoff |
+| 软导航 | **soft navigation**（讲 LCP 那节要用） |
+| 实验室数据 ↔ 真实用户数据 | **lab data ↔ field data**（RUM） |
+| 分位数 | **percentile**（*the 75th percentile*） |
+| 基线 | **baseline**（⭐ *no baseline, no claim*） |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 「过时但仍在缓存里」说 **stale but still cached** —— stale ≠ 被删掉，这个区分是这一节的核心
+> 2. 「一个请求都不发」是简历原句 **with no request at all**
+> 3. 被问性能数字先问口径：**lab or field? what percentile? what was the baseline?** —— 这三问背下来

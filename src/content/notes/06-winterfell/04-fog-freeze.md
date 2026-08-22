@@ -59,7 +59,7 @@ status: done
 
 ### ⭐ 第 ② 层是技术核心，展开讲
 
-**先说什么是「着色器」**：GPU 上实际跑的小程序，决定每个像素最终什么颜色。**它需要先编译成 GPU 能执行的指令**，这个编译是有成本的。
+**先说什么是「着色器」（shader）**：GPU 上实际跑的小程序，决定每个像素最终什么颜色。**它需要先编译成 GPU 能执行的指令**，这个编译是有成本的。
 
 **「程序标识」（program key）是什么**：渲染器不会为每个物体单独编译一份着色器 —— 它会把**需要同一份着色器的材质归成一类**，这个分类的依据就是程序标识。
 
@@ -115,3 +115,29 @@ const LevelFog = ({ color }) => {
 
 ---
 
+## 三、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 卡顿 / 冻结 | **hitch · freeze · jank** |
+| 换配色 | **palette change** |
+| 距离雾 | **distance fog** |
+| 重建对象 | **rebuild / recreate the object** |
+| 对象身份 | **object identity**（⭐ *the identity stays stable, so the key stays stable*） |
+| 就地修改 | **mutate**（*one mutated fog object removed it*） |
+| 着色器 | **shader** |
+| 着色器编译 | **shader compilation** |
+| 渲染管线（GPU 的） | **render pipeline** |
+| 程序标识 | **program key** |
+| uniform（传给着色器的参数） | **uniform**（⭐ *changing a uniform is cheap; changing the program key means a recompile*） |
+| 重新编译 | **recompile** |
+| 探针 | **probe** |
+| 包住某个接口 | **wrap**（*wrap pipeline creation and count per frame*） |
+| 慢帧 | **slow frame** |
+| 归因 | **attribute**（*the slow frames are the frames that compiled*） |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 题眼一句：**"Changing a uniform is cheap. Changing the program key means every material recompiles."**
+> 2. 最好的那条线索说法：**the last drawn frame was stuck on the old palette while the HUD had already moved on — so the logic was fine and the render side was blocked**
+> 3. 从猜测到证据：**I didn't assume it was shader compilation — I counted pipelines built per frame and the slow frames were the compile frames**

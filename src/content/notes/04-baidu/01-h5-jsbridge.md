@@ -44,7 +44,7 @@ status: done
 
 ## 二、JS 调 Native / Native 调 JS 怎么实现
 
-**根本问题**：H5 跑在 WebView 沙箱里，和原生是**两个世界**。要分享、要读蓝牙、要调相机，**H5 只能「求」原生做**。
+**根本问题**：H5 跑在 WebView **沙箱（sandbox）**里，和原生是**两个世界**。要分享、要读蓝牙、要调相机，**H5 只能「求」原生做**。
 
 **JS → Native，四种方案（按年代）：**
 
@@ -90,7 +90,7 @@ class JSBridge {
 - `_onNativeCallback` 挂在 `window` 上，供原生 `evaluateJavascript` 调用
 - ⭐ `callbacks.delete(id)` 不能省 —— **不删就是一张只增不减的表**
 
-**序列化边界**：⭐ **只能传 JSON 能表达的东西** —— 字符串、数字、布尔、数组、普通对象。**函数、Date、undefined、循环引用全都过不去。** Android 那边还经常是先 `JSON.stringify` 成字符串再传。
+**序列化边界（serialisation boundary）**：⭐ **只能传 JSON 能表达的东西** —— 字符串、数字、布尔、数组、普通对象。**函数、Date、undefined、循环引用全都过不去。** Android 那边还经常是先 `JSON.stringify` 成字符串再传。
 
 > **封装这一层的价值**：前端不用管 iOS/Android 的差异，统一 `bridge.call('share', {...})` 拿到一个 Promise。
 
@@ -100,10 +100,10 @@ class JSBridge {
 
 | 做法 | 说明 |
 |---|---|
-| **能力探测** | 调之前先问原生「你支不支持这个方法」，而不是直接调 |
+| **能力探测（feature detection）** | 调之前先问原生「你支不支持这个方法」，而不是直接调 |
 | **版本号判断** | 原生把 App 版本注入到 UA 或 `window` 上，前端按版本决定走哪条路 |
 | ⭐ **超时兜底** | **bridge 调用必须设超时** —— 见下 |
-| **降级路径** | 分享降级成「复制链接」，设备详情降级成纯展示 |
+| **降级路径（graceful degradation）** | 分享降级成「复制链接」，设备详情降级成纯展示 |
 
 ⭐ **超时兜底那条最重要**：跨进程调用**没有 TCP 那样的连接断开信号**，**对面不响应你是察觉不到的 —— 没有超时就是永久 pending**，那个 Promise 永远不会 settle，用户界面就一直转圈。
 
@@ -119,3 +119,31 @@ class JSBridge {
 > **现代更好的做法是 `navigator.sendBeacon`**，浏览器专门为「卸载时可靠上报」提供的 API，还不阻塞卸载。**能主动提这个是加分项。**
 
 **PV 的口径**（会被追一层）：⭐ **SPA 里路由切换不重新加载页面，统计 SDK 默认不会再报一次 PV，必须手动调 `_trackPageview`。** 同一个产品埋点方式不同，PV 能差好几倍 —— 详见 [② 虚拟列表](/docs?section=baidu&item=virtual-list) 里 5M PV 那一节。
+
+## 六、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 混合应用 | **hybrid app** |
+| 原生 | **native**（*native sharing via jsBridge*） |
+| 沙箱 | **sandbox** |
+| 发版 / 过审 | ship a release · **app store review** |
+| 桥接层 | **bridge layer** |
+| 注入原生对象 | **inject a native object** |
+| 回调 | **callback** |
+| 关联 id / 请求编号 | **correlation id** |
+| 序列化边界 | **serialisation boundary** |
+| 能力探测 | **feature detection** |
+| 超时兜底 | **timeout fallback** |
+| 永久挂起 | **hang / pend forever**（*the promise never settles*） |
+| 降级 | **graceful degradation** |
+| 灰度发布 | **staged / canary rollout** |
+| 埋点 | **analytics tracking · instrumentation** |
+| 上报 | **report / send a beacon**（`navigator.sendBeacon`） |
+| 页面卸载 | **page unload** |
+| 同源策略 | **same-origin policy** |
+
+> ⭐ **两个最容易说错的**：
+>
+> 1. 「函数不能跨语言传，只能传一个能对上号的 id」说 **you can't pass a function across the boundary, only a correlation id**
+> 2. 「没有超时就是永久 pending」说 **without a timeout the promise never settles**

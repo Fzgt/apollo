@@ -26,7 +26,7 @@ status: done
 
 ## 一、要解决什么
 
-**障碍物是程序生成的**：每次开局，代码按噪声和随机种子摆一批方块。
+**障碍物是程序生成的（procedurally generated）**：每次开局，代码按噪声和随机种子摆一批方块。
 
 **于是有个要命的问题：你没法保证生成出来的关卡是能过的。**
 
@@ -64,7 +64,7 @@ status: done
 
 **扫描沿赛道每前进 10 个单位做一步，每一步维护一个东西：**
 
-> **`reach` = 玩家现在可能待着、并且一路没撞过东西的所有横向位置。**
+> **`reach`（可达集）= 玩家现在可能待着、并且一路没撞过东西的所有横向位置。**
 
 **它是一组区间**，因为障碍物会把它切开。
 
@@ -198,7 +198,7 @@ mod.reseedRoute(section * 7919 + t);
 
 > *"sampling one seed many times would test one route many times and **say nothing about the one the player is actually handed**."*
 
-**7919 是个质数**，用来让不同区段和不同次数的种子不撞车。
+**7919 是个质数（prime）**，用来让不同区段和不同次数的种子不撞车。
 
 > ⭐ **顺带回答「失败的随机布局怎么复现」**：**种子是确定的**（`section * 7919 + t`），所以**给定同样的参数，扫描结果完全可复现** —— 第 3 个区段第 17 次试验，永远是同一个布局。
 
@@ -345,3 +345,33 @@ const clearFor = (shape, z) => laneHalfAt(z) + OBSTACLE_BASE_RADIUS * shape.widt
 | **与飞行器碰撞半径的关系** | ⚠️ **扫描里飞行器是个点**，只减了障碍物半径 —— **所以 15 偏乐观**，主动说明 |
 | **怎么测的** | 区间集合前向扫描：每步取最宽可达区间，整段取最小值 |
 | **能否复现** | ✅ 起开发服务器 + `node bench/fairness.mjs`，报告表格里那一列 |
+
+## 十四、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 程序化生成 | **procedural generation** |
+| 种子 / 重新播种 | **seed · reseed** |
+| 可通过性 | **solvability**（*winnable*） |
+| 试玩 | **playtesting** |
+| 前向扫描 | **forward sweep** |
+| 区间集合 | **interval set** |
+| 可达集 | **reachable set / reach** |
+| 生长 ↔ 挖洞 ↔ 合并 | **grow · subtract · merge** |
+| 空集 | **empty set**（*if reach goes empty, the layout is unwinnable*） |
+| 横向可达范围 | **lateral reach** |
+| 碰撞半径 | **collision radius** |
+| 走廊 / 通道 | **lane · corridor**（半宽 = **half-width**） |
+| 缺口 | **gap** |
+| 采样 ↔ 穷举证明 | **sampling ↔ formal proof**（⚠️ 我们做的是前者） |
+| 对照组 | **control**（*against a random-scatter control*） |
+| 随机基线 | **random baseline** |
+| 回归检查 | **regression check** |
+| 闵可夫斯基和 | **Minkowski sum** |
+| 常量副本失效 | ⭐ *a copy of a constant is a constant that goes stale* |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 心智转换那句：**"Whether a run is winnable is a property of the layout, not of the renderer — so measure the layout, don't playtest it."**
+> 2. 「对照组」的意义：**the control is what this density can do; the gap between the two is what the layout adds**
+> 3. 「这是采样不是证明」要主动说：**this is sampled validation, not a formal guarantee**

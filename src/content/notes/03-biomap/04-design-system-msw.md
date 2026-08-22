@@ -43,9 +43,9 @@ status: done
 
 ### 先说 MSW 是什么
 
-**MSW（Mock Service Worker）是一个假接口工具**，但它和常见做法有个根本区别：⭐ **它不替换你的代码，它拦在网络这一层。**
+**MSW（Mock Service Worker）是一个假接口（mock）工具**，但它和常见做法有个根本区别：⭐ **它不替换你的代码，它拦在网络这一层。**
 
-- 在浏览器里，它注册一个 **Service Worker**（浏览器提供的一种在网页和网络之间的代理），**请求发出去之后被它截住，返回你写好的假数据**
+- 在浏览器里，它注册一个 **Service Worker**（浏览器提供的一种在网页和网络之间的代理，proxy），**请求发出去之后被它截住，返回你写好的假数据**
 - 在测试环境（Node）里，它直接接管底层的 HTTP 模块
 
 ⭐ **关键是：你的代码完全不知道它存在** —— 该发的请求照发，只是最后一跳没出去。
@@ -100,7 +100,7 @@ server.listen({ onUnhandledRequest: 'error' })
 
 | 工具 | 一句话 |
 |---|---|
-| **Radix UI** | ⭐ **只给行为，不给样式**（这类库叫 headless）—— 键盘导航、焦点管理、无障碍属性、点外面关闭，**这些是最容易做错、也最不该重复造的部分**。样式全是你自己的 |
+| **Radix UI** | ⭐ **只给行为，不给样式**（这类库叫 **headless**，无头组件库）—— 键盘导航、焦点管理、无障碍属性、点外面关闭，**这些是最容易做错、也最不该重复造的部分**。样式全是你自己的 |
 | **CVA** | 把「尺寸 × 变体 × 状态」的组合写成一份配置，**类型自动导出** —— 不用手拼样式类名字符串 |
 | **design tokens** | 颜色、间距、圆角**定义一次**，主题切换只换这一份定义 |
 | **Storybook** | 组件的独立开发环境和文档，**配合 MSW 就能脱离后端做交互演示** |
@@ -120,3 +120,35 @@ server.listen({ onUnhandledRequest: 'error' })
 ⭐ **后者是无效的 HTML** —— 交互元素不能嵌套交互元素，屏幕阅读器和键盘操作都会出问题。**能说出「为什么不能套」比说出「有个 asChild 属性」有价值得多。**
 
 > ⭐ **整套设计系统的目的和 [② 架构边界](/docs?section=biomap&item=architecture-boundaries) 一样 —— 让「用错」变难。** 组件把无障碍做进去了，用的人不需要记得加 `aria` 属性；变体用类型约束了，写错的变体名编译就报错。
+
+## 三、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 假接口 / 打桩 | **mock**（动词 *to mock*） |
+| 拦截 | **intercept**（*MSW intercepts at the network layer*） |
+| 网络层 | **the network layer** |
+| 请求路径 | **request path**（*you exercise the real request path*） |
+| 拦截器 | **interceptor** |
+| 序列化 | **serialisation** |
+| 有状态的假数据 | **stateful mocks** |
+| 内存数据库 | **in-memory database** |
+| 未匹配的请求 | **unhandled request** |
+| 漂移 | **drift**（⭐ *mocks drift from the real API*） |
+| 契约测试 | **contract testing** |
+| 自动生成 | **generated**（*generated from the OpenAPI schema*） |
+| 无头组件库 | **headless UI library** |
+| 行为 ↔ 样式 | **behaviour ↔ styling** |
+| 焦点管理 | **focus management** |
+| 键盘导航 | **keyboard navigation** |
+| 无障碍 | **accessibility（a11y）** |
+| 屏幕阅读器 | **screen reader** |
+| 变体 | **variant**（CVA = class variance authority） |
+| 设计令牌 | **design tokens** |
+| 覆盖样式 | **override styles** |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 「拦在网络层」说 **intercepts at the network layer** —— 整条 bullet 的题眼
+> 2. 「假接口会和真接口漂移」用 **drift**：*mocks drift from the real API*
+> 3. 「只给行为不给样式」说 **behaviour without styling**，这类库叫 **headless**

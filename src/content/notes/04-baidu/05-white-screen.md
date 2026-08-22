@@ -36,7 +36,7 @@ status: done
 
 ### ① semver（语义化版本）和那两个符号
 
-版本号 `4.17.21` 读作 `主版本.次版本.修订号`：⭐ **主版本变 = 有破坏性改动，次版本变 = 加了功能但兼容，修订号变 = 只修 bug。**
+版本号 `4.17.21` 读作 `主版本.次版本.修订号`（**major.minor.patch**）：⭐ **主版本变 = 有破坏性改动，次版本变 = 加了功能但兼容，修订号变 = 只修 bug。**
 
 `package.json` 里写的**不是一个版本，是一个允许范围**：
 
@@ -52,7 +52,7 @@ status: done
 
 `package.json` 写的是**范围**，⭐ **锁文件写的是「上次实际装的那一个确切版本」**，连它的依赖的依赖也一起钉死。
 
-⭐ **它存在的全部意义就是：让每个人、每台 CI 装出完全一样的 `node_modules`。**
+⭐ **它存在的全部意义就是：让每个人、每台 CI 装出完全一样的 `node_modules`** —— 这个性质叫**可复现构建（reproducible build）**。
 
 ### ③ ⭐ 为什么 Node 版本不一致会把锁文件搞坏（这是整条链的关键一环）
 
@@ -132,3 +132,32 @@ status: done
 **答法**：「好看视频是亿级 DAU 量级的产品，搜索页白屏影响面很大，所以定级是 P2。**这个数字我是从产品侧公开口径知道的，不是我测的。**」
 
 ⚠️ **注意 DAU 是产品级指标，和你负责的模块不是一回事** —— 别让它听起来像「我的页面有 3000 万 DAU」。
+
+## 六、本篇术语英文对照
+
+| 中文 | 英文 |
+|---|---|
+| 白屏 | **white screen**（事故定级 **P2 incident**） |
+| 语义化版本 | **semantic versioning（semver）** |
+| 主/次/修订版本 | **major · minor · patch** |
+| 版本范围 | **version range**（`^` = caret，`~` = tilde） |
+| 放行 | **allow / accept**（*the caret allows any minor bump*） |
+| 破坏性的小版本升级 | **a breaking minor bump**（简历原句） |
+| 锁文件 | **lockfile**（`package-lock.json`） |
+| 被重新生成 | **regenerated**（简历原句 *regenerated package-lock.json*） |
+| 可复现构建 | **reproducible build** |
+| 版本锁定 | **version pinning / version locks** |
+| 发布前检查 | **release checks** |
+| 预发布环境 | **staging** |
+| 冒烟测试 | **smoke test** |
+| 根因 | **root cause**（定位 = *diagnose / trace it to*） |
+| 复现 | **reproduce** |
+| 回滚 | **roll back** |
+| 事后复盘 | **postmortem** |
+| 依赖升级机器人 | Renovate / Dependabot（**automated dependency PRs**） |
+
+> ⭐ **三个最容易说错的**：
+>
+> 1. 「第一个定位到根因」说 **I was the first to trace it to the lockfile being regenerated** —— 用 **trace it to**，并强调是 root cause 而不是第一个发现故障
+> 2. 「锁文件被工具在他不知情的情况下重写」说 **the tool rewrote it without him realising**
+> 3. 「修完这一次」和「消除这一类」要分开说：**the fix made this one go away; the version locks and release checks made the class of bug go away**
