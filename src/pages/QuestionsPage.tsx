@@ -185,21 +185,28 @@ export default function QuestionsPage() {
       <div className="pt-20 md:pt-24">
         <div className="container mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-4">
           <div className="flex gap-8 py-4 sm:py-6">
-            {/* 侧边栏：钉在视口里，切 bullet 不用滚一屏 */}
-            <aside className="sticky top-[7.5rem] hidden h-[calc(100vh-8.5rem)] w-64 shrink-0 flex-col overflow-y-auto overscroll-contain pr-1 lg:flex lg:w-72">
-              <nav className="space-y-5 pb-4">
-                {grouped.map(({ source, slots: own }) => (
-                  <div key={source.id}>
-                    <p className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wide text-foreground">
-                      {source.title}
-                    </p>
-                    <div className="space-y-0.5">
-                      {own.map((slot) => slotButton(slot, 'aside'))}
+            {/*
+              侧边栏钉死在视口上。sticky 不够：正文比侧栏矮、或者滚到页脚时，
+              sticky 的容器一到底侧栏就被顶着走。这里外层只占宽度，
+              真正的栏是 fixed —— 不写 left，横向位置仍取占位块的静态位置，
+              所以容器居中不受影响。
+            */}
+            <div className="hidden w-64 shrink-0 lg:block lg:w-72">
+              <aside className="fixed top-[7.5rem] h-[calc(100vh-9rem)] w-64 overflow-y-auto overscroll-contain pr-1 lg:w-72">
+                <nav className="space-y-5 pb-4">
+                  {grouped.map(({ source, slots: own }) => (
+                    <div key={source.id}>
+                      <p className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wide text-foreground">
+                        {source.title}
+                      </p>
+                      <div className="space-y-0.5">
+                        {own.map((slot) => slotButton(slot, 'aside'))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </nav>
-            </aside>
+                  ))}
+                </nav>
+              </aside>
+            </div>
 
             <main className="min-w-0 flex-1">
               {/* 小屏没有侧栏，bullet 横着排一行 */}
