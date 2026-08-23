@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronsDownUp, Search, SearchX, X } from 'lucide-react';
 import { QuestionRow } from '@/components/questions/QuestionRow';
@@ -14,16 +15,29 @@ interface Scored {
   hitEn?: number[];
 }
 
+/** 侧边栏和正文共用的一个格子：某家公司下的某条 bullet */
+interface Slot {
+  key: string;
+  sourceId: string;
+  sourceTitle: string;
+  sourceSubtitle?: string;
+  bulletId: string;
+  bulletTitle: string;
+  resume?: string;
+  rows: Scored[];
+  total: number;
+}
+
 /**
- * 一道题的命中：中文题干、英文题干、答案正文各算一次，取最高分。
- * 答案命中要打折——搜的是题目，答案只是兜底。
+ * 一道题的命中：中文题干、英文题干、搜索别名、答案正文各算一次，取最高分。
+ * 别名打小折，正文打大折——搜的是题目，正文只是兜底。
  */
 function scoreQuestion(question: Question, query: string): Scored | null {
   const zh = fuzzyMatch(query, question.q.zh);
   const en = question.q.en ? fuzzyMatch(query, question.q.en) : null;
+  const keys = question.keywords?.length ? fuzzyMatch(query, question.keywords.join(' ')) : null;
   // 正文只认精确子串：让它参与模糊匹配会把整个题库都捞回来
   const body = question.a.zh.toLowerCase().includes(query.trim().toLowerCase()) ? 140 : -Infinity;
-  const keys = question.keywords?.length ? fuzzyMatch(query, question.keywords.join(' ')) : null;
 
   const best = Math.max(
     zh?.score ?? -Infinity,
@@ -34,57 +48,78 @@ function scoreQuestion(question: Question, query: string): Scored | null {
 
   if (!Number.isFinite(best)) return null;
 
-  return {
-    question,
-    score: best,
-    hitZh: zh?.indices,
-    hitEn: en?.indices,
-  };
+  return { question, score: best, hitZh: zh?.indices, hitEn: en?.indices };
 }
 
 export default function QuestionsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState('');
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set());
 
   const trimmed = query.trim();
+  const isFiltered = trimmed.length > 0;
 
-  /** 分组结构原样保留，只把不匹配的题摘掉；空掉的 bullet 不显示 */
-  const groups = useMemo(() => {
-    return questionSources.map((source) => ({
-      source,
-      bullets: source.bullets
-        .map((bullet) => {
-          if (!trimmed) {
-            return {
-              bullet,
-              rows: bullet.questions.map((question) => ({ question, score: 0 }) as Scored),
-            };
-          }
-          // bullet 标题命中时，整组都算命中——「bullet 4」这种搜法要能用
-          const groupHit = fuzzyMatch(trimmed, `${source.title} ${bullet.title}`);
-          const rows = bullet.questions
-            .map((question) => scoreQuestion(question, trimmed) ?? (groupHit ? ({ question, score: groupHit.score - 40 } as Scored) : null))
-            .filter((row): row is Scored => row !== null)
-            .sort((a, b) => b.score - a.score);
-          return { bullet, rows };
+  /** 所有格子。搜索时每个格子只留命中的题，用来在侧边栏标数 */
+  const slots = useMemo<Slot[]>(
+    () =>
+      questionSources.flatMap((source) =>
+        source.bullets.map((bullet) => {
+          const rows = !isFiltered
+            ? bullet.questions.map((question) => ({ question, score: 0 }) as Scored)
+            : (() => {
+                // bullet 标题命中时整组都算命中——「bullet 4」这种搜法要能用
+                const groupHit = fuzzyMatch(trimmed, `${source.title} ${bullet.title}`);
+                return bullet.questions
+                  .map(
+                    (question) =>
+                      scoreQuestion(question, trimmed) ??
+                      (groupHit ? ({ question, score: groupHit.score - 40 } as Scored) : null)
+                  )
+                  .filter((row): row is Scored => row !== null)
+                  .sort((a, b) => b.score - a.score);
+              })();
+
+          return {
+            key: `${source.id}/${bullet.id}`,
+            sourceId: source.id,
+            sourceTitle: source.title,
+            sourceSubtitle: source.subtitle,
+            bulletId: bullet.id,
+            bulletTitle: bullet.title,
+            resume: bullet.resume,
+            rows,
+            total: bullet.questions.length,
+          };
         })
-        .filter((entry) => entry.rows.length > 0 || !trimmed),
-    })).filter((group) => group.bullets.length > 0);
-  }, [trimmed]);
-
-  const visibleCount = groups.reduce(
-    (sum, group) => sum + group.bullets.reduce((n, entry) => n + entry.rows.length, 0),
-    0
+      ),
+    [isFiltered, trimmed]
   );
 
-  const isFiltered = trimmed.length > 0;
+  const paramKey = searchParams.get('b');
+  const activeKey = slots.some((slot) => slot.key === paramKey) ? paramKey! : slots[0]?.key;
+
+  const selectSlot = (key: string) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('b', key);
+    setSearchParams(next, { replace: true });
+  };
+
+  /**
+   * 不搜索时只看选中的那条 bullet；一旦搜索就跨 bullet 出结果——
+   * 否则搜到的东西在别的 bullet 下，屏幕上只会是一片空。
+   */
+  const shown = isFiltered
+    ? slots.filter((slot) => slot.rows.length > 0)
+    : slots.filter((slot) => slot.key === activeKey);
+
+  const hitCount = slots.reduce((sum, slot) => sum + slot.rows.length, 0);
 
   // 搜到唯一一条时直接展开，省一次点击
   useEffect(() => {
-    if (!isFiltered || visibleCount !== 1) return;
-    const only = groups.flatMap((g) => g.bullets.flatMap((b) => b.rows))[0];
+    if (!isFiltered || hitCount !== 1) return;
+    const only = slots.flatMap((slot) => slot.rows)[0];
     if (only) setOpenIds(new Set([only.question.id]));
-  }, [isFiltered, visibleCount, groups]);
+  }, [isFiltered, hitCount, slots]);
 
   const toggle = (id: string) =>
     setOpenIds((prev) => {
@@ -94,121 +129,188 @@ export default function QuestionsPage() {
       return next;
     });
 
+  /** 侧边栏一格。桌面竖排、手机横排滑动，样式差在容器上 */
+  const slotButton = (slot: Slot, variant: 'aside' | 'chip') => {
+    const active = !isFiltered && slot.key === activeKey;
+    const badge = isFiltered ? slot.rows.length : slot.total;
+
+    return (
+      <button
+        key={slot.key}
+        type="button"
+        onClick={() => {
+          setQuery('');
+          selectSlot(slot.key);
+        }}
+        title={slot.bulletTitle}
+        className={cn(
+          'flex items-center gap-2 text-left transition-colors',
+          variant === 'aside'
+            ? 'w-full rounded-lg px-3 py-2.5 text-sm'
+            : 'shrink-0 rounded-full border px-3 py-1.5 text-xs',
+          active
+            ? variant === 'aside'
+              ? 'bg-primary/10 font-medium text-primary'
+              : 'border-primary/50 bg-primary/15 font-medium text-primary'
+            : variant === 'aside'
+              ? 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              : 'border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground',
+          isFiltered && badge === 0 && 'opacity-40'
+        )}
+      >
+        <span className={cn('min-w-0 flex-1', variant === 'chip' && 'whitespace-nowrap')}>
+          {slot.bulletTitle}
+        </span>
+        <span
+          className={cn(
+            'shrink-0 rounded px-1.5 text-[11px] tabular-nums',
+            isFiltered && badge > 0
+              ? 'bg-primary/20 text-primary'
+              : 'bg-muted text-muted-foreground'
+          )}
+        >
+          {badge}
+        </span>
+      </button>
+    );
+  };
+
+  const grouped = questionSources.map((source) => ({
+    source,
+    slots: slots.filter((slot) => slot.sourceId === source.id),
+  }));
+
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex-1 pt-20 md:pt-24">
-        <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-4">
-          {/* 搜索条放页面正中最上方：进来第一件事就是找题 */}
-          <div className="pt-4 md:pt-6">
-            <div className="relative mx-auto max-w-2xl">
-              <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="搜题目 —— 中英文都行，记得住几个字就够"
-                aria-label="搜索题目"
-                className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-24 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
-              />
-              <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
-                {isFiltered && (
+    <div className="min-h-screen bg-background">
+      <div className="pt-20 md:pt-24">
+        <div className="container mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-4">
+          <div className="flex gap-8 py-4 sm:py-6">
+            {/* 侧边栏：钉在视口里，切 bullet 不用滚一屏 */}
+            <aside className="sticky top-[7.5rem] hidden h-[calc(100vh-8.5rem)] w-64 shrink-0 flex-col overflow-y-auto overscroll-contain pr-1 lg:flex lg:w-72">
+              <nav className="space-y-5 pb-4">
+                {grouped.map(({ source, slots: own }) => (
+                  <div key={source.id}>
+                    <p className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wide text-foreground">
+                      {source.title}
+                    </p>
+                    <div className="space-y-0.5">
+                      {own.map((slot) => slotButton(slot, 'aside'))}
+                    </div>
+                  </div>
+                ))}
+              </nav>
+            </aside>
+
+            <main className="min-w-0 flex-1">
+              {/* 小屏没有侧栏，bullet 横着排一行 */}
+              <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:hidden">
+                {slots.map((slot) => slotButton(slot, 'chip'))}
+              </div>
+
+              <div className="relative mx-auto max-w-2xl">
+                <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="搜题目 —— 跨 bullet，中英文都行"
+                  aria-label="搜索题目"
+                  className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-24 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
+                />
+                <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
+                  {isFiltered && (
+                    <button
+                      type="button"
+                      onClick={() => setQuery('')}
+                      aria-label="清空搜索"
+                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  )}
+                  <span className="flex items-baseline gap-1 text-xs tabular-nums">
+                    <motion.span
+                      key={isFiltered ? hitCount : questionCount}
+                      initial={{ opacity: 0, y: -3 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={cn(
+                        'font-semibold',
+                        isFiltered ? 'text-foreground' : 'text-muted-foreground'
+                      )}
+                    >
+                      {isFiltered ? hitCount : questionCount}
+                    </motion.span>
+                    <span className="text-muted-foreground">
+                      {isFiltered ? `/ ${questionCount}` : '题'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="mx-auto mt-2 flex max-w-2xl items-center justify-between gap-3 text-xs text-muted-foreground">
+                <span className="min-w-0 truncate">
+                  {isFiltered
+                    ? '搜索跨全部 bullet；点左边任意一条即可退出搜索'
+                    : '被问过的题和该怎么答。代码出处在「资料」，这里只管出口的那句话。'}
+                </span>
+                {openIds.size > 0 && (
                   <button
                     type="button"
-                    onClick={() => setQuery('')}
-                    aria-label="清空搜索"
-                    className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    onClick={() => setOpenIds(new Set())}
+                    className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted hover:text-foreground"
                   >
-                    <X className="size-4" />
+                    <ChevronsDownUp className="size-3.5" />
+                    全部收起
                   </button>
                 )}
-                <span className="flex items-baseline gap-1 text-xs tabular-nums">
-                  <motion.span
-                    key={visibleCount}
-                    initial={{ opacity: 0, y: -3 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={cn(
-                      'font-semibold',
-                      isFiltered ? 'text-foreground' : 'text-muted-foreground'
-                    )}
-                  >
-                    {visibleCount}
-                  </motion.span>
-                  <span className="text-muted-foreground">
-                    {isFiltered ? `/ ${questionCount}` : '题'}
-                  </span>
-                </span>
               </div>
-            </div>
 
-            <div className="mx-auto mt-2 flex max-w-2xl items-center justify-between text-xs text-muted-foreground">
-              <span>被问过的题和该怎么答。代码出处在「资料」，这里只管出口的那句话。</span>
-              {openIds.size > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setOpenIds(new Set())}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  <ChevronsDownUp className="size-3.5" />
-                  全部收起
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-10 py-8">
-            {groups.map(({ source, bullets }) => (
-              <section key={source.id}>
-                <div className="mb-4 flex items-baseline gap-3">
-                  <h2 className="text-xl font-bold text-foreground md:text-2xl">{source.title}</h2>
-                  {source.subtitle && (
-                    <p className="min-w-0 truncate text-xs text-muted-foreground">
-                      {source.subtitle}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-4">
-                  {bullets.map(({ bullet, rows }) => (
-                    <div
-                      key={bullet.id}
-                      className="overflow-hidden rounded-xl border border-border bg-card"
-                    >
-                      <div className="border-b border-border bg-muted/30 px-4 py-3">
-                        <h3 className="text-sm font-semibold text-foreground">{bullet.title}</h3>
-                        {bullet.resume && (
-                          <p className="mt-1.5 border-l-2 border-border pl-2.5 text-xs italic leading-relaxed text-muted-foreground">
-                            {bullet.resume}
-                          </p>
-                        )}
+              <div className="space-y-4 py-6">
+                {shown.map((slot) => (
+                  <div
+                    key={slot.key}
+                    className="overflow-hidden rounded-xl border border-border bg-card"
+                  >
+                    <div className="border-b border-border bg-muted/30 px-4 py-3">
+                      <div className="flex items-baseline gap-2">
+                        <h2 className="text-sm font-semibold text-foreground">
+                          {slot.bulletTitle}
+                        </h2>
+                        <span className="text-xs text-muted-foreground">{slot.sourceTitle}</span>
                       </div>
-
-                      {rows.length === 0 ? (
-                        <p className="px-4 py-6 text-center text-xs text-muted-foreground">
-                          这条还没出过题
+                      {slot.resume && (
+                        <p className="mt-1.5 border-l-2 border-border pl-2.5 text-xs italic leading-relaxed text-muted-foreground">
+                          {slot.resume}
                         </p>
-                      ) : (
-                        rows.map((row) => (
-                          <QuestionRow
-                            key={row.question.id}
-                            question={row.question}
-                            isOpen={openIds.has(row.question.id)}
-                            onToggle={() => toggle(row.question.id)}
-                            hitZh={row.hitZh}
-                            hitEn={row.hitEn}
-                          />
-                        ))
                       )}
                     </div>
-                  ))}
-                </div>
-              </section>
-            ))}
 
-            {isFiltered && visibleCount === 0 && (
-              <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
-                <SearchX className="size-6" />
-                <p className="text-sm">没有匹配的题目</p>
+                    {slot.rows.length === 0 ? (
+                      <p className="px-4 py-8 text-center text-xs text-muted-foreground">
+                        这条还没出过题
+                      </p>
+                    ) : (
+                      slot.rows.map((row) => (
+                        <QuestionRow
+                          key={row.question.id}
+                          question={row.question}
+                          isOpen={openIds.has(row.question.id)}
+                          onToggle={() => toggle(row.question.id)}
+                          hitZh={row.hitZh}
+                          hitEn={row.hitEn}
+                        />
+                      ))
+                    )}
+                  </div>
+                ))}
+
+                {isFiltered && hitCount === 0 && (
+                  <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
+                    <SearchX className="size-6" />
+                    <p className="text-sm">没有匹配的题目</p>
+                  </div>
+                )}
               </div>
-            )}
+            </main>
           </div>
         </div>
       </div>
