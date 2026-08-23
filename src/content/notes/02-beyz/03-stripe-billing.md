@@ -294,7 +294,80 @@ if (containsLifetimePlan) {
 
 > **「试用期取消」和「付费后取消」走不同的挽留邮件 —— 说明产品侧真的分了场景，不是一套模板打天下。**
 
-## 九、这条 bullet 的三个可证明的落点
+## 九、技术栈：tRPC / Zod / Drizzle 各管什么
+
+**简历这条列了 `Next.js, tRPC and Drizzle`，被问「tRPC 是什么、为什么用它」要答得上。**
+
+### tRPC：它解决的是「前后端类型不同步」，不是什么重量级 RPC
+
+⚠️ **名字带 RPC 容易让人联想到 gRPC 那种自定义二进制协议、跨语言的重量级方案。不是。**
+
+⭐ **tRPC 底层就是普通的 HTTP + JSON —— 抓包看到的东西，和你自己手写 `fetch` 没有本质区别。**
+
+**它真正的「魔法」全部发生在编译时：**
+
+```ts
+// 后端：把 router 的类型导出去
+export type AppRouter = typeof appRouter;
+
+// 前端：只借类型，不借运行时代码
+import type { AppRouter } from '@/server/router';
+```
+
+⭐ **注意 `import type` —— 打包时这一行会被完全擦除**，产物里不会多出一个字节。TypeScript 编译器沿着这条类型链路，就能推断出「调用某个接口会拿到什么形状的数据」，**IDE 直接飘红、编译报错，不需要手写一份 interface 去描述接口返回值。**
+
+**前提条件只有一个**：前后端代码要在**同一个仓库**里，能互相 import 类型。⭐ **这跟用不用 Next.js 没有必然关系** —— 只要项目组织方式满足这个前提，分离部署的前后端一样能用。
+
+### 四个会被追问的概念
+
+| 概念 | 一句话 |
+|---|---|
+| **procedure** | 一个接口方法。分 `query`（读）和 `mutation`（写）—— **这个区分是给客户端缓存看的**，不是协议层的强制 |
+| **router** | 一组 procedure 的集合，可以嵌套。**导出的就是它的类型** |
+| **input 校验** | 每个 procedure 声明一个 Zod schema，**校验通过后的类型自动变成处理函数的参数类型** |
+| **context** | 每个请求都能拿到的东西 —— 登录用户、数据库连接。**`getAuthUser()` 那一层就活在这里** |
+| **middleware** | 挂在 procedure 前面的拦截器。⭐ **「必须登录」「必须是付费用户」这类判断写成一个 middleware，就不用每个接口重复一遍** |
+
+### Zod 和 tRPC 是两道不同的防线（这一点最能体现理解）
+
+**TypeScript 的类型检查只在编译阶段有效** —— 程序真跑起来，类型信息**根本不存在**。而外部数据（表单输入、第三方请求）的正确性，**必须在运行时真正验证一遍**。
+
+⭐ **Zod 的巧妙之处是只写一份 schema，同时产出运行时校验函数（`.parse`）和 TypeScript 类型（`z.infer`）** —— 不用像过去那样维护「一份 interface + 一份单独的校验逻辑」两份容易脱节的定义。
+
+⭐ **就算前后端都走了 tRPC 这套类型共享机制，服务端在真正处理请求之前依然要用 Zod 再校验一遍** —— 因为服务端**永远不能信任客户端传来的东西**：可能有人绕过前端直接调接口、可能前端代码版本落后、可能网络传输出意外。
+
+> ⭐ **一句话：tRPC 管的是「开发阶段的协作效率」，Zod 管的是「运行时的数据安全兜底」。两者不是重复，是分层。**
+>
+> **这和这条 bullet 的主线是同一个思想** —— [第一节](#一核心问题付完款谁去改数据库)说「跳回成功页不能当付款凭据」，[② 配额那条](/docs?section=beyz&item=credential-quota)说「前端的拦截不算数」。**客户端说什么都只是输入，不是事实。**
+
+### tRPC vs REST vs GraphQL（预期追问）
+
+| | 适合什么 | 代价 |
+|---|---|---|
+| **tRPC** | ⭐ **前后端同一个仓库、同一门语言（TS）、同一个团队** | **跨语言就用不了**；对外开放的公共 API 也不合适 |
+| **REST** | 公共 API、多语言客户端、要靠 HTTP 缓存 | 类型要靠 OpenAPI 之类的东西再生成一遍（[Periplus 走的就是这条](/docs?section=periplus&item=typed-contract)） |
+| **GraphQL** | 客户端形态多、各要各的字段，想避免过度获取 | **服务端复杂度高**（N+1、DataLoader、鉴权粒度），小团队常常是负收益 |
+
+> ⭐ **答法**：「我们是同一个仓库、同一门语言、内部消费的接口 —— **这正好是 tRPC 的甜点区**。如果要对外开放接口，或者有非 TS 的客户端，我会选 REST 加 OpenAPI 生成类型，**那是我在 Periplus 里的做法**。」
+
+### Drizzle：类型一路延伸到数据库
+
+**Drizzle 是个 TypeScript 的 SQL 工具**，表结构用 TS 定义，查询语句直接写在 TS 里，**返回值的类型是推导出来的**。
+
+⭐ **[第六节那句守卫](#六终身版为什么降不了级整条-bullet-最硬的部分) `ne(users.subscribedPlan, Lifetime)` 就是 Drizzle 的写法** —— 它不是 ORM 的「对象魔法」，就是把 SQL 的 WHERE 条件写成了带类型的函数调用。**写错列名编译就报错。**
+
+> **所以这条 bullet 的「类型」其实是一条完整的链**：数据库表结构（Drizzle）→ 接口契约（tRPC）→ 前端调用。**任何一环改了字段名，另一端是编译期报错，不是线上 undefined。**
+
+### ⚠️ 一个要自己先分清的措辞
+
+**简历写的是 `plan eligibility enforced in typed server actions`（带类型的服务端函数），而技术栈里又列了 tRPC。这是两个东西：**
+
+- **server action** 是 Next.js 的机制 —— 直接在服务端跑的函数，前端像调本地函数一样调它
+- **tRPC** 是一套独立的接口层
+
+⭐ **两者都能做到「带类型」，但不是一回事。被问「你们到底用哪个」，照实说：付费链路的资格校验走的是 server action，tRPC 是这个项目接口层的整体方案。** 别把两个词混着用。
+
+## 十、这条 bullet 的三个可证明的落点
 
 **`plan eligibility enforced in typed server actions`（资格在带类型的服务端函数里强制）有三处：**
 
@@ -304,7 +377,7 @@ if (containsLifetimePlan) {
 
 ⭐ **合起来还是那句职责划分：服务端函数管「你有没有资格发起购买」，webhook 管「你实际买到了什么」。前者可以拒绝，但永远不能给予。**
 
-## 十、本篇术语英文对照
+## 十一、本篇术语英文对照
 
 | 中文 | 英文 |
 |---|---|
@@ -332,6 +405,16 @@ if (containsLifetimePlan) {
 | 资格判定 | **eligibility check** |
 | 服务端动作 | **server action**（Next.js 的术语） |
 | 挽留邮件 | **win-back / retention email** |
+| 类型不同步 | **type drift between client and server** |
+| 编译期擦除 | **erased at compile time**（`import type`） |
+| 单一仓库 | **monorepo** |
+| 接口方法 | **procedure**（`query` 读 / `mutation` 写） |
+| 拦截器 | **middleware** |
+| 请求上下文 | **context** |
+| 运行时校验 | **runtime validation** |
+| 类型推导 | **type inference**（`z.infer`） |
+| 甜点区 / 适用场景 | **sweet spot** |
+| 过度获取 | **over-fetching**（GraphQL 的卖点） |
 
 > ⭐ **三个最容易说错的**：
 >
