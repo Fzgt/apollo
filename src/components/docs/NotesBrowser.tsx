@@ -159,7 +159,7 @@ export function NotesBrowser({
                   <MarkdownRenderer content={note?.content ?? '# 页面未找到\n\n请求的笔记不存在。'} />
                 </div>
 
-                <div className="mt-8 border-t border-border pt-6">
+                <div className="mt-8 border-t border-border pt-6 pb-24 lg:pb-0">
                   <div className="mb-8 flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
                     {note && (
                       <a
@@ -226,6 +226,8 @@ export function NotesBrowser({
         onNavigate={handleNavigate}
         title={navTitle}
         storageKey={storageKey}
+        content={note?.content}
+        onOpenSearch={() => setIsSearchOpen(true)}
       />
 
       <SiteFooter />
