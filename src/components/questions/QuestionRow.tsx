@@ -40,26 +40,49 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
   const { q, a, phrases, kind, unresolved, asked } = question;
 
   return (
-    <div
+    <motion.div
+      layout="position"
+      transition={{ layout: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] } }}
       className={cn(
-        'group border-b border-border last:border-b-0',
+        'group relative border-b border-border last:border-b-0',
         isOpen && 'bg-muted/25'
       )}
     >
-      <button
+      <motion.button
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="flex w-full items-start gap-3 px-4 py-3 text-left outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        whileHover={{ x: 3 }}
+        whileTap={{ scale: 0.995 }}
+        transition={{
+          x: { type: 'spring', stiffness: 420, damping: 34 },
+          scale: { duration: 0.12 },
+        }}
+        className={cn(
+          'relative flex w-full items-start gap-3 overflow-hidden px-4 py-3 text-left outline-none',
+          'transition-[border-color,box-shadow] duration-200',
+          'hover:z-10 hover:shadow-[0_8px_24px_-22px_hsl(var(--foreground))]',
+          'focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring'
+        )}
       >
+        {/* 左侧那条竖线 + 一层向右淡出的底色：高亮跟着指针走，不是死板的整块变灰 */}
+        <span
+          className={cn(
+            'absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary transition-opacity duration-200',
+            'group-hover:opacity-100',
+            isOpen ? 'opacity-100' : 'opacity-0'
+          )}
+        />
+        <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/[0.055] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
         <ChevronRight
           className={cn(
-            'mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform duration-200',
+            'relative mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform duration-200',
             isOpen && 'rotate-90 text-primary'
           )}
         />
 
-        <span className="min-w-0 flex-1">
+        <span className="relative min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span
               className={cn(
@@ -99,7 +122,7 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
             </span>
           )}
         </span>
-      </button>
+      </motion.button>
 
       <AnimatePresence initial={false}>
         {isOpen && (
@@ -144,6 +167,6 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
