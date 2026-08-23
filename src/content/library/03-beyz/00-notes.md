@@ -140,14 +140,52 @@ icon: radio
 
 ### 代码出处
 
-- `~/Desktop/Beyz/beyz-server`：NestJS 10 + `@nestjs/platform-fastify` + Drizzle + `@nestjs/schedule`（cron）+ `@fastify/swagger`；`Dockerfile`、`docker-compose.yml`、`syncEC2.sh`、`package.json` 里的 `start:pm2`。
+- `~/Desktop/Beyz/beyz-server`：NestJS 10 + `@nestjs/platform-fastify` + Drizzle + `@nestjs/schedule`（cron）+ `@fastify/swagger`。
 - `beyz-web` 的 `ci.yml`：trigger 是 `push: ["**"]`，跑 lint / typecheck / build。
+
+### 线上到底怎么跑的（2026-08-23 翻仓核实，别再凭记忆讲）
+
+**是容器，不是裸进程。** 三个文件对得上：
+
+| 环节 | 出处 | 事实 |
+|---|---|---|
+| 发版触发 | `.github/workflows/deploy.yml` | push 到 main → ssh 进 EC2 → `git pull origin main` → `docker-compose up -d --build` |
+| 手动发版 | `syncEC2.sh` | 同一套动作的本地脚本版 |
+| 重启策略 | `docker-compose.yml` | `restart: unless-stopped` |
+| 容器内进程 | `Dockerfile` | `CMD ["pm2-runtime", "start", "dist/src/main.js"]` |
+
+所以准确的一句话是：**容器跑的，容器里用 `pm2-runtime` 当 1 号进程。**
+`package.json` 里那个 `start:pm2`（带 `--watch`）**不在部署链路上**，别提它。
+
+三件事说出去之前先想清楚：
+
+- **PM2 在这里基本冗余。** 崩溃重启已经由 compose 的 `restart: unless-stopped` 兜住；
+  `pm2-runtime` 真正提供的是 cluster 多进程和日志格式，这个服务两样都没用。
+  能主动说「这是我会去掉的东西」反而加分。
+- **PM2 不发报警。** 它只做重启和日志，报警要么 PM2 Plus 要么自己接。别说「PM2 会触发报警」。
+- **这套部署很简陋**，没有零停机、没有回滚、没有健康检查，而且构建在生产机上做。
+  自己认了比被问出来强。
+
+### 催款任务的幂等缺口（同日核实）
+
+`src/modules/tasks/jobs/email.job.ts` 的实际写法：users 左连接 `upgradeReminders`，
+用 `isNull(upgradeReminders.id)` 捞「还没有发送记录的人」，**发完信再插记录**。
+去重的意识有，但三处不够，面试里要主动交代：
+
+1. **顺序反了**——先发后记，中间失败下一轮会重发。正确是先 INSERT `pending` 占坑，发完再 UPDATE `sent`。
+2. **没有唯一约束**——`upgradeReminders.userId` 没有唯一索引，去重全靠查询里那个 `isNull`。
+   「先查再写」在并发下不成立，得靠 `(userId, 类型, 周期)` 唯一键让数据库来挡。
+3. **cron 是 `EVERY_MINUTE`**——每天 9 点那行被注释掉了，留下的是调试用的每分钟。
+   `@nestjs/schedule` 默认不防重入。
+
+另外 `upgradeReminders.id` 是无默认值的 varchar 主键，而 insert 没给 `id`——
+**这条插入很可能直接抛**。要拿这段当谈资之前先跑一次确认。
 
 ### 预期追问
 
 - **「为什么邮件要单独一个服务，不放 Next.js 里？」** 定时任务需要一个**常驻进程**；Next.js 部署在无状态平台上，cron 语义要靠外部触发。拆出来还能独立扩容、独立重启，不受前端发版影响。
 - **「Fastify 而不是 Express？」** NestJS 的 adapter 可换，Fastify 吞吐更好、schema 校验和 swagger 集成更自然。**这是选型题，不是性能瓶颈题，别硬吹。**
-- **「PM2 解决什么？」** 进程守护与崩溃重启、日志、零停机 reload。
+- **「PM2 解决什么？」** 见上面那张表——先答「容器跑的，`pm2-runtime` 当 PID 1」，再说它在这儿其实冗余。
 - **「CI 只有 lint/typecheck/build，没有测试？」** 照实说：**这个仓当时没有测试**。CI 的价值在于把「本地能跑就发」变成「每次推送都过一遍类型和构建」。想强化就是补 test job——想清楚再答，别现编。
 
 ---
