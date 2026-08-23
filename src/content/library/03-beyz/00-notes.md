@@ -4,9 +4,9 @@ section: Beyz
 icon: radio
 ---
 
-# Beyz —— 简历 v40 四条 bullet 的代码出处与讲法
+# Beyz —— 简历 v42 四条 bullet 的代码出处与讲法
 
-> 2026-08-17 写，2026-08-18 校：下面引的四条与 **v40 一字不差**，这是 Beyz 唯一该用的复习笔记。
+> 2026-08-17 写，2026-08-18 校，2026-08-23 复核：下面引的四条与 **v42 一字不差**（v40→v42 这四条未改动），这是 Beyz 唯一该用的复习笔记。
 > 旧的 `LEARNING_NOTES_BEYZAI.md` 对应更早的简历（RHF+Zod 表单、Jest 覆盖率、TSLint/SonarQube），四条里三条在 v40 已不存在，**2026-08-18 已删除**。
 >
 > 代码：`~/Desktop/Beyz/beyz-web`（Next.js 14 App Router）、`~/Desktop/Beyz/beyz-server`（NestJS + Fastify）。
@@ -16,6 +16,12 @@ icon: radio
 ## Bullet 1 —— 实时面试助手全链路
 
 > Built the real-time interview copilot end to end: tab and system audio captured through getDisplayMedia, streamed over a WebSocket to Deepgram's live recognizer, with interim and finalized transcripts reconciled in the client and utterance-end events triggering GPT-4o answers streamed back token by token.
+
+### 一句话是什么
+
+面试时对方的声音在浏览器的另一个标签页里，麦克风采不到——这条讲的就是我怎么把那股声音接出来、变成字、再变成答案。声音每 250 毫秒切一片推给 Deepgram，边说边出字；判断「这句说完了」不靠静音检测，靠 Deepgram 的断句事件；答案的 token 一到就往屏幕上推，不等整段生成完。
+
+**它证明的是：一条实时链路我能从采集一直接到模型输出，中间没有别人的活。**
 
 ### 代码出处
 
@@ -56,6 +62,12 @@ icon: radio
 
 **这条是整段最值钱的一条**，因为它讲的不是「我接了个 SDK」，是「我知道接完之后会出什么事」。
 
+### 一句话是什么
+
+上一条是「我接通了」，这条是「接通之后会出的四种事我都提前堵了」：密钥不能裸奔在浏览器里（改成每次会话现签一把 60 秒、只能上报用量的临时钥匙）；用户中途停下不能把连接断掉；每次生成烧了多少 token 要能算账；两个请求撞在一起要有人裁决。
+
+**它证明的是：我不是接完 SDK 就交差的人。**
+
 ### 代码出处
 
 | 点 | 文件 | 关键行 |
@@ -91,6 +103,12 @@ icon: radio
 
 > Owned the paid conversion path — Stripe Checkout, trials and lifetime purchases on Next.js, tRPC and Drizzle — with plan eligibility enforced in typed server actions and entitlements written only by signature-verified webhooks across six subscription events, none of which can downgrade a lifetime purchase.
 
+### 一句话是什么
+
+钱的整条路是我修的：试用、订阅、终身买断。核心是**两把锁分开**——「谁能买」由服务端判断；「你买到了什么」只有 Stripe 亲口回调、且验过签名才能写进数据库。前端改不了、用户改不了、我自己的业务代码也不许绕过这道门去发权益，钱的账本只有一个写入口。另外订阅那边六种事件（开通、升降档、到期、暂停、恢复、买断）每一条都确认过不会顺手把终身买断一起注销掉——用户花大钱买了永久版却因为一次扣款失败被连坐降级，是这类系统最典型的赔钱事故。
+
+**它证明的不是「我会接支付」，是「钱交给我管不会出事」。**
+
 ### 代码出处
 
 - 入参类型即门禁：`src/server/actions/subscription.ts:13` `selectedPlan: Exclude<SubscriptionPlan, SubscriptionPlan.Free>` —— **免费档在类型层面就传不进来**。
@@ -102,6 +120,7 @@ icon: radio
 
 ### 预期追问
 
+- **「支付为什么走 tRPC？」** 简历那句把 Stripe 和 tRPC 并列写了，会被顺着问。照实说：**项目里有 tRPC，但付费链路没走 tRPC。** root router 只挂了 `resume` 和 `copilot` 两组、共三个 procedure，全是 CRUD；下单走的是 `"use server"` 的 server action，因为这个动作一次性、要跳转、不需要缓存也不需要失效，能少一层 router 注册；webhook 则必须是独立的 route handler。**别现编「设计原则」，就说选型省事。**
 - **「为什么权益只能由 webhook 写？」** 因为「用户跳回 success_url」不等于「钱到账」——用户可以直接手敲 success_url，也可能付完就关页面。唯一可信的事实源是 Stripe 的签名事件。
 - **「验签为什么必须用原始 body？」** 签名是对**字节流**算的 HMAC；框架一旦 `JSON.parse` 再 `stringify`，键序和空白就变了，签名必然对不上。
 - **「幂等呢？」** 我做的是**收敛写**：每个 handler 都是把用户置成事件描述的目标状态（而不是做增量），重复投递同一个事件结果一样；终身档另有 `ne(Lifetime)` 保护。**没有单独的 event id 去重表——这条照实说，是个可以做得更严的地方。**
@@ -112,6 +131,12 @@ icon: radio
 ## Bullet 4 —— 独立的邮件服务与首个 CI
 
 > Sole author of a NestJS and Fastify service for subscription emails and scheduled payment reminders — Dockerized, cron-triggered, deployed to EC2 under PM2 through GitHub Actions — and of the repo's first CI gate: lint, typecheck and build on every push.
+
+### 一句话是什么
+
+一个人从零写完一个独立的后端服务（发订阅邮件、到点催款），并且把它送上线活着：打成 Docker 镜像、cron 定时触发、部署到 EC2、PM2 守着崩了自动拉起、GitHub Actions 推代码就发版。最后半句还藏了个加分项——我给这个仓库加了**第一道** CI 关卡，「第一道」意思是在我之前没人做过，之后全组都在这条线的保护下写代码。
+
+**它是四条里唯一证明「他不只是前端」的那条：从写出来、装进容器、扔上服务器、守住它、到自动化发版，全程闭环。**
 
 ### 代码出处
 
