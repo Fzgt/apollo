@@ -2,7 +2,7 @@
 title: "② 凭证、配额与四态机"
 tier: must
 section: Beyz
-icon: key-round
+icon: shield-check
 day: 3
 level: S
 status: done
@@ -12,483 +12,294 @@ status: done
 
 > **简历原句**
 >
-> **Kept the transcription credential out of the browser** by minting **60-second, usage-scoped keys** per session **behind a plan gate**, **held the socket alive** across microphone pauses, and **logged per-request token usage** that backs per-plan quotas; **a four-state machine drops overlapping generations**.
->
-> ---
->
-> 让转写凭证不落进浏览器：在套餐校验之后，为每个会话签发 60 秒、只带用量上报权限的临时密钥；麦克风暂停期间保持连接存活；按请求记录 token 用量，作为各套餐配额的依据。一个四状态机负责丢弃重叠的生成请求。
+> Kept the transcription credential out of the browser by **minting 60-second, usage-scoped keys per session behind a plan gate**, held the socket alive across microphone pauses, and **logged per-request token usage that backs per-plan quotas**; a **four-state machine drops overlapping generations**.
 
-## 这条 bullet 在讲什么
+## 先看懂：这条是在给实时 demo 补生产边界
 
-上一条讲的是「怎么把链路做成流式的」，**这一条讲的是「流式做完之后，剩下的四个烂摊子怎么收」** —— 全都是那个直连架构逼出来的：
+Bullet 1 解决「链路怎么跑通」，Bullet 2 解决跑通之后的四类问题：
 
-| 烂摊子 | 因为 |
-|---|---|
-| **凭证怎么办** | 浏览器直连 Deepgram，**它必须自己拿着密钥，而浏览器藏不住任何东西** |
-| **连接怎么不被掐** | 长连接一空闲就会被服务端关掉 |
-| **钱怎么算** | 每次生成都在花真金白银 |
-| **并发怎么防** | 有两条互不知情的路径都能触发生成 |
+```text
+长期密钥不能泄露     → 60 秒、最小 scope 的临时 key
+暂停音频不能断线     → keepAlive
+模型成本必须可记录   → 每次生成记录 input / output tokens
+异步触发不能互相打架 → 四态状态机丢弃重叠 generation
+```
 
-⭐ **这四件事串起来是一句话：把一个 AI demo 变成一个能上生产的系统，缺的就是这些。** 这句话是整条 bullet 的中心思想，讲的时候先把它说出来。
+这条的价值是：**不是接通 SDK 就结束，而是继续考虑凭据、连接生命周期、成本和并发。**
 
-## 30 秒口播稿
+---
 
-> 因为音频是**浏览器直连** Deepgram 的，服务端不碰音频 —— 省了一跳延迟，**代价是浏览器必须自己持有凭证，而浏览器里没有秘密**。
->
-> 所以我们不给它值钱的秘密：**长期密钥只活在服务端环境变量里**，浏览器发个请求，服务端先认人、查套餐，通过了才用长期密钥**铸一把只有 60 秒有效期、只带一个「提交转写」权限的临时密钥**给它。**安全模型从「保证密钥不泄露」变成了「假设它一定泄露，但泄露了也不值钱」。**
->
-> 连接建起来之后另有一套：麦克风暂停时每 10 秒发一次心跳，**因为 Deepgram 空闲 10 秒就会关连接**。**这两个数字管的是完全不同的事** —— 60 秒管「能不能进门」，10 秒管「进门之后会不会被赶出去」。
->
-> 另外每次生成结束记一次 token 用量，input 和 output 分开；**并发靠一个四状态机挡住** —— 上一条还在生成时，新的触发直接丢弃，不排队也不取消。
+# 第一层：必须答明白的六个问题
 
-## 一、为什么浏览器里放不住秘密
+## 1. 浏览器直连 Deepgram，API key 怎么办？
 
-**先立住这一句：浏览器里没有秘密。**
+Bullet 1 为了减少音频中转延迟，让浏览器直接连接 Deepgram。但浏览器中的代码、请求和内存都可以被用户检查，因此浏览器不能安全保存长期 key。
 
-任何下发到前端的东西都是**明文** —— 打开开发者工具的网络面板、看本地存储、看内存里的变量，全都能看到。⭐ **混淆、加密、藏在闭包里都没用，因为代码最终要用它，用的那一刻它就是明文。**
+正确边界：
 
-**如果把长期密钥发下去，后果按严重度排：**
+```text
+长期 Deepgram key：只在服务端
+  ↓
+服务端为当前会话 mint 临时 key
+  ↓
+TTL 60 秒 + scope 只有 usage:write
+  ↓
+浏览器用临时 key 建立 WebSocket
+```
 
-| 后果 | 说明 |
-|---|---|
-| **无限期盗用** | 长期密钥没有过期时间，**泄露一次就是永久泄露** |
-| **账单被打爆** | 拿到的人可以用你的额度做任意转写，**账单记在你头上** |
-| **提权** | 长期主密钥通常带管理权限 —— 能读项目、看账单，**甚至再签发新密钥**，一把钥匙换整个项目 |
-| ⭐ **作废的代价极高** | 唯一补救是作废这把密钥，**而所有用户共用它** —— 一作废全线中断，还得发新版本换密钥 |
+这把 key 不是“一次性 key”：60 秒内理论上可以多次建连。准确描述是 **short-lived, scoped credential**。
 
-⭐ **最后一条最能体现理解**：临时凭证真正买到的不只是「泄露损失小」，而是 「**不需要作废**」 —— 它自己会过期。
+安全目标也不是保证临时 key 永不泄露，而是限制泄露后的价值：
 
-## 二、临时凭证：把安全模型整个换掉
+- 时间窗口短；
+- 权限范围小；
+- 不能读取项目、列举或创建其他 key。
 
-**思路是个转向：既然浏览器守不住秘密，那就别给它值钱的秘密。** 给它一把又**小**又**短命**的钥匙。
+这就是最小权限和缩小 blast radius。
 
-- **小** → 限定**权限（scope）**：只能开一扇门
-- **短命** → 限定**寿命**：很快自己作废
+**一句话答法：**
 
-⭐ **安全模型从「保证密钥不泄露」（浏览器里做不到）变成了「假设它一定会泄露，但泄露了也不值钱」。安全工程里管这个叫缩小「爆炸半径」（blast radius）。**
+> The long-lived Deepgram key never left the server. For each session, the backend minted a 60-second key scoped only to `usage:write`, so a leaked browser credential had a very small lifetime and permission surface.
 
-**`60-second` 就是「短命」，`usage-scoped` 就是「小」—— 简历里那两个词的全部来历。**
+---
 
-### 信任链三段，边界要说清
+## 2. 谁可以调用临时 key 签发接口？
+
+签发接口本身必须有 plan gate，否则任何未登录用户都能循环调用它消耗识别额度。
+
+当前逻辑：
+
+- Free 用户直接拒绝；
+- 只有开发环境才允许直接使用长期 key 的分支；
+- 响应和客户端 fetch 都使用 no-store，避免凭据被缓存复用；
+- 生成答案的 server action 还会独立检查套餐。
+
+所以有两道服务端门：
+
+```text
+Deepgram key 签发接口：检查套餐
+GPT generation action：再次检查套餐
+```
+
+⚠️ 当前签发接口没有按用户限流。付费用户仍可能短时间 mint 大量临时 key。60 秒 TTL 只能降低影响，不能代替 rate limiting。
+
+**一句话答法：**
+
+> The mint endpoint was behind a server-side plan gate, and generation had its own independent plan check. The missing control was per-user rate limiting on the mint endpoint; the short TTL reduced the damage but did not prevent abuse.
+
+---
+
+## 3. 60 秒后 key 过期，半小时面试会断吗？
+
+不会。TTL 主要限制**建立新连接时的认证窗口**：
+
+```text
+临时 key 有效 → 完成 WebSocket 鉴权
+连接建立
+key 后来过期 → 已建立的 socket 继续工作
+```
+
+60 秒不等于面试只能运行 60 秒，也不是每分钟续签。
+
+如果 socket 之后真的断开，要重新 mint key 并重新连接。当前实现没有完整的自动重连流程，这是 Bullet 1 的已知缺口。
+
+**一句话答法：**
+
+> The TTL controlled the connection handshake, not the lifetime of an already authenticated WebSocket. Once connected, the interview could continue; a later reconnect would require a freshly minted key.
+
+---
+
+## 4. 用户暂停麦克风时，为什么连接不会断？
+
+Deepgram 的 live socket 在长时间收不到数据时可能被判为空闲并关闭。
+
+- 音频开启：每 250ms 的音频块自然维持连接；
+- 音频暂停：客户端定期发送 `keepAlive()` 信令；
+- 音频恢复：清理 keepalive timer，让音频重新承担保活。
+
+KeepAlive 管的是**连接**，不是临时 key：
+
+```text
+60 秒 TTL：还能不能建立新连接
+keepAlive：已建立连接会不会因空闲被关闭
+```
+
+心跳不是静音音频，也不会给 key 续期。
+
+⚠️ 当前代码每 10 秒发送一次，而服务端空闲阈值也接近 10 秒，余量太小。浏览器定时器延迟、网络抖动或后台标签页节流都可能让心跳迟到。更合理的是 3–5 秒并对断线实施退避重连。
+
+**一句话答法：**
+
+> Audio chunks kept the socket active while recording. During a pause, a separate keep-alive signal preserved the existing connection; it did not renew the key. The original ten-second interval had too little safety margin and should have been shorter.
+
+---
+
+## 5. Token usage 和 plan quota 到底是怎么实现的？
+
+每次 GPT 生成结束时，使用模型供应商返回的 usage 记录：
 
 ```ts
-// 第一段：长期密钥只在服务端
-process.env.DEEPGRAM_API_KEY        // 「母钥匙」：能铸 key、能读用量、能看账单，从不下发
-
-// 第二段：服务端替浏览器铸币，铸之前先查票
-const { subscribedPlan } = await getAuthUser()          // ① 没登录直接 throw
-if (subscribedPlan === SubscriptionPlan.Free) { 拒绝 }   // ② 套餐门禁
-await deepgram.manage.createProjectKey(project.project_id, {
-  scopes: ["usage:write"],              // ③ 只给一个权限
-  time_to_live_in_seconds: 60,          // ④ 只活 60 秒
-})
-
-// 第三段：浏览器拿到的只是产物
-fetch("/api/deepgram", { cache: "no-store" })
-```
-
-⭐ **注意①②在③④之前 —— 这个顺序本身就是设计：套餐门禁发生在铸币动作之前，也就是「钱被花掉之前」。前端连「要不要给你这个功能」的决定权都没有，它只有请求权，服务端说了算。** 简历里 `behind a plan gate` 指的就是这几行。
-
-### 为什么是 60 秒
-
-⭐ **最关键的一句先说：60 秒约束的不是通话时长，是握手窗口（handshake window）。**
-
-这把钥匙的全部使命就是完成**一次 WebSocket 握手**。握手一成，连接自己立住，钥匙从此再也用不上。
-
-| | 为什么不能更极端 |
-|---|---|
-| **下界** | 要覆盖「请求密钥 → 拿到 → 建连」这一段，正常几百毫秒。**60 秒给了约 100 倍余量**，兜住慢网络、用户点了开始又愣一下、握手失败重试一次。设 5 秒的话余量太薄，**网络一抖就误伤真实用户，而安全收益几乎为零** |
-| **上界** | ⭐ **握手完成后这把钥匙就是纯负债** —— 只剩暴露窗口，没有任何用处。设成 1 小时等于白送攻击者 59 分钟 |
-
-### 不续签，而且不需要续签
-
-**全仓库只有一处铸币，那条调用链是一次性的，没有任何刷新逻辑。**
-
-**为什么不需要**：钥匙只用于握手，**socket 一旦打开，认证已经完成，钥匙过不过期跟这条连接毫无关系**。
-
-**断线了怎么办**：重连即重铸 —— 重走一遍启动流程，**会 fetch 一把全新的钥匙**。
-
-> ⭐ **凭证的生命周期绑在「建立连接」这个动作上，不绑在会话上。**
->
-> ⚠️ 顺带一个措辞问题：简历写 `per session`，但代码里绑的是连接 —— **一场面试中途断线重连会重铸一把**，严格说是 per connection。被追问时主动说清楚就行。
-
-### scope 限了什么：最坏情况能量化
-
-代码里是 `scopes: ["usage:write"]`，**只有一个**。这是**最小权限原则（principle of least privilege）**的教科书用法：不是「给它够用的权限」，是「给它**刚好只够用**的权限」。
-
-**靠代码本身就能推的两条：**
-
-- ⭐ **不带 `keys:write`** → 攻击者拿到这把钥匙**没法用它再铸钥匙**。**这条最重要，它斩断了提权和长期驻留的路** —— 否则攻击者第一件事就是用这把 60 秒的铸一把永久的，TTL 立刻形同虚设
-- **不带任何读权限** → 读不了项目列表、用量统计、账单
-
-⭐ **所以最坏情况是：攻击者在 60 秒内抢到这把钥匙，能干的极限是替你消耗一点转写额度。没有数据泄露、没有提权、没有持久化。** 把最坏情况**量化**出来讲，比背「最小权限原则」这个词有力得多。
-
-## 三、两个框架，能把这一节讲高一个层次
-
-### 认证 vs 授权
-
-| | 回答的问题 | 这里对应什么 |
-|---|---|---|
-| **认证**（authentication） | **你是谁？** | `getAuthUser()` —— 从登录会话认出用户，认不出直接报错 |
-| **授权**（authorization） | **你能干什么？** | `plan === Free → 拒绝` —— 认出来了，但这个身份没这个功能的权限 |
-
-**顺序不能反 —— 不知道你是谁，就谈不上你能干什么。** 而下发的那把临时钥匙是第三层：它对 Deepgram 而言是授权凭据，`usage:write` 精确描述了持有者能干什么。**三层各管一段。**
-
-### TTL / scope / 作废，是同一个设计的三个旋钮
-
-| 旋钮 | 控制什么 | 这里取值 | 调它的代价 |
-|---|---|---|---|
-| **有效期（TTL，time to live）** | 泄露后还能用多久 | **60 秒** | 太短会误伤慢网络下的正常建连 |
-| **权限范围** | 泄露后能干什么 | **只有一个「提交转写」** | 太窄会导致功能不可用 |
-| **作废（revocation）** | 出事后怎么止损 | ⭐ **不需要 —— 它自己过期** | 长期密钥才需要，代价是全线中断 |
-
-⭐ **有效期和权限范围是「事前」把损失面压小，作废是「事后」止损。临时凭证的价值在于把问题从事后挪到了事前 —— 你不需要一套作废机制，因为不会有需要作废的东西长期存在。**
-
-> ⚠️ **一个已知缺口，主动说**：铸币那个接口**没有任何限流**，任何一个付费用户都能无限次调用它签发新密钥。**60 秒有效期只是缓解**（签出来的一分钟后自动消失，堆不起来），**不是防护**。正确做法是给这个接口加按用户的速率限制。
-
-## 四、10 秒心跳：管的是连接，不是凭证
-
-⭐ **这是这条 bullet 最容易讲混的地方。把 keepAlive 说成「续期 key」立刻露馅 —— 它续的是连接，不是凭证。**
-
-```ts
-if (microphoneState !== MicrophoneState.Open && connectionState === SOCKET_STATES.open) {
-  connection.keepAlive()                                    // 先立刻发一次
-  keepAliveInterval.current = setInterval(() => {
-    connection.keepAlive()                                  // 之后每 10 秒一次
-  }, 10000)
-}
-```
-
-**为什么需要它**：**Deepgram 的实时连接有空闲超时（idle timeout）—— 10 秒收不到任何东西，服务端主动关连接。** 站在它的角度很合理：一条连接在它那边占着识别引擎的资源，客户端不发音频了它凭什么一直养着。
-
-**面试中途用户把麦克风暂停超过 10 秒，连接就没了** —— 而重连意味着重新铸钥匙、重新握手、转写上下文断掉。
-
-### ⭐ 为什么只在麦克风**关着**的时候发
-
-看那个条件 —— `microphoneState !== Open`。**麦克风开着的时候根本不需要心跳：**
-
-| 麦克风状态 | 谁在维持连接 | 频率 |
-|---|---|---|
-| **开着** | ⭐ **音频数据流本身** | 每 250 ms（10 秒窗口里会过 40 个包，离超时差得远） |
-| **暂停 / 停止** | keepAlive 心跳 | 每 10 s |
-
-麦克风一开，代码立刻把心跳定时器清掉，交给音频流接管。**同一个「保活」职责，在两种状态下由两个机制承担，永远只有一个在跑** —— 这是个很干净的设计。
-
-**心跳（heartbeat / keep-alive）发的是什么**：不是音频，是一条 JSON 文本帧 `{ "type": "KeepAlive" }`。**为什么不发一段静音顶替**：静音也是音频，Deepgram 会处理它、会计费、还可能吐出空转写污染结果；**而发 0 字节的包 Deepgram 会直接关连接。** 心跳走的是完全独立的信令通道，不进识别管线。
-
-### ⚠️ 这个 10 秒选得有问题（主动讲，是加分项）
-
-**Deepgram 的超时是 10 秒，官方建议心跳间隔 3–5 秒。代码写的是 10 秒 —— 正好卡在超时线上，一点余量都没有。**
-
-算一下：麦克风停在 t=0，立刻发一次，下一次在 t=10s；而 Deepgram 的关闭倒计时也从 t=0 开始，t=10s 到点。**第二次心跳必须在恰好第 10 秒那一刻之前到达服务端。** 但：
-
-- `setInterval` **从来不保证准时**，它保证的是「不早于」10000 ms，事件循环一忙就往后拖
-- 还要加上到 Deepgram 的网络延迟（几十到几百毫秒）
-- ⭐ **浏览器对后台标签页的定时器有节流（timer throttling）** —— 而面试场景下这个标签**大概率不在前台**
-
-**所以这个心跳结构上就是踩线到达甚至迟到的。它在实践中没大面积炸，多半是靠服务端有点宽容度，不是靠设计。**
-
-> ⭐ **对比着讲很漂亮**：60 秒那个 TTL 留了 **100 倍**余量，10 秒这个心跳留了 **0 倍**余量。**同一份代码里，一个参数保守得很好，另一个贴着悬崖走。**
-
-### 两个数字放一起记
-
-| | **60 秒** | **10 秒** |
-|---|---|---|
-| 管什么 | 钥匙还能不能**建立新连接** | 已建立的连接**会不会被服务端关掉** |
-| 谁在倒计时 | 钥匙过期 | 空闲超时 |
-| 过期后果 | 得重新铸一把才能连 | 连接直接断 |
-| 触发时机 | 建连前一次性 | 建连后持续，**仅麦克风暂停时** |
-| 余量 | 100 倍（够用） | **0 倍（危险）** |
-
-⭐ **一句话：60 秒管「能不能进门」，10 秒管「进门之后会不会被赶出去」。**
-
-## 五、token 用量：怎么记的
-
-**先说清 token**：它是大模型计费和计算的单位，大致对应一个词或词的一部分。**你发给模型的叫 input，它吐回来的叫 output，两者分开计价，output 通常贵好几倍。**
-
-```js
-const { textStream } = await streamText({
-  model: openai("gpt-4o"),
-  onFinish: async ({ usage }) => {              // 生成全部结束后触发
-    const { promptTokens, completionTokens } = usage;
-    await db.insert(copilotUsageLogs).values({
-      copilotId, userId,
-      inputTokens: promptTokens,
-      outputTokens: completionTokens,
-    });
-  },
-});
-```
-
-| 设计点 | 为什么 |
-|---|---|
-| **用回调里给的 `usage`，不自己数** | ⭐ **自己按字符数估算是错的** —— 分词规则和字符数没有稳定比例（中文尤其），**而计费是按服务商报的数走的** |
-| **input / output 分开记** | **两者单价不同**。合并成一个数就算不出成本，**也看不出是提示词太长还是答案太长** |
-| **在流结束后才记** | **记账不阻塞用户看到答案** —— 先让用户看到内容，再落账 |
-
-## 六、⚠️ 配额：实现和字面意思有出入（必须自己先知道）
-
-简历那半句 `logged per-request token usage **that backs per-plan quotas**` 拆成两件事：**用量落库**（做了），**用量支撑配额**（要打问号）。
-
-**配额实际是这么算的：**
-
-```js
-const checkQuestionLimit = () => {
-  const { questionsPerCopilot } = subscriptionPlans[subscribedPlan].limits;
-  return recruiterMessages.length > questionsPerCopilot;
+onFinish: async ({ usage }) => {
+  await db.insert(copilotUsageLogs).values({
+    inputTokens: usage.promptTokens,
+    outputTokens: usage.completionTokens,
+  });
 };
 ```
 
-| 套餐 | 每个 copilot 能问几个问题 |
-|---|---|
-| Free | **0** |
-| Standard | **200** |
-| God / Lifetime | 无限 |
+为什么不自己按字符数估算？Tokenizer 与字符数没有稳定比例，中文尤其明显；供应商返回的 usage 才能对应实际计费。
 
-⚠️ **注意配额的单位是「问题条数」，不是 token。token 记是记了，但配额算的是提问次数 —— 这两件事在代码里没有连起来。**
+Input 和 output 分开记录，因为价格不同，也方便判断成本来自长 prompt 还是长答案。
 
-**前端有两处强制点，第二处比第一处重要：**
+### 但简历措辞比代码实现更强
 
-```js
-// ① 点「开始面试」时
-if (checkQuestionLimit()) { setShowSubscribeDialog(true); return; }
+实际配额按**问题条数**计算，不是按 token：
 
-// ② 面试进行中持续检查
-useEffect(() => {
-  if (checkQuestionLimit()) { stopInterview(); setShowSubscribeDialog(true); }
-}, [checkQuestionLimit]);
-```
+- Free：服务端套餐门禁阻止使用；
+- 付费套餐：前端根据 `questionsPerCopilot` 检查问题数量；
+- token usage 表目前主要是审计/成本分析，没有被 quota enforcement 查询。
 
-**额度是在面试过程中一条条消耗的 —— 只在开始时查一次的话，用户可以一直问下去。**
+因此 `token usage that backs per-plan quotas` 并不完全准确。正确理解是：**token usage 被可靠记录；套餐和问题数量限制另有实现，但条数上限主要在前端。**
 
-### 但服务端只拦了套餐，没拦条数
+前端检查可以提前给用户反馈，但不能成为安全边界。更完整的实现应在生成的 server action 中原子检查并消耗服务端额度。
 
-```js
-// 服务端唯一的门禁
-const { id: userId, subscribedPlan } = await getAuthUser();
-if (subscribedPlan === SubscriptionPlan.Free) throw new Error("Unauthorized");
-```
+**一句话答法：**
 
-**搜遍全仓库可以证实**：那个「每个 copilot 能问几个」的配置只出现在三处 —— **客户端判定、配置文件本身、定价页展示。没有任何服务端代码读它。**
+> I logged the provider-reported prompt and completion tokens after each generation. To be precise, the implemented quota was question-count based and the paid-plan limit was mainly enforced in the client, while the server independently blocked Free users. I would move the count enforcement server-side.
 
-| 谁 | 被什么拦住 | 拦在哪 |
-|---|---|---|
-| **免费用户** | 服务端直接抛错 | ✅ **服务端，绕不过** |
-| **付费用户超过 200 条** | 只有前端那个持续检查 | ⚠️ **客户端，可以绕过** |
+---
 
-**而且那张记 token 用量的表是「只写不读」的** —— 全仓库一次写入，**零次查询**。**所以它现在是一张审计/分析表，不是配额的执行依据。**
+## 6. 四态状态机解决什么？为什么丢弃重叠请求？
 
-### 为什么前端不能是权限的真源
+系统有四个互斥状态：
 
-1. **前端代码是用户可控的** —— 那个判断在**用户自己的机器上**跑，他想让它返回 false 就能返回 false
-2. **前端的数据可能不全** —— 消息列表来自当前页面，**换个设备、开个新标签页，这个计数就重新开始了**
-3. **前端拦截只改变行为，不提供保证**
-
-> **这和[百度提现](/docs?section=baidu&item=withdrawal)那条是同一句话：前端减少无效负载，正确性必须来自服务端。**
-
-### 两条出路，选一条
-
-**① 改措辞**（推荐，成本最低）：把 `that backs per-plan quotas` 换成 `recorded per-request prompt/completion token usage against each copilot` —— **丢掉一个撑不住的因果，留下一个能指着行号讲的事实。**
-
-**② 不改，但主动拆开讲**：
-
-> 「token 用量是每次生成结束在回调里落库的，input 和 output 分开，用的是服务商返回的真实数据不是自己估的。**配额本身现在算的是提问条数不是 token，而且这个判定在客户端** —— 服务端只拦了免费档。**这是我知道要补的地方**：正确做法是在服务端查一次已用条数，客户端那层只用来提前给用户反馈。」
-
-⭐ **主动说这一句收益很大**：它同时证明三件事 —— 你知道权限该放服务端、你知道自己代码的边界在哪、你不会为了简历好看而含糊。**而且这正是这条 bullet 最好的注脚：它讲的是「我知道怎么把 AI demo 变成生产系统」，而知道哪里还不够 production，本身就是 production 意识。**
-
-## 七、四态机：为什么是枚举不是几个布尔
-
-```js
+```ts
 enum CopilotStatus {
-  Ready,       // 还没开始，等用户点「开始面试」
-  Listening,   // 正在听，转录在滚动
-  Generating,  // 正在生成答案
-  Done,        // 这一轮答案出完了，等下一个问题
+  Ready,
+  Listening,
+  Generating,
+  Done,
 }
 ```
 
-**「状态机」（state machine）就是「这几种情形 + 它们之间允许怎么跳」这一整套规则。** 代码里的转移只有五处：初始进 `Ready`；连接开且麦克风启动进 `Listening`；提交问题进 `Generating`；答案流结束进 `Done`；用户点停止回 `Ready`。
+它们大致表示：
 
-### ⭐ 最有说服力的答法是算组合数
+```text
+Ready → Listening → Generating → Done
+  ↑                                  |
+  └──────── 用户停止 / 下一轮 ───────┘
+```
 
-假设改用四个布尔变量：`isReady` / `isListening` / `isGenerating` / `isDone`。
+为什么不用多个布尔变量？四个布尔会产生 16 种组合，但只有四种有意义；例如 Listening 和 Generating 同时为真就是非法状态。一个枚举变量让互斥关系由数据结构保证。
 
-⭐ **4 个布尔 = 2⁴ = 16 种组合，而合法的只有 4 种。剩下 12 种全是 bug，而且没有任何东西拦着它们发生。**
+重叠 generation 可能来自：
 
-| 非法组合 | 现实里怎么发生 | 后果 |
+- `UtteranceEnd` 自动提交；
+- 用户手动点击请求答案；
+- 面试官补充一句，又产生一次 UtteranceEnd。
+
+在 `Generating` 状态，guard 直接返回：
+
+```ts
+if (statusRef.current === CopilotStatus.Generating) return;
+```
+
+为什么用 ref？这个回调可能长期保持同一个函数引用；直接读取闭包里的 state 可能拿到旧值，ref 提供此刻最新的状态。
+
+为什么选择丢弃新的提交？
+
+- 排队：实时面试中，旧问题的答案可能已经过时；
+- 取消当前：一次无意义补充可能破坏正在生成的有用答案；
+- 丢弃新触发：保住当前 generation，行为最简单可预测。
+
+这是明确取舍，不是没有代价。新的 transcript 内容可能仍保留在 buffer 中，随后与下一段合并。
+
+**一句话答法：**
+
+> A single enum made the four UI states mutually exclusive. If an automatic or manual submission arrived while generation was active, a ref-backed guard dropped the new trigger because queued answers become stale in a live interview.
+
+---
+
+# 第二层：为什么 ref 很重要？
+
+这两篇里 ref 解决两个相关问题：
+
+| 场景 | 如果只用 state，可能发生什么 | ref 的作用 |
 |---|---|---|
-| `isListening` + `isGenerating` 同时真 | 上一条还在生成，用户又说了一句 | **界面不知道该显示哪个**，两个转圈同时转 |
-| `isGenerating` + `isDone` 同时真 | 流结束时忘了把前一个置回 false | **「要答案」按钮永远不出现**，用户卡死 |
-| **四个全 false** | 某个异常路径漏了一次赋值 | **未定义状态** —— 界面什么都不渲染，用户以为页面挂了 |
+| Transcript final 累积 | WebSocket 回调在渲染前连续到达，读取旧累计值 | 同步读写最新 confirmed text |
+| Generation guard | 稳定回调捕获初始 status，守卫读到 stale closure | 每次调用读取最新状态 |
 
-⭐ **根本问题是：这四个变量「只能有一个为真」这条规则，只存在于开发者脑子里，代码里没有任何东西强制它。每加一个布尔，你要手动维护的不变量就翻一倍。**
+共同点是：事件处理器需要“此刻最新值”，但这个内部值不一定需要驱动渲染。
 
-⭐ **换成枚举之后，一个变量只能持有一个值 —— 非法组合在类型层面就不存在。这不是代码风格问题，是把运行时 bug 变成了编译期错误。**
+---
 
-> **一个值得讲的取舍**：`Listening` 和 `Done` 其实都是「等下一个问题」，区别只在屏幕上有没有上一条答案。理论上可以合成一个状态加一个标志。**分开之后，界面按状态渲染的代码可以一一对应，不用在分支里再判断有没有答案 —— 多一个状态，换掉一个条件判断。**
+# 第三层：停止面试后迟到的响应
 
-## 八、守卫：重叠是怎么来的，怎么挡的
+流结束时，代码只在状态仍是 `Generating` 时改为 `Done`：
 
-**重叠来自两条互不知情的路径：**
-
-```
-路径 A：面试官说完话，静默 2 秒 → 自动提交
-路径 B：用户觉得答案不够，手动点「要答案」→ 提交
-```
-
-**而且 A 自己也会连续触发** —— 面试官说完停两秒（触发一次），又补一句再停两秒（又一次），**第一条还在生成，第二条就来了**。
-
-```js
-const submitQuestion = useCallback(async () => {
-  if (statusRef.current === CopilotStatus.Generating) {
-    return;                    // ← 直接返回，不排队、不取消
-  }
-  ...
-}, []);
+```ts
+setStatus((previous) =>
+  previous === CopilotStatus.Generating
+    ? CopilotStatus.Done
+    : previous,
+);
 ```
 
-### ⭐ 为什么必须用 `statusRef` 而不是 `status`
+这样用户已经停止并回到 `Ready` 后，迟到的完成回调不会把界面重新改成 Done。
 
-**`useCallback` 干的事**是把一个函数「记住」，避免每次渲染都造一个新的。第二个参数是**依赖数组** —— 数组里的东西变了才重新造。
+⚠️ 但它只挡住最终状态写入，没有阻止流循环继续向消息内容追加 token。更好的实现：
 
-**这里依赖数组是空的 `[]`**，意思是「**这个函数只在首次渲染时创建一次，之后永远是同一个**」。
+- 使用 `AbortController` 真正取消底层生成；或
+- 给每次请求分配 version，循环中发现自己不是最新请求就停止写入。
 
-⭐ **问题就在这**：函数被创建的那一刻 `status` 是 `Ready`，**函数把那一刻的 `Ready` 记在了自己身上**（JavaScript 里这叫**闭包捕获**，closure capture）。之后 `status` 变成 `Generating`，**这个函数里读到的还是 `Ready`** —— 守卫永远不命中。
+这还能节省用户停止后的模型 token 成本。
 
-```js
-const statusRef = useRef(status);
-statusRef.current = status;      // 每次渲染都把最新值放进盒子
-```
+---
 
-**ref 是一个固定的盒子**，函数记住的是「这个盒子」，而读 `.current` 时拿到的是**盒子里当前装的东西**。
+# 当前实现要主动承认的五个缺口
 
-> ⭐ **和 [① 转录合并](/docs?section=beyz&item=realtime-copilot) 里那个 ref 是同一类问题，但成因不同：**
-> - **那里**：WebSocket 回调触发得比 React 重新渲染快，用 state 会读到上一次渲染的值
-> - **这里**：函数只创建一次，闭包永远停在初始值
->
-> **两个场景指向同一句话：需要读「此刻最新的值」时，用 ref，不用 state。** 把这两个例子并起来讲，说明你是真理解 React 闭包，不是背了条规则。
+1. **临时 key 签发接口没有按用户限流。** TTL 不能代替 rate limiting。
+2. **KeepAlive 的 10 秒间隔几乎没有安全余量。** 应更短并配合自动重连。
+3. **Token usage 没有真正驱动套餐配额。** 实际配额按问题条数，且付费条数限制主要在前端。
+4. **丢弃的是提交触发，不一定丢掉 transcript 内容。** 新内容可能和下一段合并。
+5. **用户停止后，迟到的流仍可能继续写内容。** 应使用 AbortController 或请求版本。
 
-**顺带**：那行赋值是在**渲染过程中直接执行**的，不是放在 `useEffect` 里 —— 渲染时同步写入，下一次事件回调读到的一定是最新的；**放进 `useEffect` 反而会晚一拍。**
+---
 
-## 九、为什么是「丢弃」而不是排队或取消
+# 30 秒主回答
 
-**这一问是这条 bullet 的题眼，简历里 `drops` 那个词就是为它准备的。**
+> Because the browser connected directly to Deepgram, I never exposed the long-lived credential. The backend minted a 60-second key scoped only to `usage:write`, behind a server-side plan gate, and the browser used it only for the handshake. While audio was paused, keep-alive messages preserved the existing socket. After each GPT generation, I logged provider-reported input and output tokens separately. Automatic utterance events and manual requests could overlap, so a ref-backed four-state machine dropped a new trigger while generation was active. The main limitations were missing mint-endpoint rate limiting, an overly tight keep-alive interval, and question-count quota enforcement that should have lived fully on the server.
 
-| 策略 | 在这个场景下会怎样 |
-|---|---|
-| **排队** | 面试官已经问了第二个问题，你还在生成第一个的答案。**用户看到的是一个已经过时的问题的答案** |
-| **取消上一个，改做新的** | 第一条生成到一半被打断。**如果第二次触发只是用户手抖或一句无意义的补充，就把一个本来有用的答案毁了** |
-| ⭐ **丢弃新的** | 保住正在生成的那条，新的这次不做 |
+---
 
-⭐ **核心理由：面试是实时的，过期的答案没有价值。**
+# 最后自测：先答这六题
 
-### ⚠️ 但「丢弃」丢的是动作，不是内容
+1. 为什么浏览器不能持有长期 Deepgram key？
+2. 60 秒 key 如何限制风险？谁能调用签发接口？
+3. Key 过期为什么不会让现有 socket 断开？
+4. KeepAlive 保活的到底是 key 还是连接？
+5. Token usage 和真实 quota enforcement 分别做到了什么？
+6. 四态机为什么选择丢弃重叠 generation？
 
-**这是最常被追问、也最容易答错的一处。**
+---
 
-```js
-if (statusRef.current === Generating) return;   // ← 守卫在前
-...
-resetTranscript();                               // ← 清空暂存区在后
-```
-
-⭐ **被丢弃的那次触发，在清空暂存区之前就返回了 —— 所以那句话的文字还留在暂存区里，会和后面的话攒在一起，等生成完之后一起发出去。**（完整时间线在 [① 实时面试 copilot](/docs?section=beyz&item=realtime-copilot) 第七节。）
-
-## 十、取消之后才到达的响应
-
-**这一问看着像在问 `AbortController`（用来取消进行中请求的浏览器 API）。代码里没有它 —— 但有一个更轻的处理，而且位置很准。**
-
-```js
-setStatus((prev) => prev === CopilotStatus.Generating ? CopilotStatus.Done : prev);
-```
-
-**`setStatus` 可以传一个函数**，React 会把当前值传给它，用返回值作为新值 —— **这样你能在设置之前先看一眼现在是什么。**
-
-**它在防什么：**
-
-```
-t0  提交问题 → 状态变成 Generating，开始接收答案
-t1  用户点了「停止面试」→ 状态变成 Ready
-t2  答案的流终于结束了
-```
-
-**如果 t2 无条件写 `Done`**：用户明明已经停止了面试，**界面却自己跳回「已生成」状态**。加了 `prev === Generating` 这个检查之后，t2 时 `prev` 已经是 `Ready`，**迟到的响应写不进去，用户的意图被保住了。**
-
-⭐ **这是「迟到的异步响应」的标准处理方式：不阻止它到达，而是让它到达之后写不进去。判据是「我离开的时候，状态还是不是我离开时那个」。**
-
-### ⚠️ 但它只挡住了状态，没挡住内容
-
-```js
-for await (const delta of readStreamableValue(suggestion)) {
-  suggestionContent += delta;
-  startTransition(() => setMessages(...));   // ← 还在往屏幕上写字
-}
-```
-
-**用户点了停止之后，这个循环还在跑，字还在往屏幕上出。只有最后那一次状态设置被挡住了。**
-
-| 该怎么补 | 说明 |
-|---|---|
-| **`AbortController`** | 把取消信号传给请求，用户停止时 `abort()`，**从源头掐掉这个流**，顺带省掉后续的 token 费用 |
-| **请求版本号** | 每次提交把一个数字加一，循环体里检查「我这次的编号还是最新的吗」，不是就 `break`。**改动小，不依赖底层支持** |
-
-> **主动交代这个缺口，比含糊说「我们用了 AbortController」强得多** —— 后者一查代码就露馅。
-
-## 十一、并发下会重复扣减吗（预期追问）
-
-**问题本身**（这类叫**竞态条件**，race condition）：两个请求同时到达，各自读到「还剩 5 次」，各自扣一次写回「还剩 4 次」—— **扣了两次，只少了一次**。
-
-**现在不会发生**，因为配额判定是**读当前消息条数**（一个绝对值），不是「余额减一」这种增量操作。⭐ **读绝对值天然幂等：同一条消息不会因为判定跑了两次就被算成两条。**
-
-**什么时候会变成问题**：如果改成预付费额度（买 500 次，用一次扣一次），那就变成了增量写。**那时候的正确做法是：**
-
-```sql
-UPDATE quota SET remaining = remaining - 1
-WHERE user_id = ? AND remaining > 0;
-```
-
-⭐ **把「余额必须大于 0」这个条件写进 SQL 的 WHERE 里，靠「这条语句影响了几行」判断成功与否 —— 而不是先查再写。因为数据库执行单条 UPDATE 是原子的，两个并发请求只有一个能让条件成立。**
-
-> **这条能和 [③ Stripe 的终身档保护](/docs?section=beyz&item=stripe-billing)、[百度提现的余额约束](/docs?section=baidu&item=withdrawal) 串成一句话：把不变量放在数据层，而不是应用层的判断里。** 应用层的判断会因为并发、重启、多实例失效，**数据库的约束不会。**
-
-## 十二、本篇术语英文对照
-
-⭐ **只列「中文想得出、英文卡壳」的。API 名和 `usage:write` 这类字面量不列。**
+## 术语速查
 
 | 中文 | 英文 |
 |---|---|
-| 凭证 / 密钥 | credential · key（长期的叫 **long-lived key**） |
-| 临时凭证 | **ephemeral credential** |
-| 签发 / 铸一把钥匙 | **mint**（*mint a short-lived key*） |
-| 有效期 | **TTL（time to live）** |
-| 权限范围 | **scope** |
-| 作废 / 吊销 | **revoke · revocation** |
-| 套餐门禁 | **plan gate**（*behind a plan gate*） |
-| 认证 ↔ 授权 | **authentication ↔ authorization** |
-| 最小权限原则 | **principle of least privilege** |
-| 爆炸半径 | **blast radius** |
-| 提权 | **privilege escalation** |
-| 限流 | **rate limiting** |
-| 握手窗口 | handshake window |
-| 空闲超时 | **idle timeout** |
-| 心跳 / 保活 | **heartbeat · keep-alive** |
-| 余量 | **headroom / margin**（*zero margin*） |
-| 定时器节流 | timer throttling |
-| 用量 / 配额 | **usage · quota** |
-| 落库 / 记一条 | log · record（*logged per-request token usage*） |
-| 状态机 | **state machine**（*a four-state machine*） |
-| 状态转移 | **transition** |
-| 守卫 | **guard**（*the guard returns early*） |
-| 丢弃（重叠的生成） | **drop** |
-| 闭包捕获 | **closure capture** |
-| 陈旧值 | **stale value** |
-| 迟到的响应 | **late-arriving response** |
-| 竞态条件 | **race condition** |
-| 唯一索引 | **unique index / unique constraint** |
-| 绝对值写入 ↔ 增量写入 | absolute write ↔ **incremental write** |
-
-> ⭐ **三个最容易说错的**：
->
-> 1. 「签发一把临时密钥」用 **mint**，简历上就是这个词；说 `generate` 不算错但弱
-> 2. 「凭证不落进浏览器」说 **kept the credential out of the browser**，不要说 `didn't put`
-> 3. 「余量为零」是 **zero margin / no headroom** —— 讲 10 秒心跳那个批评时要用它
+| 长期凭据 | long-lived credential |
+| 临时凭据 | ephemeral / short-lived credential |
+| 签发 | mint |
+| 有效期 | TTL / time to live |
+| 权限范围 | scope |
+| 最小权限 | principle of least privilege |
+| 影响范围 | blast radius |
+| 套餐门禁 | plan gate |
+| 限流 | rate limiting |
+| 空闲超时 | idle timeout |
+| 心跳 / 保活 | heartbeat / keep-alive |
+| 用量 / 配额 | usage / quota |
+| 状态机 | state machine |
+| 守卫 | guard |
+| 陈旧闭包 | stale closure |
+| 迟到的响应 | late-arriving response |

@@ -13,491 +13,290 @@ status: done
 > **简历原句**
 >
 > Built the real-time interview copilot end to end: tab and system audio captured through **getDisplayMedia**, streamed over a **WebSocket** to Deepgram's live recognizer, with **interim and finalized transcripts reconciled in the client** and **utterance-end events** triggering GPT-4o answers **streamed back token by token**.
->
-> ---
->
-> 端到端实现实时面试 copilot：用 getDisplayMedia 捕获标签页与系统音频，经 WebSocket 推流到 Deepgram 的实时识别器；在客户端把临时转写与最终转写合并成一份文本，并由「一句话说完」事件触发 GPT-4o，答案逐 token 流式返回。
 
-## 这东西到底是什么
+## 先看懂产品，再看 API
 
-求职者在线上面试，面试官问了个他一下答不上来的问题。这个产品**实时听会议软件里传出来的声音** —— 注意，**听的是面试官，不是用户自己的麦克风** —— 边听边转成文字；等面试官这一句说完，把问题发给 GPT-4o，几百毫秒后开始一个字一个字把参考答案打在屏幕上。**全程不需要点任何按钮。**
+它做的事情是：捕获会议软件中**面试官的声音**，实时转成文字；判断面试官问完一句后，把问题交给 GPT-4o，并把答案逐步显示出来。
 
-难点全部集中在「实时」两个字上。**如果等对方说完一整段再一次性处理，答案出来的时候面试早就尴尬过去了。** 所以整条链路上**每一段都不许攒批**：音频每 250 毫秒送一次、文字边说边出、靠两秒静默判断「他说完了」、答案也是流式吐出来的。
-
-> **一句话概括这条 bullet 的技术含量**：它不是「调了个语音 API 加一个 GPT API」，而是**在一条谁都可能变成批处理的链路上，把每一段都改造成了流式，并且处理了流式带来的所有麻烦**。下面讲的每一个设计，都是这句话的展开。
-
-## 30 秒口播稿（背下来能直接讲）
-
-> 这是一个实时面试辅助工具。它抓的是**标签页和系统音频**，也就是会议软件里面试官的声音，不是用户的麦克风 —— 方向很关键。音频在浏览器里**每 250 毫秒切一块，直接发给 Deepgram 做实时转写**，服务端全程不碰音频。
->
-> 转写回来的东西分两种：**会被覆盖的临时猜测**和**不会再变的定稿**。这两种更新规则相反，所以客户端把状态**拆成两段**来合并，屏幕上才不会出现重复的字。
->
-> 触发时机上有个坑：**定稿不等于这个人说完了** —— 一句长话中间换气就会切出好几个定稿。所以真正的触发信号是 Deepgram 的**静默两秒事件**。触发后调我们自己的服务器，GPT-4o 的答案**逐 token 流回来**。
->
-> 结果是：**面试官说完，一两秒内屏幕开始出字。**
-
-## 一、整条链路长什么样
-
-```
-浏览器 ──音频（每 250ms 一块）──→ Deepgram        ← 服务端完全不参与
-浏览器 ←──文字（临时 + 定稿）───── Deepgram
-
-浏览器 ──问题文本──→ 我们的服务器 ──→ GPT-4o      ← 只有这一段走服务端
-浏览器 ←──答案（一个字一个字）── 我们的服务器
+```text
+面试官的标签页 / 系统音频
+  → 浏览器 getDisplayMedia
+  → MediaRecorder 每 250ms 产生音频块
+  → WebSocket 发送到 Deepgram
+  → 客户端合并 interim 和 final transcript
+  → UtteranceEnd 判断一轮说话结束
+  → server action 调 GPT-4o
+  → 答案 token by token 返回前端
 ```
 
-**注意音频从来不经过我们自己的服务器。** 这省掉了一整跳的延迟，也省掉了「服务器要为每个在线用户长期扛一条音频流」的带宽成本。
+这条 bullet 的重点不是「接了两个 API」，而是**把采集、转写、断句和生成整条链路都做成流式，并正确处理流式状态。**
 
-⭐ **代价是：浏览器必须自己持有 Deepgram 的密钥 —— 而浏览器里藏不住任何秘密。** 这个代价直接催生了第二条 bullet 的全部内容（[② 凭证、配额与四态机](/docs?section=beyz&item=credential-quota)）。**能把这两条 bullet 用这句话串起来，比分开讲各自的技术点强得多。**
+---
 
-## 二、采集：为什么是屏幕共享而不是麦克风
+# 第一层：必须答明白的六个问题
 
-```js
-navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
-```
+## 1. 为什么用 `getDisplayMedia`，不用麦克风？
 
-浏览器里拿声音有两个接口（**屏幕共享** = screen sharing / display capture），**方向完全相反**：
+浏览器有两条不同的采集路径：
 
-| 接口 | 拿到的是 |
+| API | 采集什么 |
 |---|---|
-| **`getUserMedia`** | **麦克风**收到的声音 —— 也就是**你自己**在说话 |
-| ⭐ **`getDisplayMedia`** | **另一个标签页 / 整个系统**播放出来的声音 |
-
-面试官的声音是从 Zoom / Teams 里**播放出来的**，属于另一个应用的音频输出。**麦克风只能收到房间里的空气振动，你自己说话它听得最清楚 —— 而那正好是我们唯一不需要的东西。**
-
-> **一个能加分的细节**：项目里 `getUserMedia` 那条路（听自己的模式）开了**回声消除**和**降噪**，`getDisplayMedia` 这条路没开。**因为后者拿到的是系统内部直接给的数字信号，没经过空气** —— 不存在扬声器的声音被麦克风又录回去的问题，信噪比也高得多。
-
-### 为什么必须写 `video: true`
-
-写 `{ video: false, audio: true }` 会**直接抛错**。规范规定这个接口**必须至少请求一条画面轨**，音频只是挂在画面上的可选附加项。
-
-**为什么规范要这么定？因为音频没有可视化的授权载体。**
-
-用户点「共享」时，浏览器弹出的那个窗口里展示的是**一个个窗口和标签页的缩略图** —— **用户是在选一个画面**。「同时分享音频」是挂在这个画面上的一个勾选框。
-
-⭐ **如果允许只要音频不要画面，那个弹窗要怎么画？「请选择一个你要被窃听的应用」—— 用户没有任何视觉锚点来判断自己到底授权了什么。**
-
-> **答法**：`getDisplayMedia` 的授权模型是围绕「一个可见的画面」建立的，音频是挂在画面上的附属权限。**没有画面，就没有东西能让用户确认自己在共享什么。**
-
-### 拿到之后立刻把画面关掉
-
-```js
-const videoTrack = stream.getVideoTracks()[0];
-if (videoTrack) {
-  videoTrack.stop();              // ① 真正停止采集
-  stream.removeTrack(videoTrack); // ② 从这个流对象里摘掉
-}
-```
-
-**这两个调用是两件事，都得做：**
-
-| 调用 | 不做会怎样 |
-|---|---|
-| **`stop()`** | 浏览器**还在持续编码屏幕画面**，CPU 和内存一直在烧 |
-| **`removeTrack()`** | 后面的录音器还能看到这条轨，**会把视频也一起录进去发给 Deepgram** |
-
-> ⚠️ **只 `removeTrack` 不 `stop` 是很常见的漏** —— 流里看不见它了，但采集还在跑。
-
-最值得讲的理由是**隐私**：我们一帧画面都不用，**拿到了不需要的权限就立刻交还，这是最小权限原则在客户端的体现**。
-
-## 三、切片：250 毫秒是「流式」和「批式」的开关
-
-```js
-new MediaRecorder(mediaStream).start(250)
-```
-
-`MediaRecorder` 是浏览器内置的录音器。`start(250)` 的意思是：**每隔 250 毫秒，把这段时间录到的音频打包成一块交给你。**
-
-⭐ **不传这个参数会怎样：它会一直录，直到你调 `stop()` 才一次性把全部数据给你。**
-
-> **说英文时**：「流式」是 **streaming**，「批式」是 **batch**；「把音频切成小块」用 **chunk** 这个词 —— `MediaRecorder emits a chunk every 250 ms`。 对实时转写来说等于完全没有流。**所以这一个参数就是流式和批式的开关** —— 这句话本身就是个很好的答题点。
-
-**为什么是 250：**
-
-| | 太小（50ms） | 太大（1000ms） |
-|---|---|---|
-| **延迟** | 音频更快到达 | ❌ **每块音频天然自带最多 1 秒延迟**（要攒满才发） |
-| **开销** | ❌ 每秒 20 次发送，**每个包的固定开销占比上升** | 低 |
-| **体验** | — | ❌ 屏幕上的字一顿一顿地出 |
-
-250 毫秒把切片延迟压在了感知不到的量级，**而这是整条链路里唯一一个你能自由选择的延迟项**（识别耗时和模型生成耗时你都控制不了）；每秒 4 个包对 WebSocket 是很轻松的频率；**并且它比「判断说完了」的 2 秒窗口小 8 倍，切片粒度远小于静默判定的粒度，两者不会互相干扰。**
-
-> **诚实的基线**：250 也是 Deepgram 官方示例里的默认值。**「是默认值」和「它合理」并不冲突** —— 面试官想听的是你能不能讲清它为什么合理。
-
-### 发送前的那个空包检查
-
-```js
-if (e.data.size > 0) connection.send(e.data);
-```
-
-**这个检查是必须的**：录音器在启动瞬间可能吐出一个空块，而 ⭐ **Deepgram 收到 0 字节的包会认为「客户端结束了」，直接把连接关掉。**
-
-## 四、传输：为什么是 WebSocket
-
-先看清需求 —— **两个方向都是持续的、高频的、时机不确定的**：
-
-```
-浏览器 ──每 250ms 一块音频，持续几十分钟──→ Deepgram      上行
-浏览器 ←──识别结果，什么时候来不确定────── Deepgram      下行
-```
-
-**SSE 出局。** SSE（Server-Sent Events）是浏览器发一个普通 HTTP 请求、服务端不关闭响应而是持续往里写数据 —— 它**只能服务端往客户端推**。而这里音频必须**持续上行**。用 SSE 的话上行还得另开一条 HTTP 通道，**等于用两套机制维护一个逻辑上的单一数据流**。
-
-**轮询（polling）出局。** 两个理由：上行做不了流 —— 每 250 毫秒发一个 HTTP 请求，**每次都要带完整的 HTTP header（常常上 KB），而一块音频才几 KB，协议开销和数据本身一个量级**；下行拿不到实时性 —— 识别结果什么时候出来不确定，**间隔短就是空转，间隔长就是延迟，而临时结果的全部价值恰恰在于「立刻」**。
-
-**WebSocket 留下。** 一次**握手（handshake）**之后两边随时发，**每条消息只有 2–14 字节的帧头（frame header）**。
-
-### 那 WebRTC 呢（这一问八成会来）
-
-因为实时音频的「标准答案」往往是 WebRTC。
-
-| | 为什么存在 |
-|---|---|
-| **WebRTC** | 为**人对人通话**优化：走 UDP、**允许丢包**换极低延迟、内建回声消除和抖动缓冲 |
-| **WebSocket** | 把数据**可靠地**送到对端：走 TCP、不丢包、保证顺序 |
-
-⭐ **这里选 WebSocket 是对的：我们的目标是转写不是通话 —— 一个丢失的音频包等于一段听不见的话，等于一段错的转写。可靠性优先于极致低延迟。** 在 250 毫秒的延迟预算下，TCP 偶尔重传的代价完全可以接受。
-
-> **还有一个有意的顺序**：代码里**先确认 socket 打开了，才启动录音器**。反过来的话，麦克风在连接建立之前就开始吐音频块，**那些块无处可发只能丢掉 —— 开头几百毫秒的话就没了。**
-
-## 五、转录合并：为什么屏幕上不会出现重复的字
-
-**这是整条链路里最需要想清楚的一段。**
-
-开了 `interim_results: true` 之后，Deepgram **不是等你说完才给结果，而是一边听一边不停地推**。推来的消息分两种：
-
-| 类型 | 标志 | 含义 |
-|---|---|---|
-| **interim**（临时结果） | `is_final: false` | 「我现在**猜**你说的是这个」—— **后面还会推新的把它覆盖掉** |
-| **final**（定稿 / 最终结果） | `is_final: true` | 「**这一小段录音我处理完了**，这几个字不会再改」 |
-
-### 天真做法为什么会炸
-
-最直觉的写法是「来一条就接在后面」：
-
-```js
-transcript += 新推来的内容      // ❌
-```
-
-结果屏幕上是：`what what's your what's your big ...`
-
-⭐ **因为 interim 每次推来的不是「新增的几个字」，而是「这一段从开头到现在」的完整猜测。**
-
-```
-第 1 条 interim：「你遇到过」
-第 2 条 interim：「你遇到过难搞的」     ← 不是「难搞的」，是整段重推
-```
-
-**第 2 条要把第 1 条盖掉，不是接在后面。**
-
-### 实际做法：把状态劈成两半
-
-**能劈成两半，是因为推来的东西天然就是两种性质：**
-
-| | 性质 | 所以 |
-|---|---|---|
-| 已经收到的所有 **final** | **定稿了，永远不会再变** | 可以放心累积 |
-| 当前这一段的 **interim** | **是个会被覆盖的猜测** | 只能整段替换 |
-
-**两者的更新规则完全相反，所以必须分开存。**
-
-```js
-const onTranscript = (data) => {
-  const transcript = data.channel.alternatives[0]?.transcript;   // 这次推来的内容
-  if (!transcript) return;
-
-  const joined = clsx(confirmedTranscriptRef.current, transcript);
-  //             ↑ 把「已确认的部分」和「这次推来的这一段」拼成一个字符串
-  setTranscript(joined);                     // 屏幕上显示这个拼好的结果
-
-  if (data.is_final) {
-    confirmedTranscriptRef.current = joined; // ⭐ 只有定稿时，才把它变成新的「已确认」
-  }
-};
-```
-
-| 名字 | 存什么 | 什么时候变 |
-|---|---|---|
-| **已确认**（`confirmedTranscriptRef`） | 到目前为止**所有 final 拼起来**的那串字 | ⭐ **只在收到 final 时** |
-| **屏幕**（`transcript`） | 已确认 **+ 这次推来的这一段** | **每条消息都重算** |
-
-> **`clsx` 是什么**：它本来是个拼 CSS class 名的小工具，`clsx("a", "b")` 得到 `"a b"`。它有两个行为正好在这里用得上：**跳过空值**（已确认为空时不会拼出一个前导空格）、**用空格连接**（两段话之间自动有空格）。
->
-> ⚠️ **用一个 className 工具做字符串拼接算取巧**，被问到坦率说 —— **`[a, b].filter(Boolean).join(" ")` 更直白**，当时是顺手用了项目里已有的依赖。
-
-### 完整走一遍
-
-面试官说：「**那你说说，你遇到过难搞的同事吗**」
-
-| # | 推来 | 类型 | **已确认**变成 | **屏幕** = 已确认 + 这次推来的 |
-|---|---|---|---|---|
-| 1 | `那` | interim | `（空）` | `那` |
-| 2 | `那你说` | interim | `（空）` | `那你说` |
-| 3 | `那你说说` | **final** | **`那你说说`** | `那你说说` |
-| 4 | `你遇到过` | interim | `那你说说` | `那你说说 你遇到过` |
-| 5 | `你遇到过难搞的` | interim | `那你说说` ← **没动** | `那你说说 你遇到过难搞的` |
-| 6 | `你遇到过难搞的` | **final** | **`那你说说 你遇到过难搞的`** | 同左 |
-| 7 | `同事吗` | interim | 没动 | `那你说说 你遇到过难搞的 同事吗` |
-| 8 | `同事吗` | **final** | **`那你说说 你遇到过难搞的 同事吗`** | 同左 |
-
-⭐ **看第 4、5 步**：推来 `你遇到过`，再推来 `你遇到过难搞的`，**后者替换了前者**（因为屏幕每次都用「已确认 + 这次推来的」重算），**而已确认那部分从头到尾没动过。**
-
-> ⭐ **一句话**：**临时结果永远是「贴在已确认后面」，不是「累积进已确认」。替换 + 追加，重复就不可能发生。**
-
-### 为什么「已确认」用 ref 不用 state
-
-| | 改了之后 | 读的时候 |
-|---|---|---|
-| **state** | 触发重新渲染 | ⚠️ **读到的是「上一次渲染时」的值** |
-| **ref** | 不触发重新渲染 | ✅ **读到的永远是最新值** |
-
-`onTranscript` 是 WebSocket 的回调，**一秒可能触发好几次**。用 state 的话：
-
-```
-第 1 条消息到达 → setConfirmed("那你说说")   → React 排队，还没重新渲染
-第 2 条消息到达 → 读 confirmed → 读到的还是 ""   ← ❌ 丢字
-```
-
-⭐ **消息来得比 React 重新渲染快，用 state 就会读到旧值。** ref 的 `.current` 是立即可见的。另外「已确认」本身不需要显示在屏幕上，**它变化时也没必要触发重渲染**。
-
-## 六、触发时机：定稿 ≠ 这个人说完了
-
-**这是这条 bullet 里最容易被问穿、也最容易讲出彩的一点。**
-
-final 的意思是「**这一段音频**我处理完了」，而 Deepgram 是**按说话中的停顿**切段的 —— 人说长句子会换气、会想词，**每个明显的停顿都可能切出一个 final**。
-
-```
-面试官说：「那你说说，你遇到过难搞的同事吗」
-
-t=1.5s   final「那你说说」          ← 他换了口气
-t=3.0s   final「你遇到过难搞的」     ← 又停了一下
-t=4.0s   final「同事吗」            ← 真的说完了
-```
-
-⭐ **一个问题，三个 final。** 如果每收到一个 final 就发一次：**三次调用、三倍成本**，前两次的答案在屏幕上闪一下就被覆盖，**还各自往数据库写了一条记录污染历史**。
-
-### 正确的信号是静默
-
-`utterance_end_ms: 2000` 是**另一个独立的信号**：Deepgram 盯着静默，**连续 2 秒没人说话**才发一个 `UtteranceEnd` 事件。
-
-| | 判断的是 | 依据 |
-|---|---|---|
-| **final** | 这**一段录音**处理完了 | 声学上的停顿（可能只有零点几秒） |
-| ⭐ **UtteranceEnd** | 这**个人**说完了 | 连续 2 秒静默 |
-
-> ⭐ **答法**：`is_final` 说的是「这一段音频定稿了」，不是「这个人说完了」。`utterance_end_ms` 干的事情是**把「转写的分段」和「对话的轮次」分开** —— **前者是声学问题，后者是对话问题。**
-
-**2000 这个值的取舍**：太短（500ms）会把句中换气当成说完，**提交半截问题**；太长（4000ms）**延迟直接吃掉四秒**。2 秒大致对应自然对话里一个明显的停顿 —— 比句中换气长，比尴尬沉默短。**面试场景还有个特殊性：面试官问完通常会真的停下来等你回答，所以 2 秒是个可靠信号。换成会议纪要那种多人交叉说话的场景，这个值就得重调。**
-
-## 七、上一个答案还在生成时，面试官又说话了
-
-**这是这套设计最常被追问的地方。**
-
-```js
-const submitQuestion = async () => {
-  if (statusRef.current === Generating) return;   // ← 守卫在前
-  ...
-  resetTranscript();                               // ← 清空暂存区在后
-  setStatus(Generating);
-```
-
-**先建立一个模型**：识别出来的字都往一个**暂存区（buffer）**里放；每次检测到「说完了」，系统做一个决定 —— **发，还是不发**。
-
-⭐ **「发出去」和「清空暂存区」是绑在一起的一个动作。不发，就也不清空。**
-
-**注意上面那两行的顺序**：如果上一个答案还在生成，函数在 `resetTranscript()` **之前**就返回了 —— **所以暂存区没被清空，字还在。**
-
-**三句话的完整时间线：**
-
-```
-第一句「你最大的弱点是什么」
-  → 暂存区：「你最大的弱点是什么」
-  → 停 2 秒 → 决定：发 → 暂存区清空，开始出答案
-
-第二句「可以举个例子吗」        ← 答案还在生成中
-  → 识别没停，暂存区：「可以举个例子吗」
-  → 停 2 秒 → 决定：不发（还在生成）
-  → 暂存区保持：「可以举个例子吗」    ← ⭐ 字还在
-
-第三句「比如上一份工作里的」
-  → 暂存区：「可以举个例子吗 比如上一份工作里的」   ← 接着攒
-  → 停 2 秒，这时答案生成完了 → 决定：发
-  → 两句一起发出去
-```
-
-⭐ **所以第二句没有丢，它只是等到第三句一起被发出去了。不发的那一次，丢掉的是「再问一次」这个动作，不是那句话的内容。**
-
-**这样好不好，分场景 —— 主动讲出这个分场景比只说「设计如此」强很多：**
-
-| 场景 | 结果 |
-|---|---|
-| 面试官在**补充说明**（「可以举个例子吗」） | ✅ **合并是对的**，本来就该连起来理解 |
-| 面试官连着问**两个不相干的问题** | ⚠️ **合并就不对了**，模型会被搞混 |
-| 第一个答案**特别长** | ⚠️ 会一直攒，最后提交一大段 |
-
-> **更好的方向**：把「转写的分段」和「对话的轮次」再分开一层 —— **生成期间的新一轮单独入队，而不是拼进当前暂存区**，生成完之后由用户决定是追加还是新开一轮。
-
-## 八、生成与渲染
-
-这一步是**唯一走我们自己服务器**的一段：
-
-```js
-if (subscribedPlan === Free) throw new Error("Unauthorized");   // 免费用户在服务端拦掉
-const recentHistory = history.slice(-4);                         // 只带最近 4 条上下文
-const { textStream } = await streamText({ model: openai("gpt-4o"), ... });
-for await (const text of textStream) stream.update(text);        // 模型吐一块就往前端推一块
-```
-
-**只带最近 4 条历史**：省 token，也省**首字时间（time to first token，TTFT）** —— **提示词越短，模型第一个字出来越快**。**代价是二十分钟前的上下文丢了**，面试官问「你刚才提到的那个项目」，模型看不到。
-
-前端这边：
-
-```js
-for await (const delta of readStreamableValue(suggestion)) {
-  suggestionContent += delta;
-  startTransition(() => setMessages(...));
-}
-```
-
-**`startTransition` 是干嘛的**：模型的字一个一个回来，每秒几十个，**每个都触发一次界面更新就是每秒几十次重新渲染**。`startTransition` 告诉 React「**这个更新不着急，可以被打断**」—— React 会把它们合并，并且在用户点击这类更急的事情发生时优先处理那个。
-
-> **不加会怎样**：答案越长，每次重渲染越贵，**到后面输入框会开始卡 —— 因为渲染答案在和用户交互抢主线程（main thread）。**
-
-**顺带一个能挡住追问的点**：「流式回答怎么保证顺序？」—— **服务端和客户端两边都是 `for await` 逐个消费一个有序序列，前一块处理完才轮到下一块，这里根本不存在并发。** 真正的并发被四态机挡掉了（见 [② 凭证、配额与四态机](/docs?section=beyz&item=credential-quota)）。
-
-## 九、延迟：先问口径，再承认没埋点
-
-**「端到端」的起点有两种合理选法，选不同答案完全不同：**
-
-| 口径 | 从哪到哪 | 量的是 |
-|---|---|---|
-| **A** | 面试官**说完最后一个字** → 屏幕出现**第一个字** | **用户真实的等待**（含 2 秒静默窗口） |
-| **B** | **`UtteranceEnd` 事件到达** → 首个字 | **系统内部处理耗时** |
-
-⭐ **A 和 B 之间天然隔着 2000 毫秒。所以报「1.5 秒」和报「3.5 秒」说的是同一个系统。** 被问「你们延迟多少」，**先问清是哪个口径**。
-
-**整条链路里只有两段是大头，而且性质完全不同：**
-
-| 段 | 量级 | 性质 |
-|---|---|---|
-| **静默窗口** | **2000 ms** | ⭐ **产品决策** —— 缩短它等于拿准确性换延迟 |
-| **模型首字时间** | **几百 ms ~ 1s+** | ⭐ **模型/成本决策** —— 换模型、砍提示词、减历史都能压，换的是答案质量 |
-
-其余各段（事件下行、服务端往返、认证组装、界面更新）都在几毫秒到几十毫秒。**两个大头都不在「代码写得慢」上 —— 能讲出这一点，这一问就答满了。**
-
-### ⚠️ 全仓库没有一行在记时间
-
-**「埋点」（instrumentation）就是在代码里打时间戳、把「这一步花了多久」记录并上报。这个项目一处都没有。**
-
-> **说英文时**：别把埋点说成 "burying points"。「我们没有埋延迟的点」说 **we had no latency instrumentation**；「打点上报」是 **emit / report a metric**；P95 读作 **the 95th percentile**。 生成结束的回调里只记了 token 用量，**没记耗时**。
-
-**所以能说的是「链路是流式的、每一段都不攒批」，说不出 P50 / P95。**
-
-> **答法**：「这条链路我能把每一段拆开讲，**但当时没有埋端到端延迟的点，所以我给不了 P95**，只能说体感是对方说完一两秒内开始出字。要真正回答这个问题，我会在四个位置打点：`UtteranceEnd` 到达、服务端返回、**第一个字到屏幕**（最关键）、整个答案吐完，上报 `首字延迟`、`网络+认证开销`、`模型首字时间` 三个区间。」
-
-**主动说没埋点、然后给出埋哪四个点，比含糊报一个编的数字强得多。**
-
-## 十、这条链路的短板（主动交代）
-
-**只会讲顺利路径的人，一追问就停。这两条自己先说出来。**
-
-### 断线没有自动重连
-
-```js
-newConnection.addListener(Close, () => {
-  setConnectionState(SOCKET_STATES.closed);   // 就这一行
+| `getUserMedia` | 用户麦克风，主要是求职者自己的声音 |
+| `getDisplayMedia` | 共享标签页或系统播放的音频，也就是面试官的声音 |
+
+产品需要听的是会议软件播放出来的远端声音，所以麦克风不是正确的数据源。
+
+```ts
+const stream = await navigator.mediaDevices.getDisplayMedia({
+  video: true,
+  audio: true,
 });
 ```
 
-**就这一行。** 状态改成「已断开」，然后所有事件监听被摘掉、保活心跳被清掉，**麦克风还在录，但音频已经没人接了，直接进虚空。没有重连、没有重试、没有给用户任何提示。**
+`getDisplayMedia` 的授权模型围绕共享一个可见画面建立，音频是附加轨，因此必须请求 video。项目拿到 stream 后立即停止并移除 video track，只保留音频：
 
-**该怎么补：**
-
-| 做法 | 说明 |
-|---|---|
-| **指数退避重连（exponential backoff）** | 1 秒 → 2 秒 → 4 秒 → 8 秒 → 封顶 30 秒，**再加一点随机抖动（jitter）**，避免很多客户端同时重连打爆服务端 |
-| **重连要重新铸凭证** | 那把临时钥匙只有 60 秒有效期，**不能复用** |
-| **断开期间的音频** | 三选一：丢掉（转写出现空洞）/ 本地缓冲重连后补发（要限上限）/ **暂停录制并明确提示「连接中断」**。**面试场景第三个最诚实** —— 与其给一段有空洞的转写让用户以为面试官没说话，不如明说断了 |
-| **区分主动停和意外断** | 现在两者走的是同一个关闭事件。要做重连就必须能分辨，**否则用户点了停止，代码还在勤勤恳恳地重连** |
-
-> **顺带一个真实的坑**：重连后已确认的转写不会丢（它存在 ref 里）。**但如果断在一句话说到一半，那半句会留着，和重连后的下半句拼成一句语义断裂的话。**
-
-### 没有做背压
-
-**背压（backpressure）指的是「生产的速度超过了消费的速度，数据在中间堆积」。** 这里生产者是录音器（每秒 4 块），消费者是 WebSocket 发送。
-
-```js
-if (e.data.size > 0) connection.send(e.data);   // 直接发，没检查缓冲区
+```ts
+for (const track of stream.getVideoTracks()) {
+  track.stop();
+  stream.removeTrack(track);
+}
 ```
 
-浏览器的 WebSocket 有个 `bufferedAmount` 属性，表示「已经调用 send 但还没真正发出去的字节数」（**发送缓冲区** = send buffer），**这里没看它**。正常网络下问题不大（每块几 KB、每秒 4 个），**但网络严重降级时会形成恶性循环**：缓冲堆积 → 发出去的音频越来越滞后 → 识别结果延迟越来越大 → **屏幕上的字比实际说话慢好几秒，用户会以为系统卡死了**。
+`stop()` 停止实际采集，`removeTrack()` 把轨道从 stream 移除。这既减少资源消耗，也符合最小权限原则。
 
-⭐ **正确做法是超过阈值就丢掉最旧的一块，而不是排队 —— 因为一段五秒前的音频现在才发过去，转写出来也已经没有价值了。「实时系统里，过期的数据不如没有数据。」**
+**一句话答法：**
 
-## 十一、九条失败分支（问到就能答上）
+> The interviewer’s voice was playing from another tab, so the microphone was the wrong source. I used `getDisplayMedia` to capture the shared tab audio, then immediately stopped and removed the video track because the product needed no screen frames.
 
-| # | 情况 | 处理 |
+---
+
+## 2. 音频如何实时送到 Deepgram？为什么是 WebSocket？
+
+`MediaRecorder.start(250)` 让浏览器大约每 250ms 产生一个音频 chunk：
+
+```ts
+const recorder = new MediaRecorder(stream);
+recorder.start(250);
+
+recorder.ondataavailable = ({ data }) => {
+  if (data.size > 0) connection.send(data);
+};
+```
+
+为什么 250ms？这是实际调出来的延迟与包数量折中：
+
+- 更小：包数和固定开销上升；
+- 更大：必须先攒满一块，转写首字延迟更明显；
+- 250ms 能稳定出字，同时连接压力很小。
+
+不要把它说成理论计算结果。
+
+WebSocket 适合这里，因为：
+
+- 浏览器持续上行音频；
+- Deepgram 持续下行识别结果；
+- 一次握手后双方都能随时发送；
+- 消息顺序和可靠交付适合语音转写。
+
+SSE 主要是服务端单向推送，不能独立解决持续音频上行；轮询会带来大量请求开销和额外延迟。
+
+**一句话答法：**
+
+> `MediaRecorder` emitted a non-empty audio chunk every 250 milliseconds, and the browser sent those chunks over one long-lived WebSocket because both audio upload and transcript delivery were continuous.
+
+---
+
+## 3. Interim 和 final transcript 有什么区别？
+
+Deepgram 会发送两类结果：
+
+| 类型 | 标志 | 更新规则 |
 |---|---|---|
-| 1 | **用户点了取消** | 抛 `NotAllowedError` → 走「用户拒绝」分支，**和真出错分开**（拒绝是正常选择，不该弹「出错了」） |
-| 2 | **选了屏幕但没勾「分享音频」** | 拿到的流里没有声音轨 → **显式检查并报错**。⭐ 这是这个接口**最常见的用户失误** —— 勾选框默认不勾 |
-| 3 | **空音频包** | `size > 0` 才发 —— **发 0 字节 Deepgram 会直接关连接** |
-| 4 | **Deepgram 连接断了** | ⚠️ 只改状态，**没有自动重连**（上一节） |
-| 5 | **麦克风暂停导致连接空闲** | 每 10 秒发一次心跳（见 [②](/docs?section=beyz&item=credential-quota)） |
-| 6 | **生成期间又说话** | 不发起第二次生成，**但字会攒着**，等生成完一起发 |
-| 7 | **提问次数用完** | **持续检查**，超限就停止面试并弹订阅框 —— 不是只在开始时查一次 |
-| 8 | **免费用户绕过界面直接调接口** | 服务端 `throw Unauthorized` —— **前端的拦截不算数** |
-| 9 | **一个字都没识别出来** | 空文本直接不提交 |
+| Interim | `is_final: false` | 当前片段的最新猜测，后续结果会重写它 |
+| Final | `is_final: true` | 当前片段已经定稿，可以追加到已确认文本 |
 
-## 十二、为什么不用其他方案（一张表收尾）
+最容易写错的是把所有消息直接追加：
 
-| 备选 | 为什么没用 |
+```ts
+transcript += incomingText; // 错
+```
+
+假设 interim 依次是：
+
+```text
+"what"
+"what is"
+"what is your"
+```
+
+它们不是新增词，而是当前片段的完整重写。直接追加会显示：
+
+```text
+what what is what is your
+```
+
+正确做法是把状态拆成：
+
+- `confirmedTranscript`：所有 final 的累计结果；
+- 当前 interim：只替换，不累计；
+- 屏幕显示：`confirmed + current`。
+
+```ts
+const displayed = [confirmedRef.current, incoming]
+  .filter(Boolean)
+  .join(' ');
+
+setTranscript(displayed);
+
+if (data.is_final) {
+  confirmedRef.current = displayed;
+}
+```
+
+使用 ref 是因为 WebSocket 回调可能在 React 下一次渲染前连续触发；这里需要同步读写最新累计值，而这个内部值本身不需要触发渲染。
+
+**一句话答法：**
+
+> Interim results are rewrites, not appends. I kept committed final text separately and rendered it together with only the latest interim segment, so revisions never duplicated words on screen.
+
+---
+
+## 4. 为什么不能收到 `is_final` 就立刻调用 GPT？
+
+`is_final` 只表示**这一小段音频定稿了**，不表示面试官完整问题已经说完。
+
+一句长问题可能因为换气产生多个 final：
+
+```text
+final: "Tell me about a time"
+final: "you handled a difficult stakeholder"
+final: "and what you learned"
+```
+
+如果每个 final 都触发生成，就会产生多次 GPT 请求、重复成本和互相覆盖的答案。
+
+项目使用 Deepgram 的 `UtteranceEnd` 消息，并配置：
+
+```text
+utterance_end_ms: 2000
+```
+
+连续约两秒没有新词，才把它当成一轮说话结束。
+
+- 太短：正常换气也会提交半截问题；
+- 太长：用户需要额外等待；
+- 两秒是容纳自然停顿与响应速度之间的经验折中。
+
+⚠️ 名字要说准：`is_final`、`speech_final`、`UtteranceEnd`。没有 `Silent event`，也没有 `utterance_end: true` 这个字段。
+
+**一句话答法：**
+
+> `is_final` closes an acoustic segment, not a conversational turn. I waited for Deepgram’s `UtteranceEnd` event so normal pauses inside one question did not trigger several GPT generations.
+
+---
+
+## 5. GPT 的答案如何流回前端？
+
+实际实现不是手写 SSE，也不是直接暴露一个自定义 `ReadableStream`。
+
+服务端使用 Next.js server action 和 AI SDK RSC：
+
+```text
+streamText()
+  → createStreamableValue()
+  → RSC flight stream
+  → readStreamableValue()
+  → 前端逐块更新答案
+```
+
+答案不等待完整生成，而是 token 到达就显示。面试场景更关心首字延迟，而不是整段答案什么时候全部完成。
+
+如果不用 RSC，可以考虑 `fetch + ReadableStream`。原生 `EventSource` 只支持 GET，而问题内容需要 POST，所以不能直接用普通 EventSource 完成这条请求。
+
+**一句话答法：**
+
+> The answer came back through a Next.js server action using the AI SDK’s streamable value. The client consumed it with `readStreamableValue`, so tokens appeared immediately instead of waiting for the full answer.
+
+---
+
+## 6. 端到端延迟是多少？
+
+这项目前没有可靠实测数字，不能编。
+
+要把延迟拆成两部分：
+
+```text
+A. 断句等待：人为配置的 2 秒 UtteranceEnd 阈值
+B. 处理延迟：从 UtteranceEnd 到第一个答案 token
+```
+
+正确测量方法：UtteranceEnd 到达时记录时间戳，第一个 token 到达时再记录，重复多次给出范围或中位数。
+
+**诚实答法：**
+
+> The two-second silence threshold was a product decision, not processing time. I did not record a reliable post-trigger time-to-first-token measurement, so I would instrument the UtteranceEnd timestamp and the first streamed token rather than inventing a number.
+
+---
+
+# 第二层：整条链路的职责边界
+
+```text
+浏览器 → Deepgram：音频和 transcript
+浏览器 → 我们的服务端 → GPT-4o：问题和答案
+```
+
+音频不经过自己的服务器，减少了一跳延迟，也避免自己的服务为每个用户代理长时间音频流。
+
+代价是浏览器需要直接连接 Deepgram，因此必须获得能建连的凭据。浏览器不能保存长期秘密，这正是 [② 凭证、配额与四态机](/docs?section=beyz&item=credential-quota) 要解决的问题。
+
+---
+
+# 第三层：并发时发生什么？
+
+上一条答案仍在生成时，新的 `UtteranceEnd` 或用户手动请求可能再次触发生成。Bullet 2 的状态机会在 `Generating` 状态直接返回。
+
+需要说准确：**丢掉的是这一次提交动作，不一定立即清掉 transcript 内容。** 守卫发生在 `resetTranscript()` 之前，所以新转写可能继续留在 buffer 中，随后与下一段一起提交。
+
+这对「面试官补充说明」可能有用，但对两个无关问题可能错误合并。更好的方向是让生成期间的新 conversational turn 独立入队或交给用户确认，而不是继续拼进同一个 buffer。
+
+---
+
+# 当前实现要主动承认的三个缺口
+
+1. **没有可靠的 time-to-first-token 实测。** 不能把 2 秒断句阈值说成处理耗时。
+2. **Deepgram 连接关闭后没有自动重连。** 更完整的实现应带退避、最大重试次数和状态恢复。
+3. **生成期间的新转写可能被合并到下一次提交。** 补充问题适合合并，无关问题则需要独立 turn buffer。
+
+---
+
+# 30 秒主回答
+
+> The interviewer’s audio lived in another tab, so I captured it with `getDisplayMedia`, removed the unused video track and emitted an audio chunk every 250 milliseconds. The browser streamed those chunks directly to Deepgram over WebSocket. Interim transcripts were rewrites, so I kept committed final text separately and rendered it with only the latest interim segment. I did not trigger GPT on every final segment; I waited for Deepgram’s `UtteranceEnd` event to identify the conversational turn. Then a Next.js server action streamed the GPT-4o answer back through the AI SDK’s streamable value so the first tokens appeared immediately.
+
+---
+
+# 最后自测：先答这六题
+
+1. 为什么用 `getDisplayMedia` 而不是麦克风？
+2. 250ms 音频块和 WebSocket 分别解决什么？
+3. Interim 为什么只能替换，final 为什么可以累计？
+4. 为什么 `is_final` 不能直接触发 GPT？
+5. 答案如何从 server action 流回浏览器？
+6. 两秒静默和实际处理延迟有什么区别？
+
+---
+
+## 术语速查
+
+| 中文 | 英文 |
 |---|---|
-| **服务端转发音频** | 多一跳延迟翻倍；服务器要为每个用户长期扛一条音频流 |
-| **SSE / 轮询** | 音频要持续上行，SSE 只能往下推；轮询做不了流 |
-| **等整段说完再转写** | 延迟 = 整段时长 + 识别时长，**产品直接不成立** |
-| **每个 final 都触发生成** | 一句话多个 final，几倍成本 + 一堆半截答案 |
-| **一次性返回完整答案** | 首字时间从几百毫秒变成好几秒 |
-| **`getUserMedia` 抓麦克风** | 听到的是**自己**说话，**方向反了** |
-| **浏览器自带的 Web Speech API** | ⭐ **它只接受麦克风输入，没有任何入口能把一条已有的音频流喂进去** —— 而我们要听的正是标签页里的声音，**这一条就判死刑**。另外 Safari 基本不可用，Chrome 上其实也是把音频送到 Google 的服务器 |
-
-## 十三、本篇术语英文对照（读完扫一眼）
-
-⭐ **这些是「中文想得出、英文卡壳」的那批。API 名（`getDisplayMedia`、WebSocket、Deepgram）本来就是英文，不列。**
-
-| 中文 | 英文 | 用在句子里 |
-|---|---|---|
-| 屏幕共享 / 采集 | screen sharing · display capture | *audio captured through screen sharing* |
-| 标签页音频 / 系统音频 | tab audio · system audio | |
-| 音轨 | track（`audio track` / `video track`） | *we stop and remove the video track* |
-| 切片 / 一块音频 | **chunk** | *a chunk every 250 ms* |
-| 流式 ↔ 批式 | **streaming ↔ batch** | *that one parameter is the switch between streaming and batch* |
-| 临时结果 ↔ 定稿 | **interim ↔ finalized**（`is_final`） | *interim and finalized transcripts* |
-| 转写 | **transcript**（名词）· transcribe（动词） | ⚠️ 不是 translation |
-| 合并 / 对齐两段状态 | **reconcile** | *reconciled in the client* |
-| 暂存区 | buffer | *the buffer isn't cleared* |
-| 一句话说完 | **utterance end** | *the utterance-end event fires* |
-| 静默 | silence | *after two seconds of silence* |
-| 握手 | handshake | |
-| 长连接 | persistent connection | |
-| 轮询 | polling | |
-| 帧头 | frame header | |
-| 心跳 / 保活 | **keep-alive**（动词 `keep the socket alive`） | *held the socket alive* |
-| 断线重连 | reconnect | |
-| 指数退避 | **exponential backoff** | |
-| 随机抖动 | **jitter** | *backoff with jitter* |
-| 背压 | **backpressure** | |
-| 发送缓冲区 | send buffer（`bufferedAmount`） | |
-| 丢弃（旧数据） | **drop** | *drop the oldest chunk rather than queue it* |
-| 首字时间 | **time to first token（TTFT）** | |
-| 逐 token 返回 | **token by token** | *streamed back token by token* |
-| 主线程 | main thread | *rendering competes with input for the main thread* |
-| 埋点 / 度量 | **instrumentation** · emit a metric | ⚠️ 不是 "burying points" |
-| 分位数 | percentile（*the 95th percentile*） | |
-| 失败分支 / 兜底 | failure path · fallback | |
-| 最小权限 | least privilege | |
-
-> ⭐ **三个最容易说错的**：
->
-> 1. **转写**是 `transcript` 不是 `translation` —— 说错这个整句就废了
-> 2. **「合并临时和定稿」**用 `reconcile`，简历上就是这个词；说 `merge` 也行但 `reconcile` 更准（它含「解决冲突」的意思）
-> 3. **「丢弃重叠的生成」**用 `drop`，不要用 `discard`（偏「主动扔掉」）或 `cancel`（那是取消，语义完全不同）—— 简历里 `a four-state machine drops overlapping generations` 用的就是 `drop`
+| 标签页 / 系统音频 | tab / system audio |
+| 屏幕共享采集 | display capture |
+| 音频块 | audio chunk |
+| 临时结果 | interim result |
+| 定稿结果 | final result |
+| 调和 / 合并 | reconcile |
+| 对话轮次 | conversational turn |
+| 断句 | utterance segmentation |
+| 首字延迟 | time to first token |
+| 退避重连 | reconnect with backoff |
