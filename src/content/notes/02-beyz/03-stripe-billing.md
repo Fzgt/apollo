@@ -13,411 +13,349 @@ status: done
 > **简历原句**
 >
 > **Owned the paid conversion path** — Stripe Checkout, trials and lifetime purchases on Next.js, tRPC and Drizzle — with **plan eligibility enforced in typed server actions** and **entitlements written only by signature-verified webhooks** across six subscription events, **none of which can downgrade a lifetime purchase**.
->
-> ---
->
-> 独立负责付费转化链路 —— 基于 Next.js、tRPC 与 Drizzle 的 Stripe Checkout、试用与买断。套餐资格在带类型的 server action 里校验，权益只由验签通过的 webhook 写入，覆盖六个订阅事件，且其中没有任何一个能把买断降级。
 
-## 这条 bullet 在讲什么
+## 先别背 API：这条只讲一件事
 
-**一句话：付款这件事，谁说了算。**
+**钱在 Stripe，权益在我们的数据库。这两个系统之间，谁有资格决定用户最终是什么套餐？**
 
-这条不是在讲「我接了个支付 SDK」，而是在讲**一个分布式一致性问题** —— 钱在 Stripe 那边收，权限在你的数据库里写，**这两个系统之间只靠一串不保证顺序、可能重复、可能被伪造的 HTTP 请求连着**。这条 bullet 的每个短语都是在回答「那怎么保证不出错」。
+答案分两半：
 
-## 先把几个词说清楚
+- **server action** 只决定「这个用户有没有资格发起购买」；
+- **验签通过的 Stripe webhook** 才决定「用户实际买到了什么」，并写入 `subscribedPlan`。
 
-| 词 | 意思 |
-|---|---|
-| **Stripe Checkout** | Stripe 提供的**收银台页面**。你把用户跳过去，他在 Stripe 的页面上填卡号付款，付完再跳回来。⭐ **卡号从头到尾不经过你的服务器** |
-| **权益（entitlement）** | 「这个用户现在能用什么功能」。在这个项目里就是用户表里那一列 `subscribedPlan` |
-| **Webhook** | ⭐ **Stripe 主动往你的服务器发的 HTTP 请求**。不是你去问它，是它发生了什么事就来通知你 |
+```text
+用户点击购买
+  → server action 检查购买资格
+  → 创建 Stripe Checkout Session
+  → 用户去 Stripe 页面付款
+  → Stripe 一边把浏览器跳回 success page
+  → 另一边独立向 webhook 发送支付事件
+  → webhook 验签
+  → 更新数据库里的 subscribedPlan
+```
 
-## 30 秒口播稿
+⭐ **浏览器跳转是用户体验，webhook 才是支付事实。**
 
-> 用户在 Stripe 的收银台付完钱跳回来 —— **谁来把数据库里那一行从免费改成付费？**
->
-> **不能是那个跳回来的成功页面。** 用户付完直接关浏览器，那个页面就没被访问过，权限写不进去；反过来那个网址是个普通 URL，**用户存成书签每天访问一次，等于免费领终身版**。⭐ **「跳回了成功页」既不是付款成功的充分条件，也不是必要条件。**
->
-> 所以**唯一可信的事实来源是 Stripe 用签名推过来的 webhook**，而且它失败会带退避重试，**这套重试正是「webhook 才是事实源」能成立的基础**。全仓库对权益字段的写入只有三处，**全在 webhook 那个文件里**。
->
-> 最硬的一处是终身买断不能被降级 —— **守卫写在 SQL 的 WHERE 条件里，不是 if 判断里**，所以它跟谁调用、并发几次、事件什么顺序到完全无关。
+这条 bullet 的后半段是在回答：webhook 可能被伪造、重复投递、乱序到达，怎么保证数据库里的最终权益仍然正确。
 
-## 一、核心问题：付完款，谁去改数据库
+---
 
-| | 方案 | 行不行 |
+## 先认识三个对象
+
+| 对象 | 它是什么 | 负责什么 |
 |---|---|---|
-| A | **跳回来的那个成功页面里改** | ❌ 两个方向都不成立 |
-| B | 服务端定时去问 Stripe「这人付款了吗」 | ⚠️ 能做，但延迟高、API 调用贵，**用户付完钱要等下一轮** |
-| C | ⭐ **等 Stripe 主动通知（webhook）** | ✅ 标准解法 |
+| **Checkout Session** | 一次 Stripe 收银流程 | 告诉 Stripe 用户要买什么，并把浏览器跳到 Checkout |
+| **Subscription** | 持续订阅关系 | 经历创建、更新、暂停、恢复、删除等生命周期 |
+| **Entitlement** | 用户实际获得的产品权益 | 本项目里主要就是用户表的 `subscribedPlan` |
 
-### 为什么 A 不行 —— 两个方向都不成立
+**Lifetime 是一次性买断，不是持续订阅。** 因此它没有普通的 subscription 生命周期，主要由 `checkout.session.completed` 处理。
 
-**方向一：用户付了钱，但那个页面没被访问到**
+---
 
-```
-付款成功 → Stripe 准备把他跳回成功页
-        → 用户直接关了浏览器 / 断网 / 手机锁屏
-          → 那个页面从来没被打开过
-            → 权益没写进去，用户付了钱拿不到东西
-```
+# 第一层：必须答明白的五个问题
 
-**方向二：那个页面被访问了，但根本没付钱**
+## 1. 为什么不能在 success page 写权益？
 
-**成功页的网址就是个普通 URL，用户可以直接手敲。** 存成书签每天访问一次 —— **如果这个页面会改数据库，等于免费领终身版。**
+因为「浏览器跳回成功页」和「支付成功」不是同一件事。
 
-⭐ **所以「用户跳回了成功页」这件事，既不是「付款成功」的充分条件，也不是必要条件 —— 它和付款根本不是一回事，它只是一个界面跳转。**
+### 用户付了钱，但成功页没有打开
 
-### webhook 为什么能当事实源
-
-**因为 Stripe 会重试** —— 如果你的服务器当时挂了，它会带着退避重复投递，**直到你返回 2xx 为止**。⭐ **这套重试机制正是「webhook 才是事实源」能成立的基础** —— 否则服务器抖一下就丢一笔订单。
-
-### 代码里这条边界是干净的
-
-**全仓库对 `subscribedPlan` 的写入只有三处，全都在 webhook 那个文件里。** 而处理购买请求的那个服务端函数，只写了「这个用户在 Stripe 那边的客户 ID」，**从不碰权益**。
-
-⭐ **职责一句话：服务端函数管「你有没有资格发起购买」，webhook 管「你实际买到了什么」。前者可以拒绝，但永远不能给予。**
-
-**简历里 `only` 那个词是可以当场证明的**，别只是嘴上说 —— `grep` 一下权益字段的写入，三处全在 webhook 文件里。
-
-## 二、怎么确认这个请求真的来自 Stripe
-
-**webhook 端点是公网上任何人都能 POST 的地址。** 别人伪造一个「用户升级到终身版」的请求打过来怎么办？
-
-```js
-const buf = await req.text();                     // ⭐ 拿原始字节，不是解析后的对象
-const sig = req.headers.get("stripe-signature");
-if (!sig) return new Response("Missing signature", { status: 400 });
-event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
+```text
+付款成功
+  → 用户直接关浏览器 / 断网 / 跳转失败
+  → success page 没有执行
+  → 如果由页面写权益，用户付了钱却仍然是 Free
 ```
 
-**验签（signature verification）的原理**：Stripe 和你共享一个密钥。**它用这个密钥对请求正文的原始字节算出一个签名放在请求头里**，你用同样的密钥重新算一遍，对得上才说明是它发的。
+### 成功页打开了，但用户没有付款
 
-### ⭐ 为什么必须用原始字节（webhook 验签最经典的坑）
+Success page 本质上只是一个普通 URL。用户可以手动访问、保存书签，甚至绕过页面直接调用接口。如果访问这个页面就能升级，没付款的人也能拿到权益。
 
-**签名是对原始字节序列算的。** 如果你先把 JSON 解析成对象、再转回字符串，**字节会变** —— 键的顺序可能变、空格可能变、数字格式可能变（`1.0` 变成 `1`）。⭐ **内容意思一样，但字节不一样，签名就必然对不上。**
+⭐ 所以「访问 success page」既不是付款成功的必要条件，也不是充分条件。页面可以显示结果、刷新资料，但**不能发权益**。
 
-> **能主动说出这一点，说明你真接过 webhook，不是看了两页文档。**
+**一句话答法：**
 
-### 400 和 500 的区别是有意的
+> Returning to the success page is only a browser navigation, not proof of payment. A paid user may never reach it, and an unpaid user can visit the URL directly, so only Stripe's webhook can grant the entitlement.
 
-⭐ **Stripe 不重试 4xx，只重试 5xx。**
+---
 
-- **签名错 → 返回 400**：重试一万次也还是错的，**让它别再来是对的**
-- **处理逻辑抛异常 → 变成 500 → Stripe 会重试** → **给了业务逻辑一次自愈的机会**
+## 2. 为什么 webhook 必须验签，而且必须用 raw body？
 
-## 三、六个事件，以及藏在里面的第二层
+Webhook 是一个公网 HTTP 地址，任何人都可以向它 POST。收到一段长得像 Stripe event 的 JSON，不代表它真的来自 Stripe。
 
-```js
-switch (event.type) {
-  case "checkout.session.completed":      // 结账完成 —— ⭐ 终身买断的唯一入口
-  case "customer.subscription.created":   // 订阅创建（含试用开始）
-  case "customer.subscription.updated":   // 订阅变更 —— ⭐ 信息量最大
-  case "customer.subscription.deleted":   // 订阅结束 → 回收权限
-  case "customer.subscription.paused":    // 暂停扣款 → 回收权限
-  case "customer.subscription.resumed":   // 恢复扣款 → 恢复权限
-}
-```
-
-**记忆锚点**：`checkout` 一个 + `subscription` 五个；五个按生命周期背 —— **建 → 改 → 删**，再加**暂停 / 恢复**这一对。
-
-> ⚠️ **一个口径问题，自己先知道**：简历写 `six subscription events`，**但只有 5 个是订阅事件** —— 第一个是**结账事件**，而且恰恰是它管终身买断，**因为一次性买断根本不产生订阅对象**。
->
-> **被抠字眼时**：「准确说是五个订阅事件加一个结账完成事件；后者管一次性买断，那条路径上没有订阅对象。」**主动说比被纠正强。想改措辞的话，`six Stripe webhook events` 一个词就把这个问题消掉了。**
-
-### ⭐ 真正的工程内容：其实有两层事件
-
-**这是这条 bullet 最容易被问穿、也最能加分的地方。**
-
-**第一层是上面那六个 Stripe 事件。第二层是业务语义上的事件**，代码里定义了八个：
+Stripe 会用 webhook secret 对**原始请求正文**和时间信息计算签名，并把签名放在 `Stripe-Signature` 请求头中。服务端用同一 secret 验证；验证成功后，才允许处理事件和修改权益。
 
 ```ts
-enum SubscriptionEvent {
-  CREATE, CANCEL, RENEW, EXPIRE, PAUSE, RESUME, UPGRADE, DOWNGRADE
-}
+const rawBody = await request.text();
+const signature = request.headers.get("stripe-signature");
+
+const event = stripe.webhooks.constructEvent(
+  rawBody,
+  signature,
+  webhookSecret,
+);
 ```
 
-⭐ **为什么会多出一层？因为 `customer.subscription.updated` 是个大杂烩** —— 升级、降级、暂停、恢复、取消、续费，**Stripe 全用这一个事件类型推给你。你得自己拆。**
+### 为什么一定是 raw body？
 
-**怎么拆：对比「变更前的值」。** Stripe 在这个事件里附带一个 `previous_attributes` 字段，**里面是发生变化的那些字段的旧值**。代码拿它和当前值比对：
+签名针对的是**精确的原始字节**，不是 JSON 表达的语义。先 `JSON.parse` 再 `JSON.stringify`，可能改变字段顺序、空格或数字格式；内容看起来一样，字节已经不同，签名就对不上。
 
-| 判定条件 | 拆出的业务事件 |
+正确顺序：
+
+```text
+读取原始正文 → 验签 → 得到可信 event → 执行业务逻辑
+```
+
+**一句话答法：**
+
+> The endpoint is public, so the payload is untrusted until its Stripe signature is verified. Verification must use the raw body because the signature covers the exact bytes, not the parsed JSON value.
+
+---
+
+## 3. Server action 和 webhook 各负责什么？
+
+### Server action：资格检查
+
+用户点击购买时，服务端检查：
+
+- 用户是否登录；
+- 选择的套餐是否合法；
+- Lifetime 用户是否重复购买；
+- 用户是否已经使用过 trial。
+
+检查通过后只创建 Checkout Session。**创建 Checkout Session 不等于付款完成**，因此 server action 不能直接写付费权益。
+
+### Webhook：确认事实并写权益
+
+只有 Stripe 知道卡是否真正扣款成功、订阅是否生效、暂停、恢复或结束。因此只有验签 webhook 能更新 `subscribedPlan`。
+
+| 组件 | 回答的问题 |
 |---|---|
-| 之前状态「未完成」，现在「生效/试用中」 | **CREATE**（补完 3DS 验证之后才生效的卡） |
-| 商品变了，且**新档位比旧档位高** | **UPGRADE** |
-| 商品变了，且新档位更低 | **DOWNGRADE** |
-| 之前没有暂停标记，现在有了 | **PAUSE** |
-| 之前有暂停标记，现在没了 | **RESUME** |
-| 「到期后取消」从 false 变 true | **CANCEL** |
-| 「到期后取消」从 true 变回 false，或试用中 → 生效 | **RENEW** |
+| Server action | 允许你发起这次购买吗？ |
+| Stripe Checkout | 你是否完成了付款？ |
+| Webhook | Stripe 确认发生了什么？ |
+| Entitlement update | 你现在能使用什么？ |
 
-⭐ **面试官问「你怎么区分升级和降级」—— 答案不在那六个事件里，在这张表里：靠给每个套餐配一个数字档位，比大小。**
+### `typed server action` 到底证明什么？
 
-> **一个细节**：暂停和恢复**有两条来源** —— 既有独立事件，也能从「变更」里对比出来。代码注释专门标了 `// pause payment collection, not for subscription.pause event`，**说明作者知道这俩不是一回事：暂停扣款 ≠ 暂停订阅。**
-
-### 漏一个会怎样（按后果分两类，比逐条背强）
-
-| 类别 | 漏掉 | 后果 |
-|---|---|---|
-| **A 类：漏收权限 = 白送钱** | `subscription.deleted` | 到期了权限不回收，**用户白嫖到底** |
-| | `subscription.paused` | 暂停扣款的用户照样能用 |
-| | `subscription.updated` | **降级不生效** —— 付 Standard 的钱用 God 的功能 |
-| **B 类：漏发权限 = 误伤付费用户** | `checkout.session.completed` | ⭐ **最严重**：终身版用户付了一大笔钱，**权限永远不到账**（这是唯一入口） |
-| | `subscription.created` | 新订阅不生效（「变更」事件里那个「未完成 → 生效」分支能兜住一部分） |
-| | `subscription.resumed` | 恢复扣款的用户用不了，**直接变客服工单** |
-
-## 四、重复投递怎么处理
-
-**Stripe 保证「至少投递一次」（at-least-once delivery），意味着同一个事件可能来两次**（网络重试、它那边的重投）。
-
-**代码里没有「记下处理过哪些事件 ID」的去重表。但大部分处理天然不怕重复 —— 因为它们写的是绝对值，不是增量：**
-
-```js
-db.update(users).set({ subscribedPlan: plan })    // ✅ 写死成某个值
-// 而不是
-db.update(users).set({ credits: credits + 1 })    // ❌ 增量，重复就多加了
-```
-
-**同一个事件投十次，结果和投一次完全一样。**
-
-⭐ **唯一显式做了去重的是发邮件** —— **因为发邮件不是幂等的**，重复投递会让用户收到两封折扣码邮件。所以用一张表按「邮箱 + 活动 ID」查一下，发过就不再发；配套还给优惠码设了「只能用一次」，**双保险**。
-
-⭐ **一句话答法：幂等不是一个全局开关，是逐个操作判断的。** 能写成绝对值的数据库更新天然幂等，不用管；**有外部副作用的（发邮件、发券）必须显式去重。**
-
-## 五、⚠️ 事件乱序 —— 这是真弱点，主动交代
-
-**Stripe 不保证事件按发生顺序到达（乱序 = out-of-order delivery）。**
-
-**会翻车的例子**：用户先升到 God、紧接着降回 Standard。两个「订阅变更」事件**乱序到达** → 最终数据库里写成了 God，**用户白拿高档位**。
-
-**代码没有处理这个** —— 没有用事件自带的时间戳做版本比较。
-
-> **诚实答法**：「乱序没处理。**正解是存一份事件时间戳或者订阅的版本号，只接受比当前记录更新的事件** —— 这是我会补的第一个洞。」
-
-## 六、终身版为什么降不了级（整条 bullet 最硬的部分）
-
-**守卫写在 SQL 的 WHERE 条件里，不是写在 if 判断里：**
-
-```js
-// 两个会降级的函数都带了这个条件
-.where(and(
-  eq(users.stripeCustomerId, customerId),
-  ne(users.subscribedPlan, SubscriptionPlan.Lifetime),   // ← 「不是终身版」才更新
-))
-```
-
-⭐ **为什么放在 WHERE 里是关键：因为它跟「谁调用的、并发几次、事件什么顺序到」完全无关。只要数据库里那一行是终身版，这两个函数就物理上改不动它** —— 数据库在执行 UPDATE 时会跳过不满足条件的行。
-
-⭐ **守卫在数据层，不在逻辑层。if 判断可以被绕过、可以有竞态；WHERE 条件不会。**
-
-**而唯一能把人升成终身版的那次写入，故意没有这个条件** —— 它是入口，不能挡自己。**下一节会看到，这个「故意」还有第二重作用。**
-
-## 七、⭐ 两个写入赛跑，为什么两种顺序都不出错
-
-**这是 `none of which can downgrade a lifetime purchase` 最强的答法。**
-
-用户买终身版，结账完成事件到达，处理函数做**两件事，有先后**：
-
-```js
-if (containsLifetimePlan) {
-  // 第一件：取消该用户所有现存的订阅（既然买断了，不该再扣他钱）
-  const subscriptions = await stripe.subscriptions.list({ customer: customerId });
-  for (const sub of subscriptions.data) {
-    await stripe.subscriptions.cancel(sub.id);
-  }
-  // 第二件：把用户的套餐写成终身版
-  await db.update(users).set({ subscribedPlan: Lifetime, ... })
-    .where(eq(users.stripeCustomerId, customerId));   // ⭐ 注意这里没有「不是终身版」的条件
-}
-```
-
-### ⚠️ 但第一步会捅出一个副作用
-
-⭐ **取消订阅会让 Stripe 再发一个「订阅已删除」的事件回来。而那个事件的处理逻辑是 —— 把套餐写成免费。**
-
-**于是有两个写入在赛跑：**
-
-| | 是什么 | 在哪 |
-|---|---|---|
-| **甲** | 把套餐写成**终身版** | **就在当前这个处理函数里** |
-| **乙** | 把套餐写成**免费** | 由「订阅已删除」事件触发的**另一个处理函数** |
-
-⭐ **关键是要意识到：乙是一个全新的 HTTP 请求，Stripe 从外面重新打进来的**，跟甲不在同一个执行流里，**甚至可能落在另一台服务器上。两者谁先完成不由你决定。**
-
-### 两条时间线，都收敛到正确结果
-
-**乙晚于甲：**
-
-```
-取消订阅
-数据库 → 终身版                      ← 甲先完成
-   乙到达：想写「免费」
-         但它的 SQL 带着「不是终身版才更新」这个条件
-         当前正是终身版 → 匹配到 0 行 → 什么都没改
-最终：终身版 ✅
-```
-
-**乙早于甲：**
-
-```
-取消订阅
-   乙到达：想写「免费」
-         此时数据库里还是 Standard，条件成立 → 真的写成了免费
-数据库 → 终身版                      ← 甲后完成，无条件写，直接盖掉
-最终：终身版 ✅
-```
-
-### 为什么两种顺序都收敛
-
-| 顺序 | 靠什么兜住 |
-|---|---|
-| **乙晚到** | WHERE 里那个「不是终身版才更新」的条件**挡住了降级** |
-| **乙早到** | 甲那次写入**故意不带这个条件，无条件覆盖** |
-
-⭐ **所以「甲那次写入故意没有守卫」不只是「入口不能挡自己」—— 它同时还是「乙早到」那条路径的兜底。少了它，乙早到时用户就卡在免费档了：付了买断的钱，拿不到权限。**
-
-⭐ **一句话答法**
->
-> 「买断时会先取消旧订阅，而那个取消又会触发一个『订阅已删除』的 webhook 回来试图降级。这两次写入谁先谁后不确定，**但两种顺序都收敛到终身版**：晚到的被 SQL 里那个『不是终身版才更新』的条件挡住，早到的被随后那次无条件写入盖掉。**所以这半句话保证的不是顺序，是终态。**」
-
-**这个性质有个名字叫收敛（convergence）**：系统从任何中间状态出发，都会落到同一个正确的终态。⭐ **顺序你根本控制不了 —— webhook 什么时候到、走哪台服务器、会不会重投，全在 Stripe 那边。你能控制的只有「不管什么顺序，最终状态都对」。**
-
-## 八、试用期是怎么做的
-
-| 设计 | 说明 |
-|---|---|
-| **试用是一个独立的商品，不是折扣** | 结账时同时放了正式套餐和试用两个条目 |
-| ⭐ **收 1.99 而不是 0 元** | **零元订单验证不了支付方式是否有效。** 收一笔小额说明这张卡真的能扣款，**试用期结束转正式订阅时不会因为卡无效而失败** |
-| **资格判定在服务端** | 「这个人以前买过没有」是存在用户表里的字段，**由 webhook 写入**，不是前端状态 |
-| **免费档在类型层面就传不进来** | 函数参数的类型直接排除了免费档 —— **写错了编译就报错**（这就是简历里 `typed server actions` 的落点之一） |
-
-**试用结束时**：扣款成功 → 订阅状态从「试用中」变成「生效」→ 判定为「续费」；**试用期取消**则会发一封**专门的试用挽留邮件**，而不是普通的取消邮件。
-
-> **「试用期取消」和「付费后取消」走不同的挽留邮件 —— 说明产品侧真的分了场景，不是一套模板打天下。**
-
-## 九、技术栈：tRPC / Zod / Drizzle 各管什么
-
-**简历这条列了 `Next.js, tRPC and Drizzle`，被问「tRPC 是什么、为什么用它」要答得上。**
-
-### tRPC：它解决的是「前后端类型不同步」，不是什么重量级 RPC
-
-⚠️ **名字带 RPC 容易让人联想到 gRPC 那种自定义二进制协议、跨语言的重量级方案。不是。**
-
-⭐ **tRPC 底层就是普通的 HTTP + JSON —— 抓包看到的东西，和你自己手写 `fetch` 没有本质区别。**
-
-**它真正的「魔法」全部发生在编译时：**
+参数类型可以在编译期排除 Free：
 
 ```ts
-// 后端：把 router 的类型导出去
-export type AppRouter = typeof appRouter;
-
-// 前端：只借类型，不借运行时代码
-import type { AppRouter } from '@/server/router';
+type PurchasablePlan = Exclude<SubscriptionPlan, SubscriptionPlan.Free>;
 ```
 
-⭐ **注意 `import type` —— 打包时这一行会被完全擦除**，产物里不会多出一个字节。TypeScript 编译器沿着这条类型链路，就能推断出「调用某个接口会拿到什么形状的数据」，**IDE 直接飘红、编译报错，不需要手写一份 interface 去描述接口返回值。**
+但 TypeScript 类型在运行时会消失。攻击者仍然可以绕过前端构造请求，所以还必须有服务端运行时检查。
 
-**前提条件只有一个**：前后端代码要在**同一个仓库**里，能互相 import 类型。⭐ **这跟用不用 Next.js 没有必然关系** —— 只要项目组织方式满足这个前提，分离部署的前后端一样能用。
+⭐ **类型防开发错误，服务端校验才是安全边界。**
 
-### 四个会被追问的概念
+**一句话答法：**
 
-| 概念 | 一句话 |
+> The server action decides whether the user may start a purchase, but it never grants access. The signature-verified webhook is the only component allowed to turn the confirmed Stripe result into an entitlement.
+
+---
+
+## 4. 为什么重复 webhook 不一定造成重复升级？
+
+Webhook 可能重复投递。例如服务端已经处理成功，但响应在网络中丢失，Stripe 不知道结果，就可能再次发送同一个事件。
+
+所以 handler 必须考虑**幂等性**：同一个操作执行一次和执行多次，最终结果相同。
+
+### 写绝对状态通常是幂等的
+
+```ts
+set({ subscribedPlan: SubscriptionPlan.Standard });
+```
+
+执行一次或十次，最终都是 Standard。
+
+### 增量和外部副作用通常不幂等
+
+```ts
+set({ credits: credits + 100 }); // 重复执行会多加
+sendEmail();                     // 重复执行会发多封
+issueCoupon();                   // 重复执行会发多个
+```
+
+本项目的权益处理大多写的是目标状态，因此重复事件通常会收敛到同一个结果。
+
+⚠️ **但项目没有单独的 Stripe event ID 去重表。** 更严格的方案是把 `event.id` 写进带唯一约束的表；如果唯一键冲突，就说明这个事件已经处理过。
+
+**一句话答法：**
+
+> Most entitlement handlers write an absolute target state rather than applying an increment, so replaying the same event converges to the same result. We did not have a dedicated event-ID deduplication table, which I would add for stronger guarantees and non-idempotent side effects.
+
+---
+
+## 5. 为什么任何订阅事件都不能降级 Lifetime？
+
+风险来自买断时取消旧订阅。
+
+```text
+用户原来有月度订阅
+  → 用户购买 Lifetime
+  → 系统取消旧订阅，避免继续扣款
+  → Stripe 发送 subscription.deleted
+  → 普通逻辑想把用户降为 Free
+```
+
+如果不特殊保护，用户刚买完 Lifetime 就会被旧订阅的删除事件降成 Free。
+
+### 保护为什么写在 SQL WHERE 中？
+
+所有可能降级用户的更新都带类似条件：
+
+```ts
+await db
+  .update(users)
+  .set({ subscribedPlan: SubscriptionPlan.Free })
+  .where(
+    and(
+      eq(users.stripeCustomerId, customerId),
+      ne(users.subscribedPlan, SubscriptionPlan.Lifetime),
+    ),
+  );
+```
+
+数据库在执行更新的那一刻检查当前套餐。如果已经是 Lifetime，就匹配 0 行。
+
+这比应用层先查询、再写一个 `if` 更强。后者的读取和更新是两步，中间可能有另一个请求把用户升级成 Lifetime；第一个请求仍拿着旧结果执行降级，形成 check-then-act race。
+
+### 两种事件顺序为什么都正确？
+
+有两个写入在赛跑：
+
+- A：Lifetime Checkout 完成，无条件写入 Lifetime；
+- B：旧订阅删除，尝试写入 Free，但带 `plan != Lifetime` 条件。
+
+**A 先、B 后：** B 发现当前是 Lifetime，更新 0 行。
+
+**B 先、A 后：** B 可能暂时写成 Free，随后 A 无条件覆盖为 Lifetime。
+
+两种顺序最终都是 Lifetime。这里保证的不是事件顺序，而是**最终状态收敛**。
+
+**一句话答法：**
+
+> Buying lifetime cancels the old subscription, which can trigger a deletion webhook that tries to downgrade the user. If the lifetime write wins first, the downgrade is blocked by the SQL predicate; if the deletion arrives first, the later unconditional lifetime write overwrites it. Both orderings converge to Lifetime.
+
+---
+
+# 第二层：理解事件，但先别死背
+
+简历写的是 `six subscription events`，准确说是：
+
+- **5 个 subscription lifecycle events**；
+- **1 个 checkout event**，负责一次性买断。
+
+| Stripe event | 主要用途 |
 |---|---|
-| **procedure** | 一个接口方法。分 `query`（读）和 `mutation`（写）—— **这个区分是给客户端缓存看的**，不是协议层的强制 |
-| **router** | 一组 procedure 的集合，可以嵌套。**导出的就是它的类型** |
-| **input 校验** | 每个 procedure 声明一个 Zod schema，**校验通过后的类型自动变成处理函数的参数类型** |
-| **context** | 每个请求都能拿到的东西 —— 登录用户、数据库连接。**`getAuthUser()` 那一层就活在这里** |
-| **middleware** | 挂在 procedure 前面的拦截器。⭐ **「必须登录」「必须是付费用户」这类判断写成一个 middleware，就不用每个接口重复一遍** |
+| `checkout.session.completed` | Lifetime 一次性买断的入口 |
+| `customer.subscription.created` | 订阅创建，包括试用开始 |
+| `customer.subscription.updated` | 订阅状态或套餐发生变化 |
+| `customer.subscription.deleted` | 订阅结束，回收普通订阅权益 |
+| `customer.subscription.paused` | 暂停时回收普通权益 |
+| `customer.subscription.resumed` | 恢复时重新授予权益 |
 
-### Zod 和 tRPC 是两道不同的防线（这一点最能体现理解）
+面试中最好主动校正措辞：
 
-**TypeScript 的类型检查只在编译阶段有效** —— 程序真跑起来，类型信息**根本不存在**。而外部数据（表单输入、第三方请求）的正确性，**必须在运行时真正验证一遍**。
+> More precisely, it was five subscription lifecycle events plus one checkout-completed event for the lifetime purchase, because a one-time purchase has no subscription object.
 
-⭐ **Zod 的巧妙之处是只写一份 schema，同时产出运行时校验函数（`.parse`）和 TypeScript 类型（`z.infer`）** —— 不用像过去那样维护「一份 interface + 一份单独的校验逻辑」两份容易脱节的定义。
+## 为什么 `subscription.updated` 最复杂？
 
-⭐ **就算前后端都走了 tRPC 这套类型共享机制，服务端在真正处理请求之前依然要用 Zod 再校验一遍** —— 因为服务端**永远不能信任客户端传来的东西**：可能有人绕过前端直接调接口、可能前端代码版本落后、可能网络传输出意外。
+它可能代表升级、降级、取消、续费、暂停或恢复。代码需要比较 `previous_attributes` 和当前值，把 Stripe 的技术事件翻译成业务事件。
 
-> ⭐ **一句话：tRPC 管的是「开发阶段的协作效率」，Zod 管的是「运行时的数据安全兜底」。两者不是重复，是分层。**
->
-> **这和这条 bullet 的主线是同一个思想** —— [第一节](#一核心问题付完款谁去改数据库)说「跳回成功页不能当付款凭据」，[② 配额那条](/docs?section=beyz&item=credential-quota)说「前端的拦截不算数」。**客户端说什么都只是输入，不是事实。**
+例如：商品变了就比较新旧套餐等级；`cancel_at_period_end` 从 false 变 true 是 CANCEL，从 true 变回 false 是 RENEW。第一次复习理解到这里即可，不需要逐格背完。
 
-### tRPC vs REST vs GraphQL（预期追问）
+---
 
-| | 适合什么 | 代价 |
-|---|---|---|
-| **tRPC** | ⭐ **前后端同一个仓库、同一门语言（TS）、同一个团队** | **跨语言就用不了**；对外开放的公共 API 也不合适 |
-| **REST** | 公共 API、多语言客户端、要靠 HTTP 缓存 | 类型要靠 OpenAPI 之类的东西再生成一遍（[Periplus 走的就是这条](/docs?section=periplus&item=typed-contract)） |
-| **GraphQL** | 客户端形态多、各要各的字段，想避免过度获取 | **服务端复杂度高**（N+1、DataLoader、鉴权粒度），小团队常常是负收益 |
+# 第三层：重复和乱序必须分开
 
-> ⭐ **答法**：「我们是同一个仓库、同一门语言、内部消费的接口 —— **这正好是 tRPC 的甜点区**。如果要对外开放接口，或者有非 TS 的客户端，我会选 REST 加 OpenAPI 生成类型，**那是我在 Periplus 里的做法**。」
+## 重复投递
 
-### Drizzle：类型一路延伸到数据库
+```text
+A → A
+```
 
-**Drizzle 是个 TypeScript 的 SQL 工具**，表结构用 TS 定义，查询语句直接写在 TS 里，**返回值的类型是推导出来的**。
+同一个事件来了多次。解决手段包括写绝对状态、保存 event ID 去重和数据库唯一约束。
 
-⭐ **[第六节那句守卫](#六终身版为什么降不了级整条-bullet-最硬的部分) `ne(users.subscribedPlan, Lifetime)` 就是 Drizzle 的写法** —— 它不是 ORM 的「对象魔法」，就是把 SQL 的 WHERE 条件写成了带类型的函数调用。**写错列名编译就报错。**
+## 乱序到达
 
-> **所以这条 bullet 的「类型」其实是一条完整的链**：数据库表结构（Drizzle）→ 接口契约（tRPC）→ 前端调用。**任何一环改了字段名，另一端是编译期报错，不是线上 undefined。**
+本来发生顺序是 `A → B`，但处理顺序变成 `B → A`。
 
-### ⚠️ 一个要自己先分清的措辞
+例如用户先升级 God、随后降级 Standard，但旧的升级事件最后才到，数据库可能错误地停在 God。
 
-**简历写的是 `plan eligibility enforced in typed server actions`（带类型的服务端函数），而技术栈里又列了 tRPC。这是两个东西：**
+⚠️ **当前代码没有完整处理普通套餐的事件乱序。** 正解是保存事件时间戳或订阅版本，只接受比当前记录更新的事件。
 
-- **server action** 是 Next.js 的机制 —— 直接在服务端跑的函数，前端像调本地函数一样调它
-- **tRPC** 是一套独立的接口层
+Lifetime 的专门 SQL 保护解决了 Lifetime 不被降级的问题，不等于整个支付系统已经解决所有乱序。
 
-⭐ **两者都能做到「带类型」，但不是一回事。被问「你们到底用哪个」，照实说：付费链路的资格校验走的是 server action，tRPC 是这个项目接口层的整体方案。** 别把两个词混着用。
+---
 
-## 十、这条 bullet 的三个可证明的落点
+# 第四层：Trial、tRPC 和 Drizzle 放到最后看
 
-**`plan eligibility enforced in typed server actions`（资格在带类型的服务端函数里强制）有三处：**
+## Trial
 
-- 函数参数的类型**直接排除了免费档** —— 传进去编译就报错
-- 已经是终身版还想再买 → 直接拒绝
-- 已经买过的用户不能再领试用
+先掌握两点：是否用过 trial 的资格在服务端判断，不能相信前端状态；trial 最终是否生效、取消或转成正式订阅，仍由 Stripe 事件决定。具体商品配置和邮件策略属于二轮追问。
 
-⭐ **合起来还是那句职责划分：服务端函数管「你有没有资格发起购买」，webhook 管「你实际买到了什么」。前者可以拒绝，但永远不能给予。**
+## tRPC：不要和 server action 混在一起
 
-## 十一、本篇术语英文对照
+简历把 Next.js、tRPC 和 Drizzle 放在一句里，但实际职责是：
+
+- 发起 Checkout、检查资格：**Next.js server action**；
+- 接受 Stripe 通知：**route handler / webhook**；
+- 数据库查询和更新：**Drizzle**；
+- tRPC：项目中其他内部 API 使用的类型化接口层，**不是支付路径的核心传输方式**。
+
+准确说法：
+
+> The project used tRPC generally, but the checkout path itself used typed server actions, while the Stripe webhook had to be a route handler.
+
+## Drizzle
+
+Drizzle 让 SQL 条件以带类型的 TypeScript API 表达。Lifetime 的 `ne(users.subscribedPlan, SubscriptionPlan.Lifetime)` 本质仍然是数据库的 `WHERE subscribed_plan != 'Lifetime'`，不是 ORM 魔法。
+
+---
+
+# 30 秒主回答
+
+> I owned the purchase flow for subscriptions, trials and lifetime purchases. The key design boundary was that the server action could decide whether a user was eligible to start a checkout, but it could never grant access. Entitlements were written only from Stripe webhooks after verifying the signature against the raw request body, because returning to a success page is not proof of payment. The handlers mostly wrote absolute target states so duplicate delivery was safe, and every downgrade query excluded Lifetime at the SQL level. That mattered because buying Lifetime cancels the old subscription and can trigger a deletion webhook; whichever event arrives first, both paths converge to the Lifetime entitlement.
+
+---
+
+# 当前实现要主动承认的三个缺口
+
+1. **没有 event ID 去重表。** 绝对状态更新大多幂等，但外部副作用仍需要显式去重。
+2. **普通套餐的事件乱序没有完整解决。** 应保存事件时间戳或订阅版本，只接受更新事件。
+3. **简历的 `six subscription events` 不够精确。** 实际是五个订阅事件加一个 Checkout 完成事件。
+
+主动说明这些不是减分。它说明你能区分「当时能运行」和「现在会怎样做得更可靠」。
+
+---
+
+# 最后自测：只需先答这五题
+
+1. 为什么不能在 success page 写权益？
+2. 为什么 webhook 必须验签，而且必须用 raw body？
+3. Server action 和 webhook 各自负责什么？
+4. 为什么重复 webhook 通常不会造成重复升级？当前还缺什么？
+5. 买断时取消旧订阅，为什么最终仍然一定是 Lifetime？
+
+能用自己的话答完这五题，才进入六个事件、`previous_attributes`、trial 和 tRPC 的细节。
+
+---
+
+## 术语速查
 
 | 中文 | 英文 |
 |---|---|
-| 收银台 | **Checkout**（Stripe 的产品名，直接用） |
-| 权益 | **entitlement**（*entitlements written only by webhooks*） |
-| 事实来源 | **source of truth** |
-| 验签 | **signature verification**（*signature-verified webhooks*） |
-| 原始字节 / 原始请求体 | **raw body / raw bytes** |
-| 重试 | **retry**（*Stripe retries 5xx, not 4xx*） |
-| 至少投递一次 | **at-least-once delivery** |
-| 重复投递 | **duplicate delivery** |
-| 去重 | **deduplication / dedupe** |
-| 幂等 | **idempotent · idempotency** |
-| 乱序到达 | **out-of-order delivery** |
-| 收敛 | **convergence**（*both orderings converge*） |
-| 终态 | **final state / end state** |
-| 竞态 | **race** |
-| 无条件覆盖 | **unconditional write / overwrite** |
-| 降级（套餐） | **downgrade** ↔ **upgrade** |
-| 买断 / 终身版 | **lifetime purchase** |
-| 试用 | **trial** |
-| 续费 | **renewal** |
-| 暂停 ↔ 恢复 | **pause ↔ resume** |
-| 到期后取消 | **cancel at period end** |
-| 资格判定 | **eligibility check** |
-| 服务端动作 | **server action**（Next.js 的术语） |
-| 挽留邮件 | **win-back / retention email** |
-| 类型不同步 | **type drift between client and server** |
-| 编译期擦除 | **erased at compile time**（`import type`） |
-| 单一仓库 | **monorepo** |
-| 接口方法 | **procedure**（`query` 读 / `mutation` 写） |
-| 拦截器 | **middleware** |
-| 请求上下文 | **context** |
-| 运行时校验 | **runtime validation** |
-| 类型推导 | **type inference**（`z.infer`） |
-| 甜点区 / 适用场景 | **sweet spot** |
-| 过度获取 | **over-fetching**（GraphQL 的卖点） |
-
-> ⭐ **三个最容易说错的**：
->
-> 1. 「权益」是 **entitlement**，不是 `permission` —— permission 偏「能不能操作」，entitlement 是「买到了什么」
-> 2. 「验签过的 webhook」说 **signature-verified**，简历原句就是这个
-> 3. 「两种顺序都收敛到正确结果」用 **converge** —— 这个词能一口气说清你想表达的东西，比 "both end up correct" 专业得多
+| 权益 | entitlement |
+| 事实来源 | source of truth |
+| 验签 | signature verification |
+| 原始请求体 | raw body |
+| 重复投递 | duplicate delivery |
+| 至少一次投递 | at-least-once delivery |
+| 幂等 | idempotency / idempotent |
+| 乱序到达 | out-of-order delivery |
+| 收敛 | convergence / converge |
+| 竞态 | race condition |
+| 资格检查 | eligibility check |
+| 买断 | lifetime purchase |
+| 降级 / 升级 | downgrade / upgrade |
