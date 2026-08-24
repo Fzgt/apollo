@@ -260,7 +260,138 @@ scope 只有 \`usage:write\`——不能读项目、不能列 key、不能建新
       title: 'Bullet 3 · 付费转化链路',
       resume:
         'Owned the paid conversion path — Stripe Checkout, trials and lifetime purchases on Next.js, tRPC and Drizzle — with plan eligibility enforced in typed server actions and entitlements written only by signature-verified webhooks across six subscription events, none of which can downgrade a lifetime purchase.',
-      questions: [],
+      questions: [
+        {
+          id: 'b3-main',
+          keywords: ['Stripe', 'Checkout', '升级', '链路', 'server action', 'webhook', 'metadata', 'tRPC'],
+          kind: 'main',
+          asked: '2026-08-24',
+          q: {
+            zh: '用户在页面上点「升级到 God」，到他账号里那个字段真的变成 God——中间经过哪几个环节？按顺序说。',
+            en: 'A user clicks “upgrade to God”. Walk me through every hop between that click and the plan field on their account actually changing.',
+          },
+          a: {
+            zh: `**先把这句放在最前面：这是两条互不相干的链路。** 浏览器那条只负责把人送到付款页，权限一个字段都不写；写权限的是 Stripe 事后打回来的 webhook。先说这句，后面全是细节。
+
+**链路一 · 下单（浏览器 → server action → Stripe）**
+
+1. 点击调 server action \`createStripeSession\`。前端不直接连 Stripe，也拿不到任何 key。
+2. 服务端自己取当前用户，**四道拦截**：已是 Lifetime 拒；\`hasPurchasedPlan\` 还想要试用的拒（试用 7 天，只给首单）；已经在这一档拒；**已有付费订阅又要换订阅档的，转 \`createUpdateSession\`，不发新 checkout**。
+3. 都过了才 \`stripe.checkout.sessions.create\`：订阅走 \`mode: "subscription"\`，买断走 \`mode: "payment"\`，userId 挂在 metadata 的 \`payingUserId\` 上，返回 session.url。
+4. 前端跳到 Stripe 托管页付款，付完回跳 success 页。**这条链路到此为止。**
+
+**链路二 · 入账（Stripe → webhook）**
+
+5. Stripe 朝 \`/api/stripe/webhook\` POST 事件，进门先验签，不过直接 400。
+6. 按事件类型分发：订阅落在 \`customer.subscription.created\`，买断落在 \`checkout.session.completed\`。
+7. \`users.subscribedPlan\` **只在这里被写**，靠 \`stripeCustomerId\` 反查用户，而且每条写都带 \`ne(subscribedPlan, Lifetime)\`。
+8. 没有任何东西被推回前端——回跳之后前端自己重新拉一次用户状态。
+
+> ⚠️ 简历这条写的是「on Next.js, tRPC and Drizzle」，但**付费链路一行 tRPC 都没有**（tRPC 只在 copilot / resume 两个 router），走的是 server actions + webhook route + Drizzle。顺着问会穿帮，已建议 v43 改成「Next.js and Drizzle」。`,
+          },
+          phrases: [
+            'Two paths that never touch: the browser starts the purchase, the webhook is the only thing that grants it.',
+            'Nothing the browser can reach writes an entitlement.',
+          ],
+        },
+        {
+          id: 'b3-success-page',
+          keywords: ['success', '回跳', 'redirect', '真相源', 'source of truth', '前端写库'],
+          kind: 'followup',
+          asked: '2026-08-24',
+          q: {
+            zh: '支付成功后 Stripe 把人跳回你的 success 页。为什么那个页面一个权限字段都不写？写了会发生什么？',
+            en: 'Stripe redirects the user back to your success page after payment. Why doesn’t that page write anything? What breaks if it does?',
+          },
+          a: {
+            zh: `两个方向都不成立，各一句就够。
+
+**它不可信** —— success 的 URL 在用户手里。他一分钱不付、直接把地址敲进浏览器，页面照样加载。在那里写库，等于把升级按钮公开挂在网上。
+
+**它也不可靠** —— 付款成功但人关了浏览器、网断了、跳转失败，页面根本不会加载。钱收了，权限没给。
+
+所以权限的唯一真相源只能是那条服务端到服务端的链路：Stripe 直接 POST 给我的 webhook，带签名，全程不经过用户的机器。success 页在这套设计里只是一块「谢谢惠顾」的招牌。
+
+> ⚠️ 别答成「怕泄漏用户信息」——方向就错了，那是另一个问题。`,
+          },
+          phrases: [
+            'The success URL is attacker-controlled and unreliable — it’s a thank-you page, nothing more.',
+            'Entitlements only ever come from a signed, server-to-server event.',
+          ],
+        },
+        {
+          id: 'b3-webhook-verify',
+          keywords: ['验签', 'signature', 'constructEvent', 'raw body', '伪造', '幂等', 'idempotency', '重放'],
+          kind: 'followup',
+          asked: '2026-08-24',
+          q: {
+            zh: 'webhook 进门第一件事做什么？这步省了，攻击者能拿到什么？',
+            en: 'What is the first thing your webhook handler does? What can an attacker do if you skip it?',
+          },
+          a: {
+            zh: `**验签。** 这是整条 bullet 的支点，这题答不出来，前面说得再顺也没用。
+
+取请求头里的 \`stripe-signature\`，配 \`STRIPE_WEBHOOK_SECRET\`，交给 \`stripe.webhooks.constructEvent\`。没有签名头 400，验不过也 400，一个字都不往下走。
+
+**必须用原始 body。** Next.js 里是 \`await req.text()\`，绝不能先 \`req.json()\` 再验——签名是对字节算的，parse 完再序列化回去，空格或键序一变签名就对不上。这是最常被追问、也最常被踩的一处。
+
+省掉这步的后果：那个路由公网可达，任何人 POST 一段自己编的 JSON，声称某个 customer 买了 Lifetime，服务端照写。付费墙等于拆了。
+
+> ⚠️ 主动交代短板：**没有 event id 去重表**。Stripe 会重投，我的幂等是靠写操作本身收敛——每次都是按 customer 覆写成同一个 plan，同一个事件重放结果一样。要做严格幂等，标准做法是拿 \`event.id\` 建唯一索引，见过就直接 200 返回。照实说，别硬圆。`,
+          },
+          phrases: [
+            'Signature verification on the raw body — anything that fails gets a 400 before it touches the database.',
+            'Without it that route is an open API for granting yourself a lifetime plan.',
+            'Idempotency comes from convergent writes, not an event-id table — I’d add the table if replays mattered more.',
+          ],
+        },
+        {
+          id: 'b3-lifetime-guard',
+          keywords: ['Lifetime', '终身', '降级', 'ne', 'guard', 'cancel', '重复扣费', '守卫'],
+          kind: 'followup',
+          asked: '2026-08-24',
+          q: {
+            zh: '一个用户已经买了终身，名下还挂着一个没退的月订阅。月底 Stripe 发来订阅更新事件——他会不会掉回 Standard？靠什么挡住的？另外，买断成功那一刻，你还主动做了一件事，是什么？',
+            en: 'Someone bought lifetime but still has a monthly subscription running. When the next subscription event arrives, do they drop back to Standard? What stops it? And what did you actively do at purchase time?',
+          },
+          a: {
+            zh: `**不会掉。两手，方向相反，只说一半就是答漏了。**
+
+**守 —— 写库那一侧。** 每一条改 \`users.subscribedPlan\` 的语句，where 里都带 \`ne(subscribedPlan, Lifetime)\`：升降档用的 \`updateUserSubscription\` 带，暂停/删除时把人打回 Free 的 \`deleteUserSubscription\` 也带。所以任何订阅事件打到 Lifetime 用户身上，命中 0 行，静默无效。**它写在 SQL 的条件里，不是写在某个 if 里**——这点值得强调，它不依赖调用方记得判断。
+
+**攻 —— 收钱那一侧。** \`checkout.session.completed\` 里一旦发现这单包含 Lifetime 商品，立刻 \`stripe.subscriptions.list\` 拉出这个 customer 名下所有订阅，逐个 \`stripe.subscriptions.cancel\`，然后才把 \`subscribedPlan\` 写成 Lifetime、\`hasPurchasedPlan\` 置 true。
+
+两件事解决的是两个问题：守卫防**数据**被覆盖，主动取消防**钱**被继续划走。`,
+          },
+          phrases: [
+            'Every write carries ne(plan, Lifetime) in the WHERE clause — it’s a database-level guard, not a caller-side if.',
+            'On a lifetime purchase I also cancel every running subscription for that customer, so they aren’t billed twice.',
+          ],
+        },
+        {
+          id: 'b3-upgrade-session',
+          keywords: ['升级', 'upgrade', 'checkout', 'billing portal', 'proration', '补差价', '重复订阅'],
+          kind: 'followup',
+          asked: '2026-08-24',
+          q: {
+            zh: '已经是 Standard 的人要换 God。你为什么不给他新开一个 checkout？那你走的是什么？',
+            en: 'A Standard subscriber wants God. Why not just create another checkout session? What do you do instead?',
+          },
+          a: {
+            zh: `**因为新开 checkout 会造出第二份订阅。** 同一个 customer 名下两份订阅并行，两笔都扣钱。这是钱的 bug，不是体验的 bug——先把这句说出来。
+
+所以 \`createStripeSession\` 判断出「有 stripeCustomerId、当前不是 Free、要换的又是订阅档」时，转 \`createUpdateSession\`：拉出这个 customer 当前的订阅，开一个 **Billing Portal session**，\`flow_data.type\` 用 \`subscription_update_confirm\`，把订阅里现有那个 item 的 price 换成新档，用户在 Stripe 的确认页点一下就完成，回跳我的 success 页。**改的是既有订阅上的那一行，订阅始终只有一份。**
+
+补差价（proration）由 Stripe 按 Billing Portal 的配置结算，不是我在代码里算的——问到就这么说，别把它讲成自己实现的逻辑。
+
+> ⚠️ 已知薄弱点，被追问就认：\`subscriptions.list\` 取的是 \`limit: 1\` 的第一条，等于假设一个 customer 只有一份订阅，取不到就抛错。这个前提在当前产品下成立（买断时会把订阅清空），但不是通用写法。`,
+          },
+          phrases: [
+            'A second checkout would create a second subscription — that’s double billing, not a UX problem.',
+            'I deep-link into the Billing Portal’s subscription_update_confirm flow and swap the price on the existing item.',
+          ],
+        },
+      ],
     },
     {
       id: 'bullet-4',
