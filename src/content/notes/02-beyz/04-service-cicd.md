@@ -13,55 +13,167 @@ status: done
 > **简历原句**
 >
 > **Sole author of a NestJS and Fastify service** for subscription emails and scheduled payment reminders — **Dockerized, cron-triggered, deployed to EC2 under PM2 through GitHub Actions** — and of the repo's **first CI gate**: lint, typecheck and build on every push.
->
-> ---
->
-> 独立开发了一个 NestJS + Fastify 服务，负责订阅邮件与定时付款提醒 —— 容器化、cron 触发，经 GitHub Actions 部署到 EC2 并由 PM2 托管；同时搭起了这个仓库的第一道 CI 关卡：每次 push 都跑 lint、类型检查和构建。
 
-## 这条 bullet 在讲什么
+## 先别拆技术名词：这条证明两件事
 
-**前三条讲的是「我能把一个复杂功能做出来」，这一条讲的是「我能把一个服务从零带到线上」。**
+前三条主要证明「我能把复杂产品功能做出来」，这一条证明：
 
-它的价值不在代码量 —— **这个服务只有 402 行 TypeScript、16 个文件、三周、22 个提交全是我一个人的**。价值在于**容器化、定时任务、云服务器部署、自动发布这一整条链路我全走了一遍**。
+1. **我能把一个独立后端服务从零带到线上，并让它持续运行。**
+2. **我给团队建立了仓库的第一道自动质量检查。**
 
-⭐ **而这条 bullet 最大的机会在于：`Docker / EC2 / PM2 / GitHub Actions` 这几个词会让面试官顺手问下去，而这几问的标准答案里，恰好有好几个我当时做得不对。主动说出来比等他发现强得多。**
+```text
+A. 邮件服务
+   写服务 → cron 定时执行 → Docker 容器化
+       → GitHub Actions 部署到 EC2 → 持续运行
 
-## 30 秒口播稿
+B. CI
+   每次 push → lint → typecheck → build
+```
 
-> 这是个很小的服务，四百来行，三周做完，就我一个人。它做的事很窄 —— **每分钟扫一次数据库，给注册超过 24 小时还没付费的用户发一封升级提醒**。
->
-> **为什么要单独开一个服务**：主应用部署在无状态平台上，**那种平台只有请求进来时才被唤醒，它不会自己醒来**，而定时任务恰恰需要一个自己会醒的进程。**这是按运行模型拆服务，不是按业务域拆。**
->
-> **最值得讲的是「同一封邮件不能发两遍」**：靠的不是调度频率，是**一张表** —— 查询用反连接挑出「还没发过提醒的人」，发完写一条记录。**判据是持久化的事实，不是进程状态**，所以重启、换机器、跑几次都不影响正确性。
->
-> 我还给那个仓库加了第一道 CI 关卡：每次 push 都跑代码检查、类型检查和构建。
+先掌握这条主线，再看 cron 幂等、PM2、Dockerfile 和部署缺口。
 
-## 一、为什么要单独开一个服务
+---
 
-**主应用是 Next.js，部署在无状态平台上。**
+# 第一层：必须答明白的六个问题
 
-**「无状态平台」（stateless / serverless platform）是什么意思**：这类平台（Vercel、Lambda 之类）上，你的代码**只有在有请求进来时才被唤醒**，处理完就休眠。⭐ **它不会自己醒来。**
+## 1. 为什么要单独做一个邮件服务？
 
-**而定时任务恰恰需要一个「自己会醒」的东西** —— 每分钟醒一次，查数据库，决定要不要发邮件。**无状态平台上没有这个语义。**
+这个服务负责：
 
-⭐ **这叫按运行模型（runtime model）拆服务，不是按业务域拆：**
+- 发送订阅相关邮件；
+- 定时扫描需要付款提醒的用户；
+- 发送 scheduled payment reminders。
 
-| 运行模型 | 适合放哪 |
-|---|---|
-| 请求驱动、短生命周期 | 无状态平台 |
-| ⭐ **常驻、自己触发** | **长期跑着的进程 / 专门的后台服务** |
-| 长连接 | 专门的网关 |
+主应用的普通请求是短生命周期、请求驱动的：
 
-**收益**：独立发版（改邮件模板不用重新部署整个前端）、独立重启、独立扩容（**它的负载曲线和主站完全不同**）。
-**代价**：多一套部署和监控、数据库连接多一个来源、**两边的数据表定义要保持同步**。
+```text
+用户发请求 → 函数执行 → 返回响应 → 本次执行结束
+```
 
-> **规模上去了会怎么做**：402 行的规模下自己养个进程是合理的。任务变多之后我会换成 —— **云厂商的托管调度**（到点触发一个函数，不用自己养常驻进程）、**任务队列**（自带重试、退避、失败归档、可观测性，这些我现在全是手写或者干脆没有），以及最关键的 —— ⭐ **从「轮询」改成「事件驱动」：用户注册的那一刻就排一个 24 小时后执行的延时任务，根本不用每分钟扫库。**
+定时任务不是用户触发的，它需要系统在指定时间主动执行：
 
-## 二、⭐ 怎么保证同一封邮件不发两遍（这条 bullet 最值钱的一问）
+```text
+常驻进程 → cron 到时间 → 扫描数据库 → 发送邮件
+```
 
-**先定义幂等（idempotent）**：一个操作**执行一次和执行多次，结果一样**。⭐ **发邮件天然不幂等 —— 发两次用户就收到两封。**
+因此当时把它拆成独立的常驻服务。这样还可以独立部署、重启和扩容，不受前端发版影响。
 
-### 靠一张表，不靠调度频率
+⚠️ 不要说「定时任务绝对不能放在 Next.js」。托管 cron 也可以触发 Next.js route。准确说法是：**当时选择独立常驻服务来承载定时任务，运行模型直观、控制简单。**
+
+**一句话答法：**
+
+> The email work needed an independently deployable, long-running execution model for scheduled jobs, so I separated it from the request-driven Next.js application. That also let us deploy and restart it without affecting the web app.
+
+---
+
+## 2. NestJS 和 Fastify 分别负责什么？
+
+### NestJS
+
+NestJS 是应用框架，负责组织：
+
+- module、controller 和 service；
+- 依赖注入；
+- 数据库和邮件服务；
+- `@nestjs/schedule` 定时任务。
+
+### Fastify
+
+Fastify 是 NestJS 底层处理 HTTP 请求的 adapter：
+
+```text
+NestJS：应用结构
+Fastify：HTTP server 实现
+```
+
+NestJS 的 adapter 可替换，因此使用 Fastify 不会改变 controller、service 和依赖注入结构。
+
+Fastify 通常有较好的吞吐、schema 校验和 Swagger 集成，但这个服务的主要工作是定时扫库和发邮件，HTTP 吞吐并不是瓶颈。
+
+**一句话答法：**
+
+> NestJS provided the application structure, dependency injection and scheduling, while Fastify was the HTTP adapter. It was a reasonable low-cost choice, but HTTP throughput was not the bottleneck for this service.
+
+---
+
+## 3. 这个服务怎么部署上线？
+
+真实部署链路：
+
+```text
+push 到 main
+  → GitHub Actions workflow 启动
+  → Actions 通过 SSH 登录 EC2
+  → git pull origin main
+  → docker-compose up -d --build
+  → 在 EC2 上重新构建并启动容器
+```
+
+这套方式的优点是简单、容易理解，对小服务够用。
+
+它也有明确缺点：
+
+- 在生产机上构建镜像；
+- 没有零停机替换；
+- 没有 health check；
+- 没有自动回滚；
+- 单实例；
+- 构建失败可能影响线上服务。
+
+**一句话答法：**
+
+> A push to main triggered GitHub Actions, which SSHed into EC2, pulled the latest commit and ran `docker-compose up -d --build`. It was deliberately simple, but it had no zero-downtime deployment, health check or automated rollback.
+
+---
+
+## 4. 线上到底是 Docker 还是 PM2？
+
+准确答案：**运行在 Docker 容器里，容器内部使用 `pm2-runtime` 启动 NestJS。**
+
+```text
+EC2
+└── Docker container
+    └── pm2-runtime（PID 1）
+        └── NestJS process
+```
+
+不是 Docker 和 PM2 二选一，而是 PM2 在容器内部。
+
+### 为什么是 `pm2-runtime`？
+
+容器的生命周期绑定主进程。`pm2-runtime` 在前台运行，可以作为 PID 1；普通 `pm2 start` 会 daemonize 后返回，可能导致容器认为主进程已经结束。
+
+### PM2 在这里必要吗？
+
+基本不必要。Compose 已配置：
+
+```yaml
+restart: unless-stopped
+```
+
+应用崩溃导致容器退出后，Compose 已经能重新启动容器。该服务也没有利用 PM2 cluster。因此现在重做会直接：
+
+```dockerfile
+CMD ["node", "dist/src/main.js"]
+```
+
+重启交给容器编排层，日志走标准输出。
+
+⚠️ **PM2 能重启和管理日志，但不等于监控告警系统。**
+
+**一句话答法：**
+
+> It ran in a Docker container, with `pm2-runtime` as PID 1 inside it. In hindsight PM2 was redundant because the Compose restart policy already covered crashes, so today I would run Node directly.
+
+---
+
+## 5. 怎么避免同一封 reminder email 重复发送？
+
+先理解当时的做法，再理解它为什么不够。
+
+### 当时的做法
+
+单独使用 `upgradeReminders` 表记录已经提醒过的用户。查询通过 left join 找出右表中没有记录的人：
 
 ```ts
 const usersToRemind = await db
@@ -69,314 +181,227 @@ const usersToRemind = await db
   .from(users)
   .leftJoin(upgradeReminders, eq(users.id, upgradeReminders.userId))
   .where(and(
-    eq(users.subscribedPlan, 'Free'),          // ① 还没付费
-    lt(users.createdAt, twentyFourHoursAgo),   // ② 注册超过 24 小时
-    isNull(upgradeReminders.id)                // ③ ⭐ 还没发过提醒
+    eq(users.subscribedPlan, 'Free'),
+    lt(users.createdAt, twentyFourHoursAgo),
+    isNull(upgradeReminders.id),
   ));
 ```
 
-**逐句解释：**
+这种「找出左表里不存在于右表的记录」叫 anti-join。邮件发送后，再插入 reminder record。
 
-- **`leftJoin`（左连接）**：以左表（用户）为主，去右表（已发提醒记录）里找匹配的行。⭐ **找不到的话，右表那些字段就是空的**
-- **`isNull(upgradeReminders.id)`**：挑出「**右表里没有对应记录**」的那些用户 —— 也就是**还没发过提醒的人**
+持久化记录比内存标志好：服务重启或换机器后，数据库仍然知道谁已经处理过。
 
-> **这个写法有个名字叫 anti-join（反连接）**：「左表里那些在右表中不存在的记录」。**能说出这个词，说明你知道自己写的是一个有名字的模式。**
+### 当前实现的三个缺口
 
-发完之后写一条记录：
+**第一，顺序是先发邮件、后写记录。**
 
-```ts
-await db.insert(upgradeReminders).values({ userId: user.id, sentAt: new Date() });
+```text
+邮件发送成功 → 进程崩溃 → 记录没写入
+              → 下一轮再次选中 → 重复发送
 ```
 
-⭐ **所以「已发过」这个状态是数据库里的一行，不是内存里的标志位、也不是「上次跑到哪儿了」的游标。好处是：服务重启、换机器、跑几次都不影响正确性 —— 因为判据是持久化的事实，不是进程状态。**
+**第二，没有唯一约束。** 两个 cron 同时查询，都可能看到「没有记录」，然后各发一封。应用层的 read-then-write 不能抵抗并发。
 
-### ⭐ 至少一次 vs 至多一次（这一问必须上到这个层次）
+**第三，cron 留在 `EVERY_MINUTE`，且默认不防重入。** 上一轮没跑完，下一轮可能已经开始。
 
-发邮件涉及**两个系统**（邮件服务商 + 你的数据库）。⭐ **跨系统的操作没有原子性** —— 你没法让「发邮件」和「写记录」要么都成功要么都失败。于是**只有两种排法**：
+### 现在会怎么改？
 
-| 排法 | 崩在中间会怎样 | 术语 |
+1. 先插入 `pending` 记录，成功占坑的 worker 才发送；
+2. 给 `(userId, reminderType, period)` 加唯一约束；
+3. 发送成功后把状态更新为 `sent`；
+4. 失败的 `pending` 记录由独立任务重试；
+5. 如果邮件供应商支持，发送时携带 idempotency key。
+
+⭐ **查询是优化，数据库唯一约束才是并发下的保证。**
+
+**一句话答法：**
+
+> I persisted reminder records and selected only users without one. Looking back, that was incomplete: the record should be claimed before sending, and a unique constraint should enforce one reminder per user, type and period because read-then-write is not safe under concurrency.
+
+---
+
+## 6. 第一条 CI gate 做了什么？为什么没有测试？
+
+CI 在每次 push 时执行：
+
+```text
+lint → typecheck → build
+```
+
+三者分别检查：
+
+| 检查 | 主要发现什么 |
+|---|---|
+| `lint` | 代码规则、可疑写法、Hooks 等问题 |
+| `typecheck` | TypeScript 类型错误，不生成产物 |
+| `build` | 真实生产构建能否完成、模块和打包配置是否正确 |
+
+当时仓库没有自动化测试，因此 CI 没有 test job。不要声称存在测试套件。
+
+它的价值是从零建立自动检查：在此之前是「本地觉得能跑就 push」，之后每个 push 都至少经过代码、类型和生产构建检查。
+
+但它还不是完整的质量体系。下一步应补测试，并通过 branch protection 要求 CI 通过后才能合并。
+
+**一句话答法：**
+
+> It was the repository's first automated gate: lint, TypeScript checking and a production build on every push. The repository had no test suite at the time, so it did not include tests; adding them and enforcing the gate through branch protection would be the next step.
+
+---
+
+# 第二层：Cron 和幂等性再深入一层
+
+## 为什么每分钟跑一次？
+
+代码实际使用 `EVERY_MINUTE`，每天或每十分钟的表达式被注释掉了。这更像调试配置残留，不是经过严谨容量分析得出的生产参数。
+
+提醒目标是「注册满 24 小时」，每分钟扫描精度过剩，而且数据库扫描成本会随用户量增长。
+
+规模扩大后，更合理的设计是事件驱动：
+
+```text
+用户注册
+  → 投递一个 24 小时后执行的 delayed job
+  → 到时检查用户是否仍然 Free
+  → 发送提醒
+```
+
+任务队列可以提供重试、退避、失败归档和可观测性，也不需要每分钟扫全库。
+
+## 为什么发邮件很难做到“恰好一次”？
+
+邮件供应商和数据库是两个系统，普通数据库事务无法同时包住：
+
+```text
+发送邮件 + 写数据库记录
+```
+
+- 先发后记：中间崩溃可能重复发送；
+- 先记后发：中间崩溃可能漏发。
+
+因此实际工程重点不是口头承诺 exactly-once，而是通过唯一约束、状态机、重试和供应商幂等键，把失败模式控制在可接受范围内。
+
+---
+
+# 第三层：CI 和 CD 不要混在一起
+
+| | CI | CD |
 |---|---|---|
-| **先发后记**（我当时这样） | 邮件发了、记录没写 → **下一分钟又发一遍** | **至少一次**（at-least-once） |
-| **先记后发** | 记了「已发送」但邮件失败 → **这个用户永远收不到** | **至多一次**（at-most-once） |
+| 目标 | 自动验证改动 | 把新版本部署到生产 |
+| 是否修改生产 | 否 | 是 |
+| 本项目 | lint / typecheck / build | SSH EC2 → pull → rebuild container |
 
-**没有第三种**，除非引入分布式事务 —— 而那个代价通常不值得。
+这两个流程当时还没有真正连起来：Web 仓库的 CI 不能保护另一个服务仓库的部署。邮件服务的 deploy workflow 里没有完整的检查 gate。
 
-⭐ **所以真正的问题不是「怎么做到恰好一次」，是「这个业务宁可重复还是宁可丢失」：**
+理想流程：
 
-- **营销 / 提醒邮件 → 宁可重复**：多收一封升级提醒是骚扰，**收不到就是一次转化机会没了** ✅ 我当时选的
-- **付款通知 / 密码重置 → 宁可丢失**：重复发「付款成功」会让用户以为被扣了两次
-
-> ⭐ **「恰好一次在跨系统场景下不存在，能做到的是至少一次加上幂等消费」—— 说出这句，这一问就满分了。**
-
-### 当时有两个我知道的洞
-
-1. **查询和写入之间没有锁** —— 如果这个服务跑两个实例，**两边可能同时查到同一个用户，各发一封**
-2. **崩在发信和记账之间会重发**
-
-**四层做法：**
-
-| 做法 | 解决什么 |
-|---|---|
-| ⭐ **在 userId 上建唯一索引** | 第二次插入直接违反唯一约束、失败。**数据库层面挡住并发重复** —— 最便宜也最可靠的一层 |
-| **先插「处理中」再发信** | 插入成功才拿到发送权（相当于抢到锁），发完更新状态。**把二选一变成三态**，可以重试也可以对账 |
-| **给邮件服务商传幂等键** | 多数服务商支持这个头，**把去重推到最后一层** |
-| **调度层保证只有一个实例在跑** | 分布式锁，或者用支持单例的调度器 |
-
-> ⭐ **「唯一索引兜底」这一招和 [③ Stripe 的重复投递](/docs?section=beyz&item=stripe-billing)、[百度提现的幂等键](/docs?section=baidu&item=withdrawal) 是完全同一个模式：把不变量放在数据层，不放在应用层的 if 判断里。三个项目串起来讲，是[跨项目追问](/docs?section=cheatsheet&item=crosscut)的现成答案。**
-
-## 三、为什么 cron 定成每分钟
-
-```ts
-// @Cron(CronExpression.EVERY_DAY_AT_9AM)     ← 注释掉的
-// @Cron(CronExpression.EVERY_10_MINUTES)     ← 注释掉的
-@Cron(CronExpression.EVERY_MINUTE)
+```text
+检查通过
+  → 在 CI 中构建 Docker image
+  → 用 commit SHA 打标签并推送 registry
+  → EC2 只拉取已验证的 image
+  → health check
+  → 成功后替换旧版本，失败则回滚
 ```
 
-⭐ **幂等靠表不靠频率，所以频率不影响正确性，只影响「多久能送达」** —— 用户注册满 24 小时之后，最多一分钟就收到。
+这叫 **build once, deploy anywhere**。它避免生产机抢资源构建，也让回滚变成拉取旧镜像，而不是重新 checkout 和构建旧代码。
 
-**诚实的另一半**：对一个「24 小时后才发」的提醒，**每分钟的精度是过剩的**。注释里从每天一路降到每分钟的痕迹，说明这是**调试时为了快速看到效果调下来的，然后留在了那里**。
+---
 
-> **生产级**：改成事件驱动，**根本不轮询**。精确触发、不用扫库、⭐ **而且用户量涨了也不会变慢** —— 轮询的代价随用户数线性增长，延时任务是常数级。
+# 第四层：Docker 细节与真实基础设施缺口
 
-## 四、为什么 Fastify 不是 Express
-
-`main.ts` 里换了一行，把 NestJS 的 HTTP 层从默认的 Express 换成 Fastify。
-
-⭐ **NestJS 把 HTTP 实现抽象成了可替换的适配器** —— 换 Fastify 只改这一行加一个依赖，**controller、service、依赖注入全都不动**。
-
-**Fastify 的实际差异**：路由匹配用的数据结构更快、**把 JSON 序列化预编译**（而不是每次都通用地转换）、请求校验是一等公民、插件有明确的作用域边界（不像 Express 中间件那样全局叠加）。
-
-> ⚠️ **别吹性能。** 这个服务的负载是「每分钟查一次库、发几封邮件」—— **吞吐差异在这里根本体现不出来。**
->
-> ⭐ **赢的答法是主动否认自己本可以吹的点**：
->
-> 「这是选型题不是性能题。NestJS 的适配器让切换成本几乎为零，Fastify 在请求校验和文档生成上更顺手，就选了它。**这个服务的量级完全用不到它的吞吐优势，说它解决了性能瓶颈是不诚实的。**」
->
-> **主动否认一个能吹的点，比多吹一个点更能建立可信度。**
-
-### 顺带：依赖注入的两种方式
-
-```ts
-constructor(
-  private mailerService: MailerService,              // 按类型注入
-  @Inject('DATABASE_CONNECTION') private db: any     // 按名字注入
-) { }
-```
-
-**「依赖注入」（dependency injection，DI）的意思是**：这个类需要什么，就在构造函数里声明，**由框架负责造好了递给它** —— 而不是自己 `new` 一个。**好处是测试时可以塞一个假的进去。**
-
-**两种方式的区别**：`MailerService` 是个类，框架能从类型信息里认出它；而**数据库连接不是一个类，是工厂函数造出来的对象**，没有类型可以匹配，**所以要用一个字符串名字来标识**。
-
-## 五、CI 和 CD 分别是什么，我这两个是哪个
-
-**这一问最该答满**，因为在这个项目里切得特别干净：**两个仓库、两个文件、两种触发条件。**
-
-| | 全称 | 目标 | 改不改生产环境 |
-|---|---|---|---|
-| **CI** | 持续集成 | **让主干随时处于可发布状态** —— 每次改动都自动验证一遍 | ❌ 不改 |
-| **CD** | 持续部署 | **把可发布的东西真的发出去** | ✅ **改** |
-
-⭐ **正确的关系是串行的：CI 是 CD 的前置门。没有 gate 的 CD 不是 CD，是自动化的事故。**
-
-| | **CI** | **CD** |
-|---|---|---|
-| 文件 | `beyz-web/.github/workflows/ci.yml` | `beyz-server/.github/workflows/deploy.yml` |
-| 触发条件 | ⭐ **所有分支**的每次推送 | **只有 main 分支** |
-| 做什么 | 代码检查 / 类型检查 / 构建，**两个任务并行** | 登录服务器 → 拉代码 → 重建容器 |
-| 产出 | 一个红叉或绿勾 | **生产环境变了** |
-| 失败的后果 | 你知道该修了 | **线上可能挂了** |
-
-⭐ **「所有分支」这个配置是 CI 的关键**：不是只管 main。**要在合并之前就发现问题才叫 gate** —— 只在 main 上跑就太晚了，坏代码已经进主干了。
-
-### ⚠️ 我当时最大的问题：这两者没连起来
-
-**部署那个文件里没有任何检查步骤** —— 没有代码检查、没有类型检查、没有构建验证、没有测试。**而 CI 那道门在另一个仓库，管不到这边的部署。**
-
-```
-main 上推一个编译不过的提交
-  → 部署流程立刻触发
-    → 登录服务器，拉代码，重建容器
-      → 构建在生产机上失败
-        → 而旧容器可能已经被停了
-```
-
-| 生产级怎么补 | 说明 |
-|---|---|
-| **让部署任务依赖一个检查任务** | GitHub Actions 里用 `needs:` 声明依赖，**过了才往下走**。最小改动，最大收益 |
-| **改成「构建产物 → 推镜像仓库 → 拉取部署」** | 见下一节 |
-| **加健康检查 + 自动回滚** | 现在容器起来就算成功，**不验证服务真的能响应请求** |
-| **保护分支** | 要求 PR 必须过 CI 才能合入 main，**从源头保证主干是绿的** |
-
-## 六、为什么不该在生产机上构建
-
-**面试官读到「登录服务器然后 build」大概率会问这个。这是反模式，四条：**
-
-| 问题 | 说明 |
-|---|---|
-| **抢生产资源** | 构建期间生产机 CPU 被吃满，**正在服务的请求跟着变慢** |
-| **构建失败 = 部署中断** | 旧容器可能已经停了，而新的起不来 |
-| **不可复现** | 生产机上的构建缓存、Node 版本、磁盘状态都不受控。⭐ **「在我机器上能构建」变成了「在生产机上能构建」** |
-| **回滚困难** | 没有一个不可变的产物，回滚意味着 checkout 旧代码再构建一遍 |
-
-⭐ **生产级 —— 标准做法叫「构建一次，到处部署」（build once, deploy anywhere）：**
-
-```
-在 CI 环境里构建镜像
-  → 用这次提交的 commit 号打上标签
-    → 推到镜像仓库
-      → 生产机只做「拉取 + 换容器」
-```
-
-**买到三样：**
-
-- **生产机不构建**，只拉取和启动，秒级完成
-- ⭐ **产物不可变** —— `app:a1b2c3` 这个镜像永远对应那份代码，**回滚就是拉一个旧标签**
-- **同一个镜像可以先上测试环境验证，再上生产** —— **验证过的和上线的是同一个二进制**
-
-## 七、Docker 里已经有了，为什么还要 PM2
-
-### 先讲一个能加分的细节
+## Dockerfile 做对的一点：依赖层缓存
 
 ```dockerfile
-CMD ["pm2-runtime", "start", "dist/src/main.js"]
-```
-
-**用的是 `pm2-runtime`，不是 `pm2 start`。**
-
-| | 行为 | 在容器里的后果 |
-|---|---|---|
-| `pm2 start` | **把应用交给后台守护进程，命令本身立刻返回** | ⭐ **容器的主进程退出了 → 容器直接停止** |
-| `pm2-runtime` | **自己作为主进程待在前台**，日志走标准输出 | ✅ 容器正常存活 |
-
-> **为什么会这样**：容器的生命周期绑在「主进程」上 —— **主进程一退，容器就结束**。`pm2 start` 启动完就返回了，容器认为「活干完了」。**写错了容器起来就秒退，而且报错完全不指向这里。**
-
-### 诚实的答案：确实重复
-
-**编排配置里已经写了「容器挂了就重启」** —— 这本身就覆盖了 PM2 最主要的卖点。
-
-| PM2 的能力 | 在这个部署里 |
-|---|---|
-| 崩溃重启 | ⚠️ **和 Docker 的重启策略重复** |
-| 日志格式化 | ✅ 还有点用 |
-| **多核多进程** | ❌ **没配**，只跑单进程 |
-| 零停机重载 | ❌ 容器化靠滚动更新，用不上 |
-
-**而且重复有代价**：多一层进程意味着**信号传递可能出问题** —— `docker stop` 会发一个终止信号，**得靠 PM2 正确转发给应用，应用才能优雅退出**；排查问题也多一层。
-
-> 「重做的话我会去掉 PM2，直接 `CMD ["node", "dist/src/main.js"]`，重启交给编排层，日志交给 Docker 收。当时留着是沿用了裸机部署的习惯。」
->
-> ⭐ **这一问的加分点不在你选了什么，在于你知道它是不是必要的。**
-
-## 八、Dockerfile 里做对的一条
-
-```dockerfile
-COPY package.json pnpm-lock.yaml* ./    # ① 只先拷依赖清单
-RUN pnpm install                        # ② 装依赖，单独一层
-COPY . .                                # ③ 再拷源码
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install
+COPY . .
 RUN pnpm run build
 ```
 
-**先解释 Docker 的分层缓存（layer caching）**：镜像是**一层一层叠起来**的，每条指令一层。构建时从上往下比对：⭐ **某一层的输入没变就直接复用上次的结果；一旦有一层变了，它和它之后的所有层全部重建。**
+先复制依赖清单并安装，再复制源码。只改源码时，依赖层可以复用缓存；只有 lockfile 或 package manifest 改变才重新安装依赖。
 
-**如果写反了（常见错误）：**
+可以继续改进：
 
-```dockerfile
-COPY . .              # ← 源码一改，这层就变了
-RUN pnpm install      # ← 于是每次都要重装依赖
-```
+- 使用 multi-stage build；
+- 最终镜像不保留开发依赖和源码；
+- 使用非 root 用户；
+- 添加 health check；
+- 使用更小的基础镜像。
 
-**改一个字母的源码，装依赖就要重跑一遍**，每次构建几分钟。
+## 生产配置里的 volume mount 问题
 
-**而实际的写法**：先只拷依赖清单 → 装依赖 → 再拷源码。**源码改动不影响依赖那一层的输入，缓存命中，装依赖直接跳过。**
-
-⭐ **「只有依赖清单变了才重装依赖」—— 这是 Dockerfile 里最值钱的一条规则。**
-
-**该改的四条**：基础镜像是完整版约 1 GB，换精简版能降到几百 MB；**没有多阶段构建**（开发依赖和源码全留在最终镜像里，其实构建完就不需要了）；以 root 用户运行；没有健康检查。⭐ **镜像小不只是省空间 —— 拉取更快意味着部署更快，攻击面也更小。**
-
-## 九、⚠️ 一个必须主动说的真问题
+配置把宿主机目录挂到容器应用目录：
 
 ```yaml
 volumes:
-  - .:/usr/src/app              # ← 把宿主机当前目录挂进容器
-  - /usr/src/app/node_modules   # ← 单独保住镜像里的依赖目录
+  - .:/usr/src/app
+  - /usr/src/app/node_modules
 ```
 
-**先解释「挂载」（volume mount）**：它让容器里的某个路径**直接指向宿主机上的一个目录**。改宿主机的文件，容器里立刻能看到 —— **这是开发时的热重载用法**。
+这是开发热更新常见写法，但用于生产会让宿主机目录覆盖镜像内容，甚至隐藏镜像构建好的 `dist/`。部署可能意外依赖服务器上残留的编译产物。
 
-**但它出现在生产配置里，会产生一个直接后果：**
+正确做法是生产配置删除源码挂载；开发热更新使用单独的 Compose override。
 
-```
-构建镜像时   RUN pnpm run build   → 编译产物 dist/ 生成在镜像里
-容器启动时   把宿主机目录挂到同一个路径 → 宿主机目录盖住了镜像的内容
-                                        → 镜像里那个 dist/ 被藏起来了
-启动命令     node dist/src/main.js
-                                        → 找的是宿主机目录里的 dist/
-```
+## 未鉴权的调试端点
 
-**而 `dist` 是被版本控制忽略的** —— 服务器上拉代码之后**那个目录里不该有它**。
+项目还留有一个名字类似 `trigger-cron` 的 GET endpoint，实际只是给写死邮箱发测试邮件：
 
-⭐ **第二行那个单独挂载依赖目录的写法，恰恰说明作者知道「挂载会盖住镜像内容」这件事 —— 他给依赖目录打了补丁，但没给编译产物打。**
+- 它没有真正触发完整 cron；
+- 没有鉴权；
+- GET 执行有副作用，可能被预取或爬虫误触发。
 
-> **诚实的说法**：「这份配置确实在生产上跑起来了，那说明服务器上存在一份编译产物，很可能是某次手动构建留下的。**而『部署依赖宿主机上一份没人管、也不在版本控制里的产物』本身就是问题** —— 换台机器、清一次目录，部署就起不来。生产配置里应该去掉这两行挂载，要热重载就单独维护一份开发用的配置。」
->
-> ⭐ **这个发现值得主动讲：它证明你能批判性地读自己的基础设施，而不只是「配好了能跑就行」。**
+生产前应该删除；如果确实需要手动触发，则改成有鉴权的 POST 管理接口。
 
-## 十、还有一个该主动交代的疤
+---
 
-```ts
-@Get('trigger-cron')
-async triggerCronManually() {
-  await this.mailerService.sendEmail('fzgt320@gmail.com', ...);   // 写死的邮箱
-}
-```
+# 30 秒主回答
 
-**三个问题：**
+> I built a separate NestJS service for subscription emails and scheduled payment reminders because that work needed an independently deployable, long-running process. NestJS handled the application structure and cron scheduling, with Fastify as its HTTP adapter. On every push to main, GitHub Actions SSHed into EC2, pulled the latest code and rebuilt the Docker Compose service. The app ran in a container with `pm2-runtime` inside, although in hindsight PM2 was redundant because Compose already had a restart policy. I also added the web repository's first CI gate, running lint, typecheck and a production build on every push. It did not include tests because that repository had no test suite at the time.
 
-1. **它并不真的触发定时任务** —— 名字叫「手动触发 cron」，实际只是给一个**写死的邮箱**发一封测试邮件
-2. **没有任何鉴权** —— 谁都能访问这个地址让它发邮件
-3. ⭐ **用 GET 做有副作用的操作** —— HTTP 的约定里 GET 应该是「安全的」（不改变任何东西）。**浏览器预取、爬虫、聊天软件的链接预览都可能意外触发它**
+---
 
-> **答法**：「这是当时留的调试口子，名字起得比它做的事大。**上生产前应该删掉，或者至少加鉴权并改成 POST。**」
->
-> ⭐ **主动指出自己代码里的疤，收益比看起来大 —— 它证明你现在的标准高于当时的产出，而面试官招的是现在的你。**
+# 当前实现要主动承认的六个缺口
 
-## 十一、本篇术语英文对照
+1. **Reminder 是先发后记，也没有唯一约束。** 并发或中途崩溃可能重复发送。
+2. **Cron 留在每分钟执行，且没有防重入。** 这是调试配置残留。
+3. **PM2 在单进程容器里基本冗余。** Compose restart policy 已经负责崩溃重启。
+4. **在生产机上重新构建。** 没有不可变镜像、健康检查、零停机和自动回滚。
+5. **CI 和部署没有形成同一条 gate。** Web 仓库的 CI 保护不到服务仓库的 CD。
+6. **仓库当时没有测试。** CI 只有 lint、typecheck 和 build。
+
+---
+
+# 最后自测：先答这六题
+
+1. 为什么把邮件和定时提醒拆成独立服务？
+2. NestJS 和 Fastify 分别负责什么？
+3. Push main 之后，这个服务如何一步步部署到 EC2？
+4. 线上到底是 Docker 还是 PM2？PM2 是否必要？
+5. 当时如何减少重复提醒？为什么严格来说仍然可能重复？
+6. 第一条 CI gate 跑什么？为什么没有测试？
+
+能用自己的话答完这六题，再进入 delayed job、Docker 构建优化和 exactly-once 等进阶话题。
+
+---
+
+## 术语速查
 
 | 中文 | 英文 |
 |---|---|
-| 无状态平台 | **stateless / serverless platform** |
-| 常驻进程 | **long-running process** |
-| 定时任务 | **cron job / scheduled job** |
-| 轮询 ↔ 事件驱动 | **polling ↔ event-driven** |
-| 延时任务 | **delayed job** |
-| 任务队列 | **job queue** |
-| 退避重试 | **retry with backoff** |
-| 幂等 | **idempotent** |
-| 反连接 | **anti-join** |
-| 唯一索引 | **unique index** |
-| 至少一次 ↔ 至多一次 | **at-least-once ↔ at-most-once** |
-| 恰好一次 | **exactly-once**（⚠️ 跨系统时说它*不存在*） |
-| 原子性 | **atomicity**（*no atomicity across systems*） |
-| 分布式事务 | **distributed transaction** |
-| 依赖注入 | **dependency injection（DI）** |
-| 适配器 | **adapter** |
-| 容器化 | **containerized / Dockerized** |
-| 分层缓存 | **layer caching** |
-| 多阶段构建 | **multi-stage build** |
-| 挂载 | **volume mount** |
-| 编排层 | **orchestration layer** |
-| 重启策略 | **restart policy** |
-| 优雅退出 | **graceful shutdown** |
-| 信号转发 | **signal forwarding** |
-| 健康检查 | **health check** |
-| 回滚 | **roll back** |
-| 关卡 / 门禁 | **gate**（*the repo's first CI gate*） |
-| 保护分支 | **branch protection** |
-| 构建一次到处部署 | **build once, deploy anywhere** |
-| 不可变产物 | **immutable artifact** |
-
-> ⭐ **三个最容易说错的**：
->
-> 1. 「恰好一次」**在跨系统场景下不存在** —— 要说 **exactly-once doesn't exist across system boundaries; you get at-least-once plus idempotent consumption**，这句是这条 bullet 的杀手锏
-> 2. 「CI 关卡」用 **gate**，简历里就是 `the repo's first CI gate`
-> 3. 「在生产机上构建」是 **building on the production host**，说它是 **an anti-pattern**
+| 常驻进程 | long-running process |
+| 定时任务 | cron job / scheduled job |
+| 轮询 / 事件驱动 | polling / event-driven |
+| 延时任务 | delayed job |
+| 幂等 | idempotency / idempotent |
+| 反连接 | anti-join |
+| 唯一约束 | unique constraint |
+| 防重入 | prevent overlapping executions |
+| 容器化 | containerized / Dockerized |
+| 重启策略 | restart policy |
+| 健康检查 | health check |
+| 回滚 | rollback |
+| 持续集成 | continuous integration |
+| 持续部署 | continuous deployment |
+| 质量门禁 | CI gate |
+| 不可变产物 | immutable artifact |
+| 构建一次到处部署 | build once, deploy anywhere |
