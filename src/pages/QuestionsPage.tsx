@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronsDownUp, Search, SearchX, X } from 'lucide-react';
+import { ChevronsDownUp, ChevronsUpDown, Search, SearchX, Shuffle, X } from 'lucide-react';
 import { QuestionRow } from '@/components/questions/QuestionRow';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { questionCount, questionSources, type Question } from '@/content/questions';
@@ -101,6 +101,8 @@ export default function QuestionsPage() {
   const selectSlot = (key: string) => {
     const next = new URLSearchParams(searchParams);
     next.set('b', key);
+    next.delete('q');
+    setOpenIds(new Set());
     setSearchParams(next, { replace: true });
   };
 
@@ -121,13 +123,66 @@ export default function QuestionsPage() {
     if (only) setOpenIds(new Set([only.question.id]));
   }, [isFiltered, hitCount, slots]);
 
-  const toggle = (id: string) =>
-    setOpenIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const revealQuestion = (id: string, scroll = true) => {
+    setOpenIds(new Set([id]));
+    const next = new URLSearchParams(searchParams);
+    next.set('q', id);
+    setSearchParams(next, { replace: true });
+    if (scroll) {
+      window.requestAnimationFrame(() =>
+        document.getElementById(`question-${id}`)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        })
+      );
+    }
+  };
+
+  const toggle = (id: string) => {
+    if (!openIds.has(id)) {
+      revealQuestion(id, false);
+      return;
+    }
+    if (openIds.size > 1) {
+      const remaining = new Set(openIds);
+      remaining.delete(id);
+      setOpenIds(remaining);
+      return;
+    }
+    setOpenIds(new Set());
+    const next = new URLSearchParams(searchParams);
+    next.delete('q');
+    setSearchParams(next, { replace: true });
+  };
+
+  // 刷新或分享带 q 参数的链接时，回到原来那道题。
+  useEffect(() => {
+    const id = searchParams.get('q');
+    if (!id || !slots.some((slot) => slot.rows.some((row) => row.question.id === id))) return;
+    setOpenIds((current) => (current.has(id) ? current : new Set([id])));
+  }, [searchParams, slots]);
+
+  const collapseAll = () => {
+    setOpenIds(new Set());
+    const next = new URLSearchParams(searchParams);
+    next.delete('q');
+    setSearchParams(next, { replace: true });
+  };
+
+  const expandSlot = (slot: Slot) => {
+    setOpenIds(new Set(slot.rows.map((row) => row.question.id)));
+    const next = new URLSearchParams(searchParams);
+    next.delete('q');
+    setSearchParams(next, { replace: true });
+  };
+
+  const pickRandom = (slot: Slot) => {
+    if (slot.rows.length === 0) return;
+    const candidates = slot.rows.filter((row) => !openIds.has(row.question.id));
+    const pool = candidates.length > 0 ? candidates : slot.rows;
+    const row = pool[Math.floor(Math.random() * pool.length)];
+    revealQuestion(row.question.id);
+  };
 
   /** 侧边栏一格。桌面竖排、手机横排滑动，样式差在容器上 */
   const slotButton = (slot: Slot, variant: 'aside' | 'chip') => {
@@ -262,7 +317,7 @@ export default function QuestionsPage() {
                 {openIds.size > 0 && (
                   <button
                     type="button"
-                    onClick={() => setOpenIds(new Set())}
+                    onClick={collapseAll}
                     className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted hover:text-foreground"
                   >
                     <ChevronsDownUp className="size-3.5" />
@@ -278,11 +333,33 @@ export default function QuestionsPage() {
                     className="overflow-hidden rounded-xl border border-border bg-card"
                   >
                     <div className="border-b border-border bg-muted/30 px-4 py-3">
-                      <div className="flex items-baseline gap-2">
-                        <h2 className="text-sm font-semibold text-foreground">
-                          {slot.bulletTitle}
-                        </h2>
-                        <span className="text-xs text-muted-foreground">{slot.sourceTitle}</span>
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-baseline gap-2">
+                          <h2 className="text-sm font-semibold text-foreground">
+                            {slot.bulletTitle}
+                          </h2>
+                          <span className="text-xs text-muted-foreground">{slot.sourceTitle}</span>
+                        </div>
+                        {slot.rows.length > 0 && (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => pickRandom(slot)}
+                              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/60 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
+                            >
+                              <Shuffle className="size-3.5" />
+                              随机抽题
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => expandSlot(slot)}
+                              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            >
+                              <ChevronsUpDown className="size-3.5" />
+                              展开本组
+                            </button>
+                          </div>
+                        )}
                       </div>
                       {slot.resume && (
                         <p className="mt-1.5 border-l-2 border-border pl-2.5 text-xs italic leading-relaxed text-muted-foreground">

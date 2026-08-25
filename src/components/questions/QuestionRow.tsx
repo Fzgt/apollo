@@ -41,6 +41,7 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
 
   return (
     <motion.div
+      id={`question-${question.id}`}
       layout="position"
       transition={{ layout: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] } }}
       className={cn(

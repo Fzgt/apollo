@@ -21,22 +21,22 @@ export const beyz: QuestionSource = {
           kind: 'main',
           asked: '2026-08-23',
           q: {
-            zh: '你简历第一条说端到端做了个实时面试助手。从用户点「开始」那一刻讲起——对方的声音是怎么一步步变成屏幕上那段答案的？每一步你为什么这么选。',
-            en: 'Your first bullet says you built the real-time interview copilot end to end. Start from the moment the user hits "Start" — how does the interviewer’s voice become the answer on screen, and why did you make each choice the way you did?',
+            zh: '用户点击开始后，从「浏览器里对方的声音」到「GPT 答案逐步显示在页面上」，完整的数据链路是什么？请按音频采集 → 音频切块 → 语音转写 → 临时/最终文本处理 → 触发 GPT → 流式显示答案的顺序讲。',
+            en: 'After the user clicks Start, walk me through the complete path from the interviewer’s audio in the browser to the GPT answer appearing progressively on screen: capture, chunking, transcription, interim/final reconciliation, generation trigger, and streamed rendering.',
           },
           a: {
-            zh: `六步。名字必须说对——这题最容易掉分的地方就是把 Deepgram 的字段名说错。
+            zh: `先讲六步主链路。身份、套餐校验和 60 秒临时 key 属于 Bullet 2；可以在开头交代一句，但不要让安全细节淹没这道题。
 
 1. **采集** —— 对方的声音在浏览器另一个标签页里，麦克风采不到。所以走 \`getDisplayMedia({ video: true, audio: true })\` 的「共享标签页」路径。**这个 API 必须带 \`video: true\` 才拿得到音频**，拿到之后立刻把 video 轨 \`stop()\` 并 \`removeTrack()\`，只留音频。
-2. **切片** —— \`MediaRecorder\` 每 250 ms 出一个 blob，\`size > 0\` 才发（发空包 Deepgram 会直接关连接）。
+2. **切片** —— \`MediaRecorder\` 每 250 ms 产生一个音频 \`Blob\`，\`size > 0\` 才发（发空包 Deepgram 会直接关连接）。
 3. **传输** —— WebSocket 连 Deepgram live，nova-2，开 \`interim_results\`、\`smart_format\`，关 \`filler_words\`。
-4. **调和** —— Deepgram 先给临时结果、再给 \`is_final\` 的定稿。用一个 ref 存「已确认」串，界面显示 = 已确认 + 当前这段临时的。临时结果是**重写**不是追加，所以字不会闪回也不会重复。
-5. **切句** —— 不自己写静音检测，用 Deepgram 的 **\`UtteranceEnd\` 消息**（由 \`utterance_end_ms: 2000\` 配出来）判定一句问完了，触发生成。
-6. **生成** —— server action 里 \`streamText({ model: openai('gpt-4o') })\`，\`createStreamableValue()\` 边生成边往外推；前端 \`readStreamableValue()\` 逐块拼，包在 \`startTransition\` 里更新。**面试场景里首字延迟比总时长重要**，所以全程流式。
+4. **调和** —— 开启 \`interim_results\` 后，Deepgram 返回的 transcript 消息带 \`is_final\`。\`false\` 的当前临时文本只替换显示；\`true\` 的定稿才追加进 ref 里的「已确认」串。界面始终显示「已确认 + 当前临时」，所以不会重复累加。
+5. **切句** —— 不自己写静音检测，用 Deepgram 通过**同一条 WebSocket** 发来的 \`UtteranceEnd\` 事件（由 \`utterance_end_ms: 2000\` 配置）判定一句问完了，触发生成。**它不是 webhook。**
+6. **生成** —— Next.js server action 里用 \`streamText({ model: openai('gpt-4o') })\` 读取 GPT-4o 的文本增量，再通过 RSC 的 \`createStreamableValue()\` 往客户端推；前端以 \`readStreamableValue()\` 逐块消费并更新页面。这里的 chunk 是**文本增量，不保证刚好等于一个 token**。**面试场景里首字延迟比总时长重要**，所以不等整段完成。
 
 收尾一句：整条链路没有第三方的中间层，采集、调和、切句、生成都是我自己接的。
 
-> ⚠️ 名字别说错：是 \`is_final\` / \`speech_final\` / \`UtteranceEnd\`。**没有「Silent event」，也没有 \`utterance_end: true\` 这个字段。** 意思对、名字错，是最容易掉分的那一类。`,
+> ⚠️ 三个最容易说错的点：\`UtteranceEnd\` 是 WebSocket 事件，不是 webhook；GPT 下行是 RSC streamable value，不是手写 \`ReadableStream\`；chunk 不保证等于一个 token。`,
           },
           phrases: [
             'The interviewer’s audio lives in another tab, so the mic can’t reach it — I capture it with getDisplayMedia.',
@@ -95,11 +95,16 @@ export const beyz: QuestionSource = {
           kind: 'followup',
           asked: '2026-08-23',
           q: {
-            zh: '后端把答案流回前端，走的是什么？SSE 还是 ReadableStream？',
-            en: 'How does the answer stream back to the browser — SSE or a ReadableStream?',
+            zh: '这条链路里有两种流：浏览器 ↔ Deepgram，以及服务端 → 浏览器。为什么第一条用 WebSocket，而 GPT 答案下行没有继续用 WebSocket？请从通信方向、连接生命周期和业务需求比较。',
+            en: 'There are two streams here: browser ↔ Deepgram and server → browser. Why does the first use WebSocket while the GPT answer path does not? Compare their direction, connection lifetime, and product requirements.',
           },
           a: {
-            zh: `**都不是。** 实际用的是 Next.js server action + AI SDK RSC 的 \`createStreamableValue()\`，前端 \`readStreamableValue()\` 消费，底层走 RSC 的 flight 流，不是我手写的传输层。
+            zh: `**因为两条链路的通信形状不同。**
+
+- **浏览器 ↔ Deepgram** 是长时间存在的双向会话：浏览器持续上传音频，Deepgram 同时不断下发 transcript、metadata 和 \`UtteranceEnd\` 等事件。双方都要随时发消息，连接还要跨越整场面试，所以 WebSocket 合适。
+- **服务端 → 浏览器** 是一次提问对应一次答案的请求—响应：问题提交以后，主要需求只是把 GPT 文本增量单向推回来，答案结束这次流也结束。为它再维护一条 WebSocket，需要自己处理连接关联、清理和错误状态，却没有换来双向通信价值。
+
+实际实现是 Next.js server action + AI SDK RSC 的 \`createStreamableValue()\`，前端用 \`readStreamableValue()\` 消费，底层走 RSC Flight stream，不是手写 \`ReadableStream\`，也不是 SSE。
 
 **这句要主动说清楚，别含糊成「异步流式」——含糊比说错更掉分。**
 
@@ -111,7 +116,8 @@ export const beyz: QuestionSource = {
 能把「为什么 SSE 在这个场景不成立」讲出来，比答对名字更值钱。`,
           },
           phrases: [
-            'It’s a Next.js server action using the AI SDK’s streamable value — not something I hand-rolled.',
+            'Deepgram is a long-lived, bidirectional session; the GPT answer is a finite, one-way response stream.',
+            'It’s a Next.js server action using the AI SDK’s streamable value — not another WebSocket I had to operate.',
             'EventSource is GET-only, and the question payload has to be POSTed, so plain SSE was out.',
           ],
         },
