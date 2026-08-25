@@ -9,10 +9,12 @@ import {
   MessageCircleQuestion,
   Send,
 } from 'lucide-react';
+import { QuickLinkRow } from '@/components/home/QuickLinkRow';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { StatusBadge } from '@/components/notes/StatusBadge';
 import { answerCount } from '@/content/applications';
 import { allLibraryNotes } from '@/content/library';
+import { quickLinkGroups } from '@/content/links';
 import { allNotes } from '@/content/notes';
 import { questionCount } from '@/content/questions';
 import { REPO_DEV_URL, REPO_URL, SITE_NAME, SITE_TAGLINE } from '@/content/site';
@@ -95,6 +97,21 @@ export default function HomePage() {
               网申和面试的底料都在这里：现搜现粘的表单答案、真的被问过的题、六段经历各自的讲法，
               以及一份随时能发出去的简历。本地写 Markdown，push 上线。
             </p>
+
+            {/* 常用：给别人的那几行字。整行即复制按钮 */}
+            <div className="mt-8 grid gap-3 md:grid-cols-2">
+              {quickLinkGroups.map((group) => (
+                <div key={group.title} className="overflow-hidden rounded-xl border border-border bg-card">
+                  <div className="flex items-baseline justify-between gap-2 border-b border-border px-4 py-2.5">
+                    <span className="text-sm font-medium text-foreground">{group.title}</span>
+                    <span className="text-xs text-muted-foreground">{group.hint}</span>
+                  </div>
+                  {group.links.map((link) => (
+                    <QuickLinkRow key={link.value} link={link} />
+                  ))}
+                </div>
+              ))}
+            </div>
 
             {/* 库存：从内容层直接算，加一篇就变一个数 */}
             <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
