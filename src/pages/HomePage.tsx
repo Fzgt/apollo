@@ -1,37 +1,81 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen, Calculator, Github, ListChecks } from 'lucide-react';
+import {
+  ArrowRight,
+  CalendarCheck,
+  FileText,
+  Github,
+  MessageCircleQuestion,
+  Send,
+} from 'lucide-react';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { StatusBadge } from '@/components/notes/StatusBadge';
-import { STATUS_META } from '@/components/notes/status';
-import { allNotes, dayNotes, noteSections } from '@/content/notes';
+import { answerCount } from '@/content/applications';
+import { allLibraryNotes } from '@/content/library';
+import { allNotes } from '@/content/notes';
+import { questionCount } from '@/content/questions';
 import { REPO_DEV_URL, REPO_URL, SITE_NAME, SITE_TAGLINE } from '@/content/site';
-import { cn } from '@/lib/utils';
-
-const LEVEL_TONE: Record<string, string> = {
-  S: 'border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-400',
-  A: 'border-sky-500/40 bg-sky-500/10 text-sky-600 dark:text-sky-400',
-  B: 'border-border bg-muted/50 text-muted-foreground',
-};
 
 function noteHref(sectionId: string, itemId: string) {
   return `/docs?section=${encodeURIComponent(sectionId)}&item=${encodeURIComponent(itemId)}`;
 }
 
-export default function HomePage() {
-  const progress = useMemo(() => {
-    const done = dayNotes.filter((note) => note.status === 'done').length;
-    const doing = dayNotes.filter((note) => note.status === 'doing').length;
-    return {
-      done,
-      doing,
-      total: dayNotes.length,
-      percent: dayNotes.length ? Math.round((done / dayNotes.length) * 100) : 0,
-    };
-  }, []);
+function stripDayPrefix(title: string) {
+  return title.replace(/^Day \d+ · /, '');
+}
 
-  const cheatsheet = noteSections.find((section) => section.id === 'cheatsheet');
+/** 一行式条目：左侧竖线 + 向右淡出的底色 + 跟着指针推 3px，和题库/投递一套手法 */
+function RowLink({
+  to,
+  title,
+  meta,
+  right,
+}: {
+  to: string;
+  title: string;
+  meta?: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <motion.div
+      whileHover={{ x: 3 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+      className="group relative border-b border-border last:border-b-0"
+    >
+      <Link
+        to={to}
+        className="relative flex items-center gap-3 overflow-hidden py-2 pl-4 pr-3 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+      >
+        <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+        <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/[0.055] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <span className="relative min-w-0 flex-1 truncate text-sm leading-6 text-foreground transition-colors group-hover:text-primary">
+          {title}
+        </span>
+        {meta && (
+          <span className="relative hidden shrink-0 text-xs text-muted-foreground sm:inline">
+            {meta}
+          </span>
+        )}
+        {right}
+      </Link>
+    </motion.div>
+  );
+}
+
+export default function HomePage() {
+  /** 十四天已经跑完，这里要的是「还欠什么」，不是进度条 */
+  const open = useMemo(() => allNotes.filter((note) => note.status !== 'done'), []);
+
+  /** S 级＝面试里最可能被追到底的几页 */
+  const critical = useMemo(() => allNotes.filter((note) => note.level === 'S'), []);
+
+  const stats = [
+    { label: '投递答案', value: answerCount, href: '/apply' },
+    { label: '真题', value: questionCount, href: '/questions' },
+    { label: '项目笔记', value: allLibraryNotes.length, href: '/library' },
+    { label: '复习笔记', value: allNotes.length, href: '/docs' },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,148 +92,148 @@ export default function HomePage() {
               {SITE_NAME}
             </h1>
             <p className="mt-4 max-w-2xl text-muted-foreground">
-              对应简历 v40 的十四天复习。22 条 bullet、20 个数字口径、5 个项目仓库。
-              每一页都是一份待回答的问题清单——本地写 Markdown，push 上线。
+              网申和面试的底料都在这里：现搜现粘的表单答案、真的被问过的题、六段经历各自的讲法，
+              以及一份随时能发出去的简历。本地写 Markdown，push 上线。
             </p>
 
-            {/* 进度 */}
-            <div className="mt-8 rounded-xl border border-border bg-card p-5">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-sm text-muted-foreground">复习进度</span>
-                <span className="text-sm text-muted-foreground">
-                  <span className="text-2xl font-semibold text-foreground">{progress.done}</span>
-                  {' / '}
-                  {progress.total} 天完成
-                  {progress.doing > 0 && `，${progress.doing} 天进行中`}
-                </span>
-              </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-                <motion.div
-                  className="h-full rounded-full bg-primary"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress.percent}%` }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
-                />
-              </div>
+            {/* 库存：从内容层直接算，加一篇就变一个数 */}
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {stats.map((stat) => (
+                <Link
+                  key={stat.label}
+                  to={stat.href}
+                  className="rounded-xl border border-border bg-card px-4 py-3 transition-colors hover:bg-muted/50"
+                >
+                  <div className="text-2xl font-semibold tabular-nums text-foreground">
+                    {stat.value}
+                  </div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">{stat.label}</div>
+                </Link>
+              ))}
             </div>
           </motion.header>
 
-          {/* 十四天 */}
-          <section className="mt-12">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-foreground">十四天</h2>
-              <Link
-                to="/docs?section=overview&item=plan"
-                className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                看总纲
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
+          {/* 今天要用的 */}
+          <section className="mt-12 grid gap-3 sm:grid-cols-3">
+            <Link
+              to="/apply"
+              className="group rounded-xl border border-border bg-card p-5 transition-colors hover:bg-muted/50"
+            >
+              <Send className="h-5 w-5 text-muted-foreground" />
+              <h3 className="mt-3 flex items-center gap-1 font-medium text-foreground">
+                填表单
+                <ArrowRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                搜关键词，右侧图标一键复制，不用展开。
+              </p>
+            </Link>
+            <Link
+              to="/questions"
+              className="group rounded-xl border border-border bg-card p-5 transition-colors hover:bg-muted/50"
+            >
+              <MessageCircleQuestion className="h-5 w-5 text-muted-foreground" />
+              <h3 className="mt-3 flex items-center gap-1 font-medium text-foreground">
+                面试前
+                <ArrowRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                只收真的被问过的题，中英双语，含追问。
+              </p>
+            </Link>
+            <Link
+              to="/resume"
+              className="group rounded-xl border border-border bg-card p-5 transition-colors hover:bg-muted/50"
+            >
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <h3 className="mt-3 flex items-center gap-1 font-medium text-foreground">
+                要发简历
+                <ArrowRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                网页版对着 PDF 重排，原件在页内下载。
+              </p>
+            </Link>
+          </section>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {dayNotes.map((note, index) => (
-                <motion.div
-                  key={`${note.sectionId}-${note.itemId}`}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: Math.min(index * 0.03, 0.3) }}
-                >
-                  <Link
+          {/* 还没结的 */}
+          {open.length > 0 && (
+            <section className="mt-12">
+              <div className="mb-4 flex items-baseline justify-between gap-2">
+                <h2 className="text-lg font-semibold text-foreground">还没结的</h2>
+                <span className="text-sm text-muted-foreground">{open.length} 页</span>
+              </div>
+              <div className="overflow-hidden rounded-xl border border-border bg-card">
+                {open.map((note) => (
+                  <RowLink
+                    key={`${note.sectionId}-${note.itemId}`}
                     to={noteHref(note.sectionId, note.itemId)}
-                    className={cn(
-                      'group flex h-full flex-col rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50',
-                      note.status === 'doing' ? 'border-amber-500/40' : 'border-border'
-                    )}
-                  >
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        Day {note.day}
-                      </span>
-                      {note.level && note.level !== '—' && (
-                        <span
-                          className={cn(
-                            'rounded border px-1.5 py-0.5 text-[11px] font-medium',
-                            LEVEL_TONE[note.level] ?? LEVEL_TONE.B
-                          )}
-                        >
-                          {note.level}
-                        </span>
-                      )}
-                    </div>
-                    <span className="flex-1 font-medium leading-snug text-foreground">
-                      {note.title.replace(/^Day \d+ · /, '')}
-                    </span>
-                    <div className="mt-3 flex items-center justify-between">
-                      <StatusBadge status={note.status} />
-                      <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                    </div>
-                  </Link>
-                </motion.div>
+                    title={stripDayPrefix(note.title)}
+                    meta={note.section}
+                    right={
+                      <StatusBadge status={note.status} className="relative shrink-0 border-0 bg-transparent px-0" />
+                    }
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* S 级 */}
+          <section className="mt-12">
+            <div className="mb-4 flex items-baseline justify-between gap-2">
+              <h2 className="text-lg font-semibold text-foreground">会被追到底的</h2>
+              <span className="text-sm text-muted-foreground">S 级 {critical.length} 页</span>
+            </div>
+            <div className="overflow-hidden rounded-xl border border-border bg-card">
+              {critical.map((note) => (
+                <RowLink
+                  key={`${note.sectionId}-${note.itemId}`}
+                  to={noteHref(note.sectionId, note.itemId)}
+                  title={stripDayPrefix(note.title)}
+                  meta={note.section}
+                />
               ))}
             </div>
           </section>
 
-          {/* 快捷入口 */}
-          <section className="mt-12 grid gap-3 sm:grid-cols-3">
+          {/* 十四天存档 */}
+          <section className="mt-12">
             <Link
-              to="/docs?section=numbers&item=day01"
-              className="group rounded-xl border border-border bg-card p-5 transition-colors hover:bg-muted/50"
+              to="/docs?section=overview&item=plan"
+              className="group flex items-center gap-3 rounded-xl border border-border bg-card p-5 transition-colors hover:bg-muted/50"
             >
-              <Calculator className="h-5 w-5 text-muted-foreground" />
-              <h3 className="mt-3 font-medium text-foreground">数字口径审计</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                20 个数字，逐个回答「你怎么测的」。答不住就改到 v41。
-              </p>
-            </Link>
-            <Link
-              to="/docs?section=overview&item=standards"
-              className="group rounded-xl border border-border bg-card p-5 transition-colors hover:bg-muted/50"
-            >
-              <ListChecks className="h-5 w-5 text-muted-foreground" />
-              <h3 className="mt-3 font-medium text-foreground">每日产出标准</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                四项产出、讲述链路、完成标准。判断一天算不算过。
-              </p>
-            </Link>
-            <Link
-              to={
-                cheatsheet?.items[0]
-                  ? noteHref(cheatsheet.id, cheatsheet.items[0].itemId)
-                  : '/docs'
-              }
-              className="group rounded-xl border border-border bg-card p-5 transition-colors hover:bg-muted/50"
-            >
-              <BookOpen className="h-5 w-5 text-muted-foreground" />
-              <h3 className="mt-3 font-medium text-foreground">速查</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                幂等四实现、跨项目追问、面试前一页。
-              </p>
+              <CalendarCheck className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <div className="min-w-0 flex-1">
+                <h3 className="font-medium text-foreground">十四天复习计划</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  十四天的日程已经走完，{allNotes.length} 篇留在「计划」里；上面两张清单都是从它里挑的。
+                </p>
+              </div>
+              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
             </Link>
           </section>
 
-          {/* 怎么用 */}
+          {/* 怎么维护 */}
           <section className="mb-20 mt-12 rounded-xl border border-border bg-card p-6">
             <h2 className="font-semibold text-foreground">怎么维护这个站</h2>
             <ol className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li>
-                <span className="text-foreground">1.</span> 本地编辑{' '}
+                <span className="text-foreground">1.</span> 笔记是{' '}
                 <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-                  src/content/notes/&lt;分组&gt;/&lt;笔记&gt;.md
+                  src/content/&lt;集合&gt;/&lt;分组&gt;/&lt;笔记&gt;.md
                 </code>
-                ，push 后 Cloudflare 自动上线。
+                ，丢一个 .md 进去导航自动出现，文件名的数字前缀决定顺序。
               </li>
               <li>
-                <span className="text-foreground">2.</span> 新增一页＝丢一个 .md
-                进对应目录，导航自动出现；文件名的数字前缀决定顺序。
+                <span className="text-foreground">2.</span> 题库和投递答案是 TS 数据 ——{' '}
+                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">content/questions</code> 与{' '}
+                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">content/applications</code>
+                ，加一组写一个文件挂进数组。
               </li>
               <li>
-                <span className="text-foreground">3.</span> 改 frontmatter 里的{' '}
-                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">status</code>（
-                {Object.entries(STATUS_META)
-                  .map(([key, meta]) => `${key}=${meta.label}`)
-                  .join(' · ')}
-                ），上面的进度条跟着动。
+                <span className="text-foreground">3.</span> push 后 Vercel 自动上线；上面的四个数和
+                「还没结的」都是算出来的，不用手改。
               </li>
               <li>
                 <span className="text-foreground">4.</span> 人不在电脑前，用{' '}
@@ -201,7 +245,8 @@ export default function HomePage() {
                 >
                   github.dev
                 </a>{' '}
-                在浏览器里改（或在仓库页面按 <kbd className="rounded border border-border px-1 text-xs">.</kbd>）。
+                在浏览器里改（或在仓库页面按{' '}
+                <kbd className="rounded border border-border px-1 text-xs">.</kbd>）。
               </li>
             </ol>
             <a
@@ -212,7 +257,6 @@ export default function HomePage() {
             >
               <Github className="h-4 w-4" />
               仓库：{REPO_URL.replace('https://github.com/', '')}
-              <span className="text-xs">· 共 {allNotes.length} 篇</span>
             </a>
           </section>
         </div>
