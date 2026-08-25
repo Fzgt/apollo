@@ -8,7 +8,7 @@ export default function DocsPage() {
       sections={noteSections}
       notes={allNotes}
       getNote={getNote}
-      navTitle="复习"
+      navTitle="计划"
       storageKey="docs"
       showProgress
     />

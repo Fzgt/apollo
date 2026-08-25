@@ -257,7 +257,7 @@ export default function QuestionsPage() {
                 <span className="min-w-0 truncate">
                   {isFiltered
                     ? '搜索跨全部 bullet；点左边任意一条即可退出搜索'
-                    : '被问过的题和该怎么答。代码出处在「资料」，这里只管出口的那句话。'}
+                    : '被问过的题和该怎么答。代码出处在「笔记」，这里只管出口的那句话。'}
                 </span>
                 {openIds.size > 0 && (
                   <button

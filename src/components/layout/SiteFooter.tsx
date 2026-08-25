@@ -15,7 +15,7 @@ export function SiteFooter() {
             总览
           </Link>
           <Link to="/docs" className="transition-colors hover:text-foreground">
-            复习
+            计划
           </Link>
           <a
             href={REPO_URL}
