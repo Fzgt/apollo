@@ -3,7 +3,12 @@ import { motion } from 'framer-motion';
 import { ChevronsDownUp, Search, SearchX, X } from 'lucide-react';
 import { ApplicationRow } from '@/components/applications/ApplicationRow';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { answerCount, applicationGroups, type ApplicationAnswer } from '@/content/applications';
+import {
+  answerCount,
+  answerNumbers,
+  applicationGroups,
+  type ApplicationAnswer,
+} from '@/content/applications';
 import { fuzzyMatch } from '@/lib/fuzzy';
 import { cn } from '@/lib/utils';
 
@@ -166,6 +171,7 @@ export default function ApplicationsPage() {
                   <ApplicationRow
                     key={row.answer.id}
                     answer={row.answer}
+                    number={answerNumbers.get(row.answer.id) ?? 0}
                     isOpen={openIds.has(row.answer.id)}
                     onToggle={() => toggle(row.answer.id)}
                     hits={row.hits}

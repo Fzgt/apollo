@@ -7,11 +7,12 @@
 
 import type { ApplicationAnswer, ApplicationGroup } from './types';
 import { general } from './general';
+import { maincode } from './maincode';
 import { sitemate } from './sitemate';
 
 export type { ApplicationAnswer, ApplicationGroup } from './types';
 
-export const applicationGroups: ApplicationGroup[] = [general, sitemate];
+export const applicationGroups: ApplicationGroup[] = [general, sitemate, maincode];
 
 export interface FlatAnswer {
   group: ApplicationGroup;
@@ -23,3 +24,11 @@ export const allAnswers: FlatAnswer[] = applicationGroups.flatMap((group) =>
 );
 
 export const answerCount = allAnswers.length;
+
+/**
+ * 题号。按库里的固定顺序编，一题一个号——搜索会按得分重排，号不跟着变，
+ * 这样「第 3 题」在任何视图下都指同一条。往数组末尾加题不会打乱已有的号。
+ */
+export const answerNumbers = new Map<string, number>(
+  allAnswers.map(({ answer }, index) => [answer.id, index + 1])
+);

@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 
 interface ApplicationRowProps {
   answer: ApplicationAnswer;
+  /** 库里的固定题号，跟他口头说「第几题」用的是同一个数 */
+  number: number;
   isOpen: boolean;
   onToggle: () => void;
   /** 搜索命中的字符下标，用于高亮 */
@@ -37,7 +39,7 @@ function Highlighted({ text, indices }: { text: string; indices?: number[] }) {
  * 一屏能扫过的条数比每条的信息量重要，所以题干只占一行、多了截断。
  * 复制按钮不必展开就能按——展开是为了核对，不是复制的前提。
  */
-export function ApplicationRow({ answer, isOpen, onToggle, hits }: ApplicationRowProps) {
+export function ApplicationRow({ answer, number, isOpen, onToggle, hits }: ApplicationRowProps) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -77,7 +79,7 @@ export function ApplicationRow({ answer, isOpen, onToggle, hits }: ApplicationRo
             scale: { duration: 0.12 },
           }}
           className={cn(
-            'relative flex min-w-0 flex-1 items-center gap-2.5 overflow-hidden py-2 pl-4 pr-2 text-left outline-none',
+            'relative flex min-w-0 flex-1 items-center gap-2 overflow-hidden py-2 pl-3 pr-2 text-left outline-none',
             'transition-[border-color,box-shadow] duration-200',
             'hover:z-10 hover:shadow-[0_8px_24px_-22px_hsl(var(--foreground))]',
             'focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring'
@@ -92,6 +94,10 @@ export function ApplicationRow({ answer, isOpen, onToggle, hits }: ApplicationRo
             )}
           />
           <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/[0.055] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+          <span className="relative w-5 shrink-0 text-right font-mono text-[11px] tabular-nums text-muted-foreground/60">
+            {number}
+          </span>
 
           <ChevronRight
             className={cn(
