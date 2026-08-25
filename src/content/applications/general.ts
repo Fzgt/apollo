@@ -9,6 +9,23 @@ export const general: ApplicationGroup = {
   subtitle: '不绑公司，直接粘',
   answers: [
     {
+      id: 'proudest-work',
+      q: 'Please detail your biggest achievements or work you are most proud of?',
+      keywords: [
+        '最自豪', '成就', 'achievement', 'proud of', 'biggest achievement',
+        'Baidu', '虚拟列表', 'useVirtualList', 'IntersectionObserver', 'haokan-kit', '小度',
+      ],
+      used: '2026-08-25',
+      note: '四段各有一个作用：反常的失败模式（越投入越卡）、做法、量出来的结果、以及最后那记——被收进 haokan-kit 成了别人默认用的东西。最后一段才是「成就」的证据，前面都是铺垫，别删。',
+      a: `The work I'm proudest of is the virtualised feed I built at Baidu for the Xiaodu App, on a surface serving 5M+ page views a day. The failure mode was interesting because nothing triggered it — it accumulated. The longer someone scrolled, the more live DOM nodes the page carried, and frame rate fell with them, so the experience degraded in proportion to how engaged the user was. That's exactly backwards for a feed.
+
+I wrote a custom useVirtualList hook rather than pulling in a list library. The rule it enforces is that the number of mounted rows stays constant no matter how long the list grows — rows are mounted only for the window around the viewport and unmounted the moment they leave it, so an endlessly appending feed costs the same in DOM as a short one. Spacers carry the height of everything unmounted, so the scrollbar and scroll position stay accurate. The windowing itself is driven entirely off IntersectionObserver — two sentinel elements bracketing the mounted window, no scroll listener anywhere — so the decision to recycle never costs main-thread work on every frame.
+
+The part I'm proud of is that the result was measured and held under load, rather than asserted: live DOM nodes stay near 100 at any scroll depth, however long the session runs, and scrolling went from around 30 FPS to a stable 60 — on a production surface at that traffic level.
+
+What settled it for me was what happened afterwards. The hook was pulled into haokan-kit, the shared internal toolkit for Baidu's video products, and became the standard way every team on that line renders a long feed. It stopped being my optimisation for one page and became infrastructure other engineers depended on without ever talking to me about it.`,
+    },
+    {
       id: 'web-experience-summary',
       q: 'Please summarise your professional experience with web app development and previous projects',
       keywords: [
