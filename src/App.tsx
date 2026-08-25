@@ -9,6 +9,7 @@ const HomePage = lazy(() => import('./pages/HomePage'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
 const LibraryPage = lazy(() => import('./pages/LibraryPage'));
 const QuestionsPage = lazy(() => import('./pages/QuestionsPage'));
+const ApplicationsPage = lazy(() => import('./pages/ApplicationsPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 const ResumePage = lazy(() => import('./pages/ResumePage'));
 const SharedResumePage = lazy(() => import('./pages/SharedResumePage'));
@@ -61,6 +62,7 @@ const App = () => {
         <Route path="/docs" element={<DocsPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/questions" element={<QuestionsPage />} />
+        <Route path="/apply" element={<ApplicationsPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/resume" element={<ResumePage />} />
         <Route path="/cv" element={<SharedResumePage />} />
