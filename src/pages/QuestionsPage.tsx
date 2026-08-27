@@ -36,8 +36,12 @@ function scoreQuestion(question: Question, query: string): Scored | null {
   const zh = fuzzyMatch(query, question.q.zh);
   const en = question.q.en ? fuzzyMatch(query, question.q.en) : null;
   const keys = question.keywords?.length ? fuzzyMatch(query, question.keywords.join(' ')) : null;
-  // 正文只认精确子串：让它参与模糊匹配会把整个题库都捞回来
-  const body = question.a.zh.toLowerCase().includes(query.trim().toLowerCase()) ? 140 : -Infinity;
+  // 正文只认精确子串：让它参与模糊匹配会把整个题库都捞回来。中英两份都要搜——
+  // 站上显示的是英文，只搜中文那份会让人搜到一条自己在屏幕上找不到的命中
+  const needle = query.trim().toLowerCase();
+  const body = `${question.a.zh} ${question.a.en ?? ''}`.toLowerCase().includes(needle)
+    ? 140
+    : -Infinity;
 
   const best = Math.max(
     zh?.score ?? -Infinity,

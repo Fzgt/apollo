@@ -7,10 +7,35 @@
 
 import type { Question, QuestionBullet, QuestionSource } from './types';
 import { beyz } from './beyz';
+import { beyzAnswersEn } from './beyz.en';
 
 export type { Bilingual, Question, QuestionBullet, QuestionKind, QuestionSource } from './types';
 
-export const questionSources: QuestionSource[] = [beyz];
+/**
+ * 把英文答案挂回题库。
+ *
+ * 答案正文按语言分文件存（`beyz.ts` 中文、`beyz.en.ts` 英文），和 `content/notes`
+ * 那套 `.md` / `.en.md` 同一个规矩：翻译进度不该去搅动原文那一份。
+ * 某题还没有英文，站上自动落回中文，不留空。
+ */
+function withEnglishAnswers(
+  source: QuestionSource,
+  answers: Record<string, string>
+): QuestionSource {
+  return {
+    ...source,
+    bullets: source.bullets.map((bullet) => ({
+      ...bullet,
+      questions: bullet.questions.map((question) =>
+        answers[question.id]
+          ? { ...question, a: { ...question.a, en: answers[question.id] } }
+          : question
+      ),
+    })),
+  };
+}
+
+export const questionSources: QuestionSource[] = [withEnglishAnswers(beyz, beyzAnswersEn)];
 
 /** 摊平成一维，搜索用 */
 export interface FlatQuestion {

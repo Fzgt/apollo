@@ -1,6 +1,6 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertTriangle, ChevronRight, Quote } from 'lucide-react';
+import { AlertTriangle, ChevronRight, Languages, Quote } from 'lucide-react';
 import type { Question } from '@/content/questions';
 import { splitByIndices } from '@/lib/fuzzy';
 import { cn } from '@/lib/utils';
@@ -38,6 +38,9 @@ function Highlighted({ text, indices }: { text: string; indices?: number[] }) {
 
 export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: QuestionRowProps) {
   const { q, a, phrases, kind, unresolved, asked } = question;
+
+  // 站上讲英文，中文收在按钮后面。没有英文那一份时（还没翻），中文直接顶上来，不留空
+  const [showZh, setShowZh] = useState(false);
 
   return (
     <motion.div
@@ -114,12 +117,16 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
               !isOpen && 'group-hover:text-primary'
             )}
           >
-            <Highlighted text={q.zh} indices={hitZh} />
+            {q.en ? (
+              <Highlighted text={q.en} indices={hitEn} />
+            ) : (
+              <Highlighted text={q.zh} indices={hitZh} />
+            )}
           </span>
 
           {q.en && (
             <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
-              <Highlighted text={q.en} indices={hitEn} />
+              <Highlighted text={q.zh} indices={hitZh} />
             </span>
           )}
         </span>
@@ -138,15 +145,29 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
               <Suspense
                 fallback={<p className="text-sm text-muted-foreground">Rendering…</p>}
               >
-                <MarkdownRenderer content={a.zh} className="max-w-none" />
+                <MarkdownRenderer content={a.en ?? a.zh} className="max-w-none" />
               </Suspense>
 
               {a.en && (
-                <Suspense fallback={null}>
-                  <div className="mt-4 border-t border-dashed border-border pt-4">
-                    <MarkdownRenderer content={a.en} className="max-w-none" />
-                  </div>
-                </Suspense>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowZh((shown) => !shown)}
+                    aria-expanded={showZh}
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
+                  >
+                    <Languages className="size-3.5" />
+                    {showZh ? 'Hide Chinese' : '中文'}
+                  </button>
+
+                  {showZh && (
+                    <Suspense fallback={null}>
+                      <div className="mt-4 border-t border-dashed border-border pt-4">
+                        <MarkdownRenderer content={a.zh} className="max-w-none" />
+                      </div>
+                    </Suspense>
+                  )}
+                </>
               )}
 
               {phrases && phrases.length > 0 && (

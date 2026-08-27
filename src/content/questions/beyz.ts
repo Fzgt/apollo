@@ -7,11 +7,11 @@ import type { QuestionSource } from './types';
 export const beyz: QuestionSource = {
   id: 'beyz',
   title: 'Beyz',
-  subtitle: '实时面试助手 · 简历 v66 三条 bullet（题库仍按原四条分组）',
+  subtitle: 'Real-time interview copilot · three resume bullets in v66 (the bank is still grouped by the original four)',
   bullets: [
     {
       id: 'bullet-1',
-      title: 'Bullet 1 · 实时链路全流程（v66 第一条 · 前半）',
+      title: 'Bullet 1 · The real-time path end to end (v66 bullet one, first half)',
       resume:
         'Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged.',
       questions: [
@@ -159,9 +159,9 @@ Deepgram 在开启 \`interim_results\` 之后，同一句话会先发若干条 \
     },
     {
       id: 'bullet-2',
-      title: 'Bullet 2 · 凭据、保活、配额与并发（v66 第一条 · 后半）',
+      title: 'Bullet 2 · Credentials, keep-alive, quota and concurrency (v66 bullet one, second half)',
       resume:
-        'Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged. —— v66 已把原来的 bullet 1 与 bullet 2 合并成这一条；四态状态机不再出现在简历上，题目保留。',
+        'Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged. — v66 merged the original bullets 1 and 2 into this one. The four-state machine no longer appears on the resume; the questions stay.',
       questions: [
         {
           id: 'b2-main',
@@ -281,7 +281,7 @@ Deepgram 在开启 \`interim_results\` 之后，同一句话会先发若干条 \
     },
     {
       id: 'bullet-3',
-      title: 'Bullet 3 · 付费转化链路（v66 第二条）',
+      title: 'Bullet 3 · The paid conversion path (v66 bullet two)',
       resume:
         'Owned the paid conversion path — Stripe Checkout, trials and lifetime purchases on Next.js and Drizzle — with entitlements written only by signature-verified webhooks: no event can downgrade a lifetime purchase.',
       questions: [
@@ -419,7 +419,7 @@ Deepgram 在开启 \`interim_results\` 之后，同一句话会先发若干条 \
     },
     {
       id: 'bullet-4',
-      title: 'Bullet 4 · 独立邮件服务、部署与首个 CI（v66 第三条）',
+      title: 'Bullet 4 · Standalone mail service, deployment and the first CI gate (v66 bullet three)',
       resume:
         'Sole author of a NestJS service for subscription emails and scheduled payment reminders, Dockerized and deployed to EC2 through GitHub Actions, and of the repo’s first CI gate on every push.',
       questions: [
