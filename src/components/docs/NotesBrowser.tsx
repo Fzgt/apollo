@@ -56,11 +56,12 @@ export function NotesBrowser({
     searchParams.get('item') || undefined
   );
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  // 语言只是「读哪一版正文」，不换界面语言；记在 URL 里，分享链接能带上
+  // 语言只是「读哪一版正文」，不换界面语言；记在 URL 里，分享链接能带上。
+  // 默认英文：有英文版就读英文，没有的那篇自动落回中文
   const [lang, setLang] = useState<'zh' | 'en'>(() => {
-    if (searchParams.get('lang') === 'en') return 'en';
     if (searchParams.get('lang') === 'zh') return 'zh';
-    return localStorage.getItem(`${storageKey}-lang`) === 'en' ? 'en' : 'zh';
+    if (searchParams.get('lang') === 'en') return 'en';
+    return localStorage.getItem(`${storageKey}-lang`) === 'zh' ? 'zh' : 'en';
   });
 
   const note = useMemo(
@@ -78,9 +79,7 @@ export function NotesBrowser({
     if (note?.itemId) {
       params.set('item', note.itemId);
     }
-    if (lang === 'en') {
-      params.set('lang', 'en');
-    }
+    params.set('lang', lang);
     setSearchParams(params, { replace: true });
     // 滚动位置交给 RouteMemory：新的一篇从头看，看过的回到上次停的地方
   }, [activeSection, activeItem, note, lang, setSearchParams]);
