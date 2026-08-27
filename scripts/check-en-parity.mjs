@@ -25,9 +25,12 @@ function walk(dir) {
  * ```text 的示意图不算：里面全是中文说明，本来就该翻。
  *
  * `--` 也算行注释（SQL）。误伤 `i--` 这类不要紧：两边同样处理，比的是相等。
+ *
+ * 围栏必须从行首起（最多缩进 3 格），和 CommonMark 一致——正文里行内写个
+ * ```json``` 是行内代码，不是代码块，不该被当成一块来比。
  */
 function codeBlocks(md) {
-  return [...md.matchAll(/```([^\n]*)\n([\s\S]*?)```/g)]
+  return [...md.matchAll(/^[ \t]{0,3}```([^\n]*)\n([\s\S]*?)^[ \t]{0,3}```/gm)]
     .filter(([, lang]) => lang.trim() && lang.trim() !== 'text')
     .map(([, , body]) =>
     body
