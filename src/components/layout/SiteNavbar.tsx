@@ -19,6 +19,7 @@ import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 import { REPO_URL, SITE_NAME } from '@/content/site';
 import { lastTabUrl } from '@/lib/session-state';
+import { BuildStamp } from './BuildStamp';
 
 /**
  * href 同时是页签的身份：路由记忆按它存「上次停在哪」。
@@ -129,6 +130,8 @@ export function SiteNavbar() {
             <div className="flex-1" />
 
             <div className="hidden items-center gap-3 md:flex">
+              {/* 导航挤到 lg 以下就先让位，移动端菜单里还有一份 */}
+              <BuildStamp className="hidden lg:flex" />
               {themeButton}
               <a
                 href={REPO_URL}
@@ -201,6 +204,7 @@ export function SiteNavbar() {
                 <Github className="h-5 w-5" />
                 GitHub
               </a>
+              <BuildStamp className="pt-2" />
             </nav>
           </motion.div>
         )}
