@@ -8,7 +8,7 @@ import type { ApplicationGroup } from './types';
 export const sitemate: ApplicationGroup = {
   id: 'sitemate',
   title: 'Sitemate',
-  subtitle: 'Junior Full Stack · 悉尼/墨尔本 · A$85K–115K 含 super',
+  subtitle: 'Junior Full Stack · Sydney/Melbourne · A$85K–115K inc. super',
   companySpecific: true,
   answers: [
     {
@@ -16,7 +16,7 @@ export const sitemate: ApplicationGroup = {
       q: 'What interests you in Sitemate specifically?',
       keywords: ['为什么选这家', 'why us', 'why this company', '技术栈契合', 'AI'],
       used: '2026-08-25',
-      note: '技术栈是 JD 原文列的：TypeScript、React、Node.js、Angular、MongoDB、AWS。第二段那句 organising its engineering around that 也是接他们 JD 自己的话（own outcomes, deliver at speed with AI），是回应不是恭维。别说人家是小公司——150+ 人、18 个国家、Blackbird 投的。',
+      note: 'The stack list is straight from the JD: TypeScript, React, Node.js, Angular, MongoDB, AWS. In paragraph two, "organising its engineering around that" picks up their own wording (own outcomes, deliver at speed with AI) — it is a response, not flattery. Do not call them a small company: 150+ people, 18 countries, backed by Blackbird.',
       a: `Two things drew me to Sitemate specifically.
 
 The first is the stack. TypeScript, React and Node are where I've spent my career, and Angular is what I've been building in most recently — so this isn't a role where I'd spend the first few months translating my experience into a different set of tools. I'd be useful in the codebase early.

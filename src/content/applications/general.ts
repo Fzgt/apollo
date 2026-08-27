@@ -5,8 +5,8 @@ import type { ApplicationGroup } from './types';
  */
 export const general: ApplicationGroup = {
   id: 'general',
-  title: '通用',
-  subtitle: '不绑公司，直接粘',
+  title: 'General',
+  subtitle: 'Not tied to any company — paste as is',
   answers: [
     {
       id: 'proudest-work',
@@ -16,7 +16,7 @@ export const general: ApplicationGroup = {
         'Baidu', '虚拟列表', 'useVirtualList', 'IntersectionObserver', 'haokan-kit', '小度',
       ],
       used: '2026-08-25',
-      note: '四段各有一个作用：反常的失败模式（越投入越卡）、做法、量出来的结果、以及最后那记——被收进 haokan-kit 成了别人默认用的东西。最后一段才是「成就」的证据，前面都是铺垫，别删。',
+      note: 'Each of the four paragraphs does one job: the backwards failure mode (the more you scroll, the worse it gets), what I did about it, the measured result, and the last hit — it was pulled into haokan-kit and became what other teams use by default. Only that last paragraph proves the word "achievement". Everything before it is setup. Do not cut it.',
       a: `The work I'm proudest of is the virtualised feed I built at Baidu for the Xiaodu App, on a surface serving 5M+ page views a day. The failure mode was interesting because nothing triggered it — it accumulated. The longer someone scrolled, the more live DOM nodes the page carried, and frame rate fell with them, so the experience degraded in proportion to how engaged the user was. That's exactly backwards for a feed.
 
 I wrote a custom useVirtualList hook rather than pulling in a list library. The rule it enforces is that the number of mounted rows stays constant no matter how long the list grows — rows are mounted only for the window around the viewport and unmounted the moment they leave it, so an endlessly appending feed costs the same in DOM as a short one. Spacers carry the height of everything unmounted, so the scrollbar and scroll position stay accurate. The windowing itself is driven entirely off IntersectionObserver — two sentinel elements bracketing the mounted window, no scroll listener anywhere — so the decision to recycle never costs main-thread work on every frame.
@@ -33,7 +33,7 @@ What settled it for me was what happened afterwards. The hook was pulled into ha
         'Beyz', 'BioMap', 'Baidu', 'Periplus', 'WinterFell', 'OpenClaw',
       ],
       used: '2026-08-25',
-      note: '倒序讲三段经历，每段落在一个可核对的数字上。末段把副业和 agentic 工作方式收成一句「这已经是我干活的方式」——不是学习意愿，是既成事实。Vue 写在 React 旁边，别漏。',
+      note: 'Three jobs in reverse order, each landing on a number someone can check. The last paragraph folds the side projects and the agentic way of working into one claim: this is already how I build — not a willingness to learn, a fact. Keep Vue next to React; do not drop it.',
       a: `I'm a full-stack engineer with just over two years across consumer and enterprise web products, working mostly in TypeScript — React and Vue on the front, Node.js services behind them.
 
 Most recently at Beyz (Canada, remote, Jan–Oct 2024) I was a full-stack engineer on a real-time interview copilot, and built the core feature end to end: tab and system audio captured in the browser, streamed over a WebSocket to a live speech recogniser, with GPT-4o answers streamed back token by token and a four-state machine dropping overlapping generations. I also owned the paid conversion path — Stripe Checkout on Next.js and Drizzle, with entitlements written only by signature-verified webhooks — and was sole author of a NestJS/Fastify service for subscription emails and scheduled payment reminders, Dockerised and deployed to EC2 through GitHub Actions, plus the repo's first CI gate.
@@ -49,7 +49,7 @@ Alongside that I build my own products: Periplus, an agentic LLM travel-research
       q: "Tell us about something you've built with AI. What was it, what did you use, and what did it change for you or your team?",
       keywords: ['AI 项目', 'built with AI', 'AI 工具', 'Copilot', 'Beyz', '通知服务', 'NestJS', 'Stripe'],
       used: '2026-08-25',
-      note: '答的是「我拿 AI 造过什么」，不是「我用过什么 AI 产品」。关键在第二段划的那条线：架构、失败分支和信任边界归我，样板代码和首版测试归模型——2024 年模型弱，反而把分工说清楚了。收在 throughput 上，是团队收益不是个人炫技。',
+      note: 'This answers "what I built with AI", not "which AI products I have used". The point is the line drawn in the second paragraph: architecture, failure branches and trust boundaries are mine; boilerplate and the first pass at tests go to the model. The models were weak in 2024, which made that split easier to state. It ends on throughput — a team gain, not a personal trick.',
       a: `The most useful thing I've built with AI is the standalone notification service at Beyz. I was its sole author: a NestJS and Fastify service handling subscription lifecycle emails and scheduled payment reminders — Dockerised, cron-triggered, deployed to EC2 under PM2 through GitHub Actions, and scalable independently of the main Next.js app. It had to be right about money: six Stripe subscription events, each with its own failure branch, and no path that could downgrade a lifetime purchase. I added the repo's first CI gate along the way — lint, typecheck and build on every push.
 
 This was 2024, when the models were considerably weaker than they are now, and that made the division of labour explicit: I held the architecture, the failure cases and the trust boundaries; the model absorbed boilerplate, unfamiliar framework idioms and the first pass at tests. What it changed was throughput — one engineer shipped and owned a production backend service, and the team stopped queuing behind a backend dependency for anything email- or billing-related.`,
@@ -59,7 +59,7 @@ This was 2024, when the models were considerably weaker than they are now, and t
       q: 'What kind of role are you looking for?',
       keywords: ['期望岗位', '想要什么样的工作', 'motivation', 'what are you looking for'],
       used: '2026-08-25',
-      note: '落点是「扩展能力边界」+「产品被更多人用」。末句刻意写成「热情过去之后还在投入」——比单说成就感更像长期主义。',
+      note: 'It lands on two things: widening my range, and building something a lot of people use. The last line is deliberately "still putting the effort in after the novelty wears off" — that reads as long-term commitment, not just a taste for the feeling.',
       a: `The role I'm looking for is one that keeps pushing my own boundaries — where I'm learning something new rather than repeating what I already know, widening my technical range, and at the same time picking up experience in directions outside the one I've specialised in so far.
 
 The other thing that matters to me is reach. If what I build ends up in front of a lot of people, that's what makes the work feel worth doing — and it's the thing that keeps me putting the effort in long after the novelty of a problem has worn off.`,

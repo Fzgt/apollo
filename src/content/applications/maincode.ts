@@ -10,7 +10,7 @@ import type { ApplicationGroup } from './types';
 export const maincode: ApplicationGroup = {
   id: 'maincode',
   title: 'Maincode',
-  subtitle: 'AI Software Engineer (Front End) · 墨尔本 · 不给 sponsorship',
+  subtitle: 'AI Software Engineer (Front End) · Melbourne · No sponsorship',
   companySpecific: true,
   answers: [
     {
@@ -21,7 +21,7 @@ export const maincode: ApplicationGroup = {
         'Beyz', '四态机', 'state machine', 'streaming', 'Deepgram', '虚拟列表', 'haokan-kit', 'Matilda',
       ],
       used: '2026-08-25',
-      note: '两问一答，别只答前半。第三段那个「丢比排队对」的取舍是这题真正的分数——JD 明说要 think clearly about product tradeoffs and failure modes，能把代价说出口的人不多。百度那段压成一段第二例证，只留形状（越用越坏 + 量出来的数 + 被别人拿去用），别展开。结尾只留两句：不复述 JD 对岗位的描述（招聘方不需要听人把自己的 JD 念一遍），也不在结尾回扣一次 Beyz（第二段已经讲过）。只答「为什么是他们」这一件事。',
+      note: 'Two questions, one answer — do not answer only the first half. The real marks are in the third paragraph, where dropping beats queueing: the JD asks for someone who can think clearly about product tradeoffs and failure modes, and few people can name the cost out loud. The Baidu part is compressed into a single second example — keep the shape only (gets worse the more it is used, a measured number, other teams picked it up) and do not expand it. The ending is two sentences: do not read their own JD back to them, and do not return to Beyz at the end, since paragraph two already covered it. Answer only "why this company".',
       a: `The hardest problem I've taken on recently was the real-time layer of the interview copilot at Beyz. Tab and system audio is captured in the browser, streamed over a WebSocket to a live recogniser, and GPT-4o answers stream back token by token — while the user is still talking.
 
 Streaming the tokens was the easy half. The hard half is that a live model surface never gets a quiet moment in which to reconcile its state. Speech arrives as interim results the recogniser keeps rewriting until it marks a segment final, so what's on screen has to be confirmed text plus the current provisional segment — anything that appends interim results accumulates duplicates and flickers. And generation triggers collide: an utterance-end event can fire while the previous answer is still generating, and the user can also ask for an answer manually at any moment. Handled naively, two answers cross-update in the same pane, which is worse than showing nothing, because nobody can tell which sentence belongs to which question.
