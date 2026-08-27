@@ -112,8 +112,12 @@ export const EXPERIENCE: EntryBlock[] = [
     subMeta: { en: 'Canada, Remote', zh: '加拿大 远程' },
     bullets: [
       {
-        en: 'Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged.',
-        zh: '端到端实现实时面试 copilot：用 getDisplayMedia 捕获标签页与系统音频，经 WebSocket 推流到 Deepgram —— 凭证是套餐校验之后为每个会话签发的 60 秒、只带用量上报权限的临时密钥；每说完一句就触发 GPT-4o 逐 token 作答；麦克风暂停期间连接保持存活，token 用量按请求记录。',
+        en: 'Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram and answered by GPT-4o token by token as each utterance ends.',
+        zh: '端到端实现实时面试 copilot：用 getDisplayMedia 捕获标签页与系统音频，经 WebSocket 推流到 Deepgram；每说完一句就触发 GPT-4o 逐 token 作答。',
+      },
+      {
+        en: 'Minted 60-second usage-scoped Deepgram keys per session behind a plan gate, socket alive across pauses.',
+        zh: '为每个会话签发 60 秒、只带用量上报权限的 Deepgram 临时密钥，签发前先过套餐校验；麦克风暂停期间连接保持存活。',
       },
       {
         en: 'Owned the paid conversion path — Stripe Checkout, trials and lifetime purchases on Next.js and Drizzle — with entitlements written only by signature-verified webhooks: no event can downgrade a lifetime purchase.',
@@ -132,8 +136,12 @@ export const EXPERIENCE: EntryBlock[] = [
     subMeta: { en: 'Beijing, China', zh: '中国 北京' },
     bullets: [
       {
-        en: 'Led the React 18 and TypeScript architecture for Digital OS, the team’s core consumer-facing product, enforcing feature boundaries with five custom ESLint import zones: no feature can reach into another, and built its design system on Radix UI, Storybook and CVA over an MSW mock layer, variants typed off the style definitions.',
-        zh: '主导团队核心对客产品 Digital OS 的 React 18 + TypeScript 架构，用五条自定义 ESLint import 分区把模块边界从「约定」变成「约束」：任何 feature 都伸不进另一个；并在 MSW mock 层之上用 Radix UI、Storybook 与 CVA 搭起它的设计系统，变体类型直接从样式定义推出来。',
+        en: 'Led the React 18 and TypeScript architecture for Digital OS, the team’s core consumer-facing product, enforcing feature boundaries with five custom ESLint import zones: no feature can reach into another.',
+        zh: '主导团队核心对客产品 Digital OS 的 React 18 + TypeScript 架构，用五条自定义 ESLint import 分区把模块边界从「约定」变成「约束」：任何 feature 都伸不进另一个。',
+      },
+      {
+        en: 'Built the design system on Radix UI, Storybook and CVA over MSW mocks, variants typed off the styles.',
+        zh: '在 MSW mock 之上用 Radix UI、Storybook 与 CVA 搭起设计系统，变体类型直接从样式推出来。',
       },
       {
         en: 'Layered TanStack Query in three tiers — API functions, queryOptions factories, typed hooks — single-source cache keys, mutation-driven invalidation and hover prefetch: detail pages open instantly, with no request at all.',
@@ -213,8 +221,12 @@ export const PROJECTS: EntryBlock[] = [
     meta: 'Python · FastAPI · LLM Orchestration · pgvector',
     bullets: [
       {
-        en: 'Six-stage LLM pipeline behind typed Pydantic stage contracts filled by schema-constrained JSON output, with run state, stage artifacts and a pgvector cache of local MiniLM embeddings in PostgreSQL: a run that dies mid-pipeline resumes from the last completed stage.',
-        zh: '六阶段 LLM 流水线，阶段之间只认带类型的 Pydantic 契约，由受 schema 约束的 JSON 输出填充；运行状态、阶段产物，以及本地 MiniLM 向量的 pgvector 缓存都落在 PostgreSQL 里：流水线中途挂掉的运行可以从最后一个已完成阶段续跑。',
+        en: 'Six-stage LLM pipeline behind typed Pydantic stage contracts filled by schema-constrained JSON output, with run state and stage artifacts in PostgreSQL: a run that dies mid-pipeline resumes from the last completed stage.',
+        zh: '六阶段 LLM 流水线，阶段之间只认带类型的 Pydantic 契约，由受 schema 约束的 JSON 输出填充；运行状态与阶段产物落在 PostgreSQL 里：流水线中途挂掉的运行可以从最后一个已完成阶段续跑。',
+      },
+      {
+        en: 'Cached evidence embeddings in pgvector on an ivfflat cosine index, generated locally by MiniLM.',
+        zh: '证据向量缓存在 pgvector 里，走 ivfflat 余弦索引，向量由本地 MiniLM 生成。',
       },
       {
         en: 'Put a scripted seam behind every external dependency — the model provider, search, httpx page fetch and the clock — so the whole system runs with no API keys and no network: 461 pytest tests, 1.5 seconds end to end.',
