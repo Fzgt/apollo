@@ -2,9 +2,9 @@ import { useMemo, useState, useSyncExternalStore } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Copy, Github, Search, SearchX, Trash2, X } from 'lucide-react';
 import { SiteFooter } from '@/components/layout/SiteFooter';
+import { WordRow } from '@/components/dictionary/WordRow';
 import { dictionary, dictionaryCount, dictionaryTags, type WordEntry } from '@/content/dictionary';
 import {
-  captureWord,
   clearQueue,
   queueAsText,
   queueSnapshot,
@@ -32,7 +32,6 @@ function scoreEntry(entry: WordEntry, query: string): number {
 export default function DictionaryPage() {
   const [query, setQuery] = useState('');
   const [tag, setTag] = useState<string | null>(null);
-  const [draft, setDraft] = useState('');
   const [copied, setCopied] = useState(false);
 
   const queue = useSyncExternalStore(subscribeQueue, queueSnapshot, queueServerSnapshot);
@@ -64,37 +63,13 @@ export default function DictionaryPage() {
     <div className="min-h-screen bg-background">
       <div className="pt-20 md:pt-24">
         <div className="container mx-auto max-w-3xl px-4 sm:px-6">
-          <header className="py-4 sm:py-6">
+          <header className="py-4">
             <h1 className="text-2xl font-bold text-foreground">Technical Dictionary</h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              Words this site made me look up. The rest of Apollo is English only — this page is the
-              one place Chinese is allowed, because that is what it is for.
+              Words this site made me look up. English first — press <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-[11px]">w</kbd> anywhere to add one, click a
+              row for the Chinese.
             </p>
           </header>
-
-          {/* 敲词。页面里这一个和全站那个 `w` 小框写进同一条队列 */}
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              captureWord(draft, '/words');
-              setDraft('');
-            }}
-            className="flex gap-2"
-          >
-            <input
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              placeholder="Type a word you did not know — or press w anywhere on the site"
-              aria-label="Add a word"
-              className="h-11 min-w-0 flex-1 rounded-xl border border-border bg-card px-4 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
-            />
-            <button
-              type="submit"
-              className="shrink-0 rounded-xl border border-border bg-card px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-foreground/30"
-            >
-              Add
-            </button>
-          </form>
 
           {queue.length > 0 && (
             <section className="mt-4 rounded-xl border border-dashed border-border bg-muted/30 p-4">
@@ -160,7 +135,7 @@ export default function DictionaryPage() {
             </section>
           )}
 
-          <div className="relative mt-8">
+          <div className="relative mt-5">
             <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
               value={query}
@@ -219,36 +194,9 @@ export default function DictionaryPage() {
             </div>
           )}
 
-          <div className="space-y-3 py-6 pb-16">
+          <div className="space-y-1.5 py-4 pb-16">
             {shown.map((entry) => (
-              <article
-                key={entry.term}
-                className="rounded-xl border border-border bg-card p-4 sm:p-5"
-              >
-                <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-                  <h2 className="text-base font-semibold text-foreground">{entry.term}</h2>
-                  {entry.pos && (
-                    <span className="text-xs italic text-muted-foreground">{entry.pos}</span>
-                  )}
-                  {entry.also?.map((word) => (
-                    <span
-                      key={word}
-                      className="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground"
-                    >
-                      {word}
-                    </span>
-                  ))}
-                </div>
-
-                <p className="mt-2 text-sm leading-relaxed text-foreground">{entry.en}</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{entry.zh}</p>
-
-                {entry.example && (
-                  <p className="mt-3 border-l-2 border-border pl-3 text-sm italic leading-relaxed text-muted-foreground">
-                    {entry.example}
-                  </p>
-                )}
-              </article>
+              <WordRow key={entry.term} entry={entry} expanded={Boolean(trimmed)} />
             ))}
 
             {shown.length === 0 && (

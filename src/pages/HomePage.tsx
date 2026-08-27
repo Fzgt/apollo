@@ -15,6 +15,7 @@ import { StatusBadge } from '@/components/notes/StatusBadge';
 import { answerCount } from '@/content/applications';
 import { allLibraryNotes } from '@/content/library';
 import { quickLinkGroups } from '@/content/links';
+import type { Note } from '@/content/collection';
 import { allNotes } from '@/content/notes';
 import { questionCount } from '@/content/questions';
 import { REPO_DEV_URL, REPO_URL, SITE_NAME, SITE_TAGLINE } from '@/content/site';
@@ -25,6 +26,11 @@ function noteHref(sectionId: string, itemId: string) {
 
 function stripDayPrefix(title: string) {
   return title.replace(/^Day \d+ · /, '');
+}
+
+/** 首页读英文标题，那一篇还没翻就落回中文原标题，不留空——和侧边栏一个规矩 */
+function noteTitle(note: Note) {
+  return stripDayPrefix(note.titleEn ?? note.title);
 }
 
 /** 一行式条目：左侧竖线 + 向右淡出的底色 + 跟着指针推 3px，和题库/投递一套手法 */
@@ -186,8 +192,8 @@ export default function HomePage() {
                   <RowLink
                     key={`${note.sectionId}-${note.itemId}`}
                     to={noteHref(note.sectionId, note.itemId)}
-                    title={stripDayPrefix(note.title)}
-                    meta={note.section}
+                    title={noteTitle(note)}
+                    meta={note.sectionEn ?? note.section}
                     right={
                       <StatusBadge status={note.status} className="relative shrink-0 border-0 bg-transparent px-0" />
                     }
@@ -208,8 +214,8 @@ export default function HomePage() {
                 <RowLink
                   key={`${note.sectionId}-${note.itemId}`}
                   to={noteHref(note.sectionId, note.itemId)}
-                  title={stripDayPrefix(note.title)}
-                  meta={note.section}
+                  title={noteTitle(note)}
+                  meta={note.sectionEn ?? note.section}
                 />
               ))}
             </div>
