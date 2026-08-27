@@ -28,8 +28,8 @@ status: done
 | 9 | Periplus ⑤ 证据与裁决 | S |
 | 10 | Periplus ② 持久化/resume + ③ scripted seam | S |
 | 11 | Periplus ④ golden set 与 evals | S |
-| 12 | WinterFell 四条 | B |
-| 13 | 技能栏 Angular / Go / Django | A |
+| 12 | WinterFell 五条 | B |
+| 13 | 技能栏 Angular / Django（Go 已从 v66 撤下） | A |
 | 14 | 全份模拟面试 | — |
 
 第一列是**推进顺序**，对应站内每篇笔记的 Day 标签，不是日历天数。有整块时间就往前赶，没有就按序号推。
@@ -37,16 +37,16 @@ status: done
 ## 相对 v1 的四处结构性修改
 
 1. **数字口径审计从最后提到最前** —— 口径答不住会改简历措辞，改完再练才不返工。
-2. **新增 Day 13 技能栏专项** —— 简历 Skills 行写着 Angular / Go / Django，v1 排期里一个字没提。
+2. **新增 Day 13 技能栏专项** —— 当时简历 Skills 行写着 Angular / Go / Django，v1 排期里一个字没提。**v66 已把 Go 撤下**，这一天现在只剩 Angular 和 Django 是必答的。
 3. **Day 8–12 先读代码再写讲法** —— Periplus 和 WinterFell 的源码就在本机，凭记忆重建是面试翻车的主因。
 4. **Periplus 从 3 段加到 4 段，BioMap 从 2 段压到 1 段** —— 按 S/A/B 分级重新分配。
 
 ## 优先级（时间不够时按这个砍）
 
-**S 级**：Periplus 全部五条 · Beyz 实时 pipeline · Beyz 凭证与状态机 · 百度虚拟列表 · 百度白屏
+**S 级**：Periplus 全部三条 · Beyz 实时 pipeline（含凭证与状态机，v66 已并成一条） · 百度虚拟列表 · 百度白屏
 
 **A 级**：Stripe entitlement · NestJS 服务与 CI/部署 · TanStack Query 与 LCP · React 架构边界 · Webpack 迁移 · 提现幂等 · 技能栏 Angular/Go/Django
 
-**B 级**：LIMS/Luckysheet/脚手架 · 设计系统/Storybook/MSW · H5/JSBridge · WinterFell 四条
+**B 级**：LIMS/Luckysheet/脚手架 · 设计系统/Storybook/MSW · H5/JSBridge · WinterFell 五条
 
-主投 AI Engineer / Full-stack AI 的话，时间往 **Periplus + Beyz** 压。WinterFell 用来证明底层性能分析能力，不该抢核心定位——但它那四条是**自己拿工具量出来的**，可信度最高，别讲成 B 级的敷衍版。
+主投 AI Engineer / Full-stack AI 的话，时间往 **Periplus + Beyz** 压。WinterFell 用来证明底层性能分析能力，不该抢核心定位——但它那几条是**自己拿工具量出来的**，可信度最高，别讲成 B 级的敷衍版。

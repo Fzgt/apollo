@@ -12,11 +12,13 @@ status: done
 
 > **简历原句**
 >
-> **Traced a freeze landing exactly on each palette change to distance fog**: declared as JSX it **rebuilt the fog object**, and **fog belongs to a material's program key**, so the renderer **recompiled every material in the scene inside one frame** — a **probe counting pipelines built per frame** confirmed it; one mutated fog object removed it.
+> **Traced a freeze on every color change to the fog**: **rebuilding it as a new object made every material in the scene recompile its shader in one frame**. **Reusing one fog object and setting its color removed it**.
 >
 > ---
 >
-> 把每次换配色时精准出现的卡顿定位到了距离雾：以 JSX 声明会重建 fog 对象，而 fog 属于材质的 program key，于是渲染器在同一帧里重新编译了场景中的每一个材质 —— 一个统计每帧新建管线数的探针证实了这一点；改成复用同一个 fog 对象后卡顿消失。
+> 把每次换配色时出现的卡顿定位到了雾：把它当成新对象重建，会让场景里每一个材质在同一帧内重新编译着色器。改成复用同一个雾对象、只改它的颜色，卡顿就消失了。
+
+> ℹ️ **v66 删掉了「fog 属于材质的 program key」和那个统计每帧新建管线数的探针**。探针是这条唯一的证据来源，被追问「你怎么确认是重编译」时必须拿它出来。
 
 ## 这条 bullet 在讲什么
 

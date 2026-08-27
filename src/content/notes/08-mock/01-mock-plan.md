@@ -34,11 +34,11 @@ status: done
 
 > ⭐ **你的复习计划自己写了：「技术准备再厚，前十分钟垮了就没有后面。」** 这一轮排在最前面是有道理的。
 
-## Round 1 · 22 条，每条 30 秒
+## Round 1 · 20 条，每条 30 秒
 
 **目标**：让**非技术的 recruiter** 也听得懂。**先讲用户问题和结果，别堆 API 名。**
 
-**22 条 = Beyz 4 + BioMap 4 + 百度 5 + Periplus 5 + WinterFell 4。**
+**20 条 = Beyz 3 + BioMap 4 + 百度 5 + WinterFell 5 + Periplus 3**（v66 口径；笔记仍是 22 篇，Beyz ①② 合成简历第一条，Periplus ⑤ 已不在简历上）。
 
 **每条的 30 秒草稿在哪**：
 

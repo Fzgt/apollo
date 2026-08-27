@@ -4,9 +4,12 @@ section: Beyz
 icon: radio
 ---
 
-# Beyz —— 简历 v42 四条 bullet 的代码出处与讲法
+# Beyz —— 简历 bullet 的代码出处与讲法
 
-> 2026-08-17 写，2026-08-18 校，2026-08-23 复核：下面引的四条与 **v42 一字不差**（v40→v42 这四条未改动），这是 Beyz 唯一该用的复习笔记。
+> ⚠️ **v66（2026-08-27）把 Beyz 从四条收到三条**：本文的 Bullet 1 与 Bullet 2 合并成了简历上的第一条，Bullet 3 变第二条，Bullet 4 变第三条。**下面每条引的都已换成 v66 原文**，四段结构保留不动——合并只是简历的排版取舍，代码出处和讲法一条都没作废。
+> 一并从简历上撤下的措辞：四态状态机、interim/finalized 转写合并、tRPC、typed server action、六个订阅事件、Fastify、cron 触发、PM2、CI 的三个步骤。**全部仍要会答。**
+>
+> 2026-08-17 写，2026-08-18 校，2026-08-23 复核，2026-08-27 对齐 v66。这是 Beyz 唯一该用的复习笔记。
 > 旧的 `LEARNING_NOTES_BEYZAI.md` 对应更早的简历（RHF+Zod 表单、Jest 覆盖率、TSLint/SonarQube），四条里三条在 v40 已不存在，**2026-08-18 已删除**。
 >
 > 代码：`~/Desktop/Beyz/beyz-web`（Next.js 14 App Router）、`~/Desktop/Beyz/beyz-server`（NestJS + Fastify）。
@@ -15,7 +18,9 @@ icon: radio
 
 ## Bullet 1 —— 实时面试助手全链路
 
-> Built the real-time interview copilot end to end: tab and system audio captured through getDisplayMedia, streamed over a WebSocket to Deepgram's live recognizer, with interim and finalized transcripts reconciled in the client and utterance-end events triggering GPT-4o answers streamed back token by token.
+> Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged.
+>
+> （v66 第一条 · 前半。旧 v42 原文：*…streamed over a WebSocket to Deepgram’s live recognizer, with interim and finalized transcripts reconciled in the client…*）
 
 ### 一句话是什么
 
@@ -58,7 +63,9 @@ icon: radio
 
 ## Bullet 2 —— 实时链路的凭据、保活、配额与并发
 
-> Kept the transcription credential out of the browser by minting 60-second, usage-scoped keys per session behind a plan gate, held the socket alive across microphone pauses, and logged per-request token usage that backs per-plan quotas; a four-state machine drops overlapping generations.
+> Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged.
+>
+> （v66 第一条 · 后半。旧 v42 原文：*Kept the transcription credential out of the browser by minting 60-second, usage-scoped keys per session behind a plan gate, held the socket alive across microphone pauses, and logged per-request token usage that backs per-plan quotas; **a four-state machine drops overlapping generations**.* —— 四态机已不在简历上，本节照旧要背。）
 
 **这条是整段最值钱的一条**，因为它讲的不是「我接了个 SDK」，是「我知道接完之后会出什么事」。
 
@@ -101,7 +108,9 @@ icon: radio
 
 ## Bullet 3 —— 付费转化链路
 
-> Owned the paid conversion path — Stripe Checkout, trials and lifetime purchases on Next.js, tRPC and Drizzle — with plan eligibility enforced in typed server actions and entitlements written only by signature-verified webhooks across six subscription events, none of which can downgrade a lifetime purchase.
+> Owned the paid conversion path — Stripe Checkout, trials and lifetime purchases on Next.js and Drizzle — with entitlements written only by signature-verified webhooks: no event can downgrade a lifetime purchase.
+>
+> （v66 第二条。**tRPC 被拿掉是有意的**：整条付费链路一行 tRPC 都没有，留着会当场穿帮。typed server action 与「六个订阅事件」也一并撤下，两者仍要会答。）
 
 ### 一句话是什么
 
@@ -130,7 +139,9 @@ icon: radio
 
 ## Bullet 4 —— 独立的邮件服务与首个 CI
 
-> Sole author of a NestJS and Fastify service for subscription emails and scheduled payment reminders — Dockerized, cron-triggered, deployed to EC2 under PM2 through GitHub Actions — and of the repo's first CI gate: lint, typecheck and build on every push.
+> Sole author of a NestJS service for subscription emails and scheduled payment reminders, Dockerized and deployed to EC2 through GitHub Actions, and of the repo’s first CI gate on every push.
+>
+> （v66 第三条。Fastify、cron 触发、PM2、以及 CI 那三步都已从简历撤下，本节照旧要背——尤其 PM2 那段「都用容器了为什么还要 PM2」。）
 
 ### 一句话是什么
 

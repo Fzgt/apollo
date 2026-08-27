@@ -4,17 +4,20 @@ section: WinterFell
 icon: gamepad-2
 ---
 
-# WinterFell 项目学习笔记(对齐简历 v28 四条 bullet)
+# WinterFell 项目学习笔记(对齐简历 v66 五条 bullet)
 
 > 仓库:`~/Desktop/projects/github/CG-WinterFell`,remote `git@github.com:Fzgt/CG-WinterFell.git`,线上 https://cg-winter-fell.vercel.app
 > 栈:React 19 + @react-three/fiber v9 + three r0.174(`three/webgpu` 入口) + WebGPU + cannon-es + Zustand + TypeScript + Vite
-> 简历版本对齐:**v28**(2026-08-17 晚)。四条 bullet 全部有代码或 bench 出处,下面逐条给锚点。
-> **v28 改了两个数字**:draw call 129→76(并补上三角形涨 2.6×),缝隙改成「不低于 15 单位」。v27 印的 175→32 与 14 units 都是错的,详见第 2、3 节。
+> 简历版本对齐:**v66**(2026-08-27)。**WinterFell 在 v66 提到了 Periplus 前面,并多了一条开场 bullet**(「这是个什么游戏」——二十个场景、按飞行距离实时生成、每局换种子),对应本文第 0 节。原来的四条仍在,但全部改写成了大白话。
+> **v66 撤下的三处**:三角形涨 2.6×、「不低于 15 单位」、随机散布对照组,以及 TSL / WebGPURenderer / program key 这些术语。**数字和术语都仍要会答**,下面各节原样保留。
+> 历史:v28 修正过 draw call 129→76 与 15 单位;v27 印的 175→32 与 14 units 都是错的,详见第 2、3 节。
 > 本文是"项目走查":文件路径 + 具体机制 + 预期追问。通用图形学概念在 `../concepts/LEARNING_NOTES_WINTERFELL_GRAPHICS_CONCEPTS.md`。
 
 ---
 
 ## 0. 三十秒讲清这个项目是什么
+
+**简历原文(v66 新增的开场条):** *Built a browser racing game: steer a craft through fields of neon obstacles across twenty scenes, with the terrain, skyline and obstacles all generated on the fly from how far you have traveled, on a fresh seed each run.*
 
 浏览器里的第三人称竞速/闪避游戏。**一条线性路线,不是循环**:20 个场景,每段 1800 单位,全程约 3.5 公里,速度只随关卡爬升一次,终点是 UTS 前庭,飞行器停下。分数是存活距离(米)。
 
@@ -26,7 +29,9 @@ icon: gamepad-2
 
 ## 1. Bullet 1 — 一个渲染器,两个后端
 
-**简历原文:** *Built the bloom pass on three.js's TSL node pipeline, which a classic WebGLRenderer cannot execute, so one WebGPURenderer drives WebGPU where present and its own WebGL2 backend where absent — the look survives the fallback instead of quietly degrading.*
+**简历原文(v66):** *Made the neon glow work on machines without WebGPU: it is built on the newer three.js node pipeline, so one renderer drives WebGPU where the browser has it and falls back to WebGL2 where it does not.*
+
+> v28 原文（术语版，被追问时按这个深度讲）：*Built the bloom pass on three.js’s TSL node pipeline, which a classic WebGLRenderer cannot execute…*
 
 ### 代码出处
 
@@ -65,7 +70,9 @@ icon: gamepad-2
 
 ## 2. Bullet 2 — 实例化障碍,以及它的代价
 
-**简历原文(v28):** *Collapsed each obstacle section into two InstancedMeshes sharing one matrix set: a headless Chromium harness sampling renderer stats every frame put draw calls down from 129 to 76 and triangles submitted up 2.6×, one bounding volume per mesh being the price of losing per-instance frustum culling.*
+**简历原文(v66):** *Cut draw calls from 129 to 76 by collapsing each obstacle field into two instanced meshes, measured frame by frame in a headless Chromium harness: the cost is that off-screen obstacles can no longer be skipped one by one.*
+
+> ⚠️ **v66 把「triangles submitted up 2.6×」撤下了**，代价那半句改成了大白话。**2.6 倍仍要会答**——一说 draw call 降了，「那代价呢」必然跟着来。
 
 ### 代码出处
 
@@ -110,7 +117,9 @@ README 第 75 行原话也是这个意思。**这句话不要等面试官挖出�
 
 ## 3. Bullet 3 — 公平性是量出来的,不是玩出来的
 
-**简历原文(v28):** *Swept the live generator across 1,020 generated layouts, testing every step against the craft's lateral reach at that level's speed — every layout had a continuous path through it, no gap narrower than 15 units, against a random-scatter control.*
+**简历原文(v66):** *Checked the level generator by machine rather than by playing it: across 1,020 generated layouts, every step tested against how far the craft can move sideways at that stage’s speed, every layout had a way through.*
+
+> ⚠️ **v66 把「no gap narrower than 15 units」和随机散布对照组一起撤下了**。两处仍要会答：「走得通」凭什么判定，答案就是那个阈值；对照组是「这个扫描有没有区分力」的答案。
 
 ### 代码出处
 
@@ -151,7 +160,9 @@ README 第 75 行原话也是这个意思。**这句话不要等面试官挖出�
 
 ## 4. Bullet 4 — 雾与 program key:一次整帧卡死
 
-**简历原文:** *Traced a freeze landing exactly on each palette change to distance fog: declared as JSX it rebuilt the fog object, and fog belongs to a material's program key, so the renderer recompiled every material in the scene inside one frame — a probe counting pipelines built per frame confirmed it; one mutated fog object removed it.*
+**简历原文(v66):** *Traced a freeze on every color change to the fog: rebuilding it as a new object made every material in the scene recompile its shader in one frame. Reusing one fog object and setting its color removed it.*
+
+> ⚠️ **v66 撤下了「fog 属于材质的 program key」和那个统计每帧新建管线数的探针**。探针是这条唯一的证据来源，被追问「你怎么确认是重编译」时必须拿它出来。
 
 **这是全篇最好的一条 debug 故事,而且是多数前端不知道的知识点。面试前把它讲顺。**
 

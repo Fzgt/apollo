@@ -28,13 +28,13 @@ _待填_
 
 _待填_
 
-## 五条 S 级 bullet 的钩子
+## 五条 S 级 bullet 的钩子（v66 口径）
 
 > 每条一句话，能让面试官想追问的那一句。
 
 | bullet | 钩子 |
 |---|---|
-| Periplus 证据与裁决 | |
+| Periplus 契约与断点续跑 | |
 | Periplus golden set | |
 | Beyz 实时 pipeline | |
 | Beyz 凭证与状态机 | |
@@ -51,6 +51,7 @@ _待填_
 ## 必须主动交代的局限
 
 - Periplus evals 只有四个 case，是种子集不是覆盖率主张
+- 证据与裁决那条 v66 已从简历撤下，但它仍是「怎么防编造来源」的主答案，被问到照样讲
 - evals 只驱动 research / verify 两个阶段
 - Stripe 没有 event id 去重表，靠收敛写
 - concept-tracker / job-tracker 是自建教学项目，不是工作经历

@@ -1,5 +1,5 @@
 ---
-title: "③ 脚本化接缝与 406 个测试"
+title: "③ 脚本化接缝与 461 个测试"
 tier: must
 section: Periplus
 icon: workflow
@@ -8,19 +8,21 @@ level: S
 status: done
 ---
 
-# ③ 脚本化接缝与 406 个测试
+# ③ 脚本化接缝与 461 个测试
 
 > **简历原句**
 >
-> Put a **scripted seam behind every external dependency** — model provider, search, page fetch and clock — so the whole system runs with **no API keys and no network**: **406 server tests**, about a second end to end.
+> **Put a scripted seam behind every external dependency** — the model provider, search, **httpx** page fetch and the clock — so the whole system runs with **no API keys and no network**: **461 pytest tests, 1.5 seconds end to end**.
 >
 > ---
 >
-> 在每个外部依赖背后都留了一道可脚本化的接缝 —— 模型服务、搜索、页面抓取和时钟 —— 所以整个系统不用 API key、不联网也能跑：406 个服务端测试，全程约一秒。
+> 在每个外部依赖背后都留了一道可脚本化的接缝 —— 模型服务、搜索、httpx 页面抓取和时钟 —— 所以整个系统不用 API key、不联网也能跑：461 个 pytest 测试，全程 1.5 秒。
+
+> ✅ **2026-08-27 在本机复测**：`uv run pytest` 输出 `461 passed, 3 skipped in 1.37s`，`--collect-only` 收集到 464 条。简历写 461 指的是**通过数**，不含 3 条 skip；1.5 秒是含 collection 的整轮墙钟时间，串行单进程。
 
 ## 这条 bullet 在讲什么
 
-⭐ **这是五条里证据最硬的一条** —— 代码在本机，能指行号，**面试官当场就能自己跑**。
+⭐ **这是三条里证据最硬的一条** —— 代码在本机，能指行号，**面试官当场就能自己跑**。
 
 **但数字只是表皮。它真正在讲的是：一个 AI 系统怎么做到「没有 API key、没有网络也能全量测试」** —— 而答案的核心是第三节那一句：**接缝要放在最接近进程边界的位置。**
 
@@ -170,7 +172,7 @@ httpx.AsyncClient(transport=httpx.MockTransport(handler), follow_redirects=True)
 | 问题 | 说明 |
 |---|---|
 | **时间炸弹测试** | 写一个测「30 天内的价格应该判有效」的用例 —— **过几个月它会自己变红**。这是最恶心的一类随机失败 |
-| **测试跑不快** | 测超时和预算的用例得**真的 sleep**。一个 1 秒超时的用例就要等 1 秒 —— ⭐ **406 个测试跑 1.38 秒这件事，本身就依赖假时钟** |
+| **测试跑不快** | 测超时和预算的用例得**真的 sleep**。一个 1 秒超时的用例就要等 1 秒 —— ⭐ **461 个测试跑 1.5 秒这件事，本身就依赖假时钟** |
 
 **假时钟把「等 30 秒」变成一次赋值：**
 
@@ -189,40 +191,41 @@ def advance(self, seconds: float) -> None:
 
 > 「因为**时间不是环境噪音，是业务输入**。这个系统要判断一条证据新不新鲜，判定依据就是当前时间减去页面发布时间。时钟不注入的话，**一是测试会变成时间炸弹** —— 今天绿的用例过几个月自己红；**二是测超时和预算就得真 sleep，整个套件跑不到一秒。**」
 
-## 六、406 这个数怎么核（已实测）
+## 六、461 这个数怎么核（2026-08-27 已实测）
 
 ```bash
 cd server && uv run pytest --collect-only -q
 ```
 
-**16 个测试文件求和：**
+**17 个测试文件求和：**
 
 | 文件 | 数量 | | 文件 | 数量 |
 |---|---|---|---|---|
-| `test_orchestrator.py` | **67** | | `test_geo.py` | 22 |
-| `test_retrieval.py` | **66** | | `test_media.py` | 21 |
-| `test_evals.py` | 38 | | `test_models.py` | 20 |
-| `test_verification.py` | 35 | | `test_editor.py` | 14 |
-| `test_llm.py` | 29 | | `test_navigation.py` | 13 |
-| `test_research.py` | 26 | | `test_embeddings.py` | 12 |
-| `test_api.py` | 23 | | `test_content.py` | 9 |
-| | | | `test_illustration.py` | 8 |
+| `test_orchestrator.py` | **92** | | `test_media.py` | 21 |
+| `test_retrieval.py` | **66** | | `test_models.py` | 20 |
+| `test_evals.py` | 38 | | `test_editor.py` | 14 |
+| `test_verification.py` | 35 | | `test_observability.py` | 13 |
+| `test_research.py` | 35 | | `test_navigation.py` | 13 |
+| `test_llm.py` | 32 | | `test_illustration.py` | 13 |
+| `test_api.py` | 26 | | `test_embeddings.py` | 12 |
+| `test_geo.py` | 22 | | `test_content.py` | 9 |
 | | | | `test_postgres_reconnect.py` | 3 |
 
-**合计 = 406** ✅
+**合计 = 464 collected**，实际跑起来 `461 passed, 3 skipped in 1.52s`。
 
-### ⚠️ 一个必须知道的口径细节
+### ⚠️ 口径变了，这是这条 bullet 上最容易被问穿的一点
 
-**实际跑起来是 `403 passed, 3 skipped in 1.38s`。**
+**v40 印的 406 是「收集数」，v66 印的 461 是「通过数」。两版换了口径，不只是数字长大了。**
 
-跳过的 3 个全在数据库重连那个文件，跳过条件是「**需要一个可连接的 PostgreSQL**」。
+| 版本 | 简历上的数 | 它是什么 | 同版本的另一个数 |
+|---|---|---|---|
+| v40 | 406 | collected | 403 passed |
+| **v66** | **461** | **passed** | **464 collected** |
 
-| 数字 | 含义 |
-|---|---|
-| **406** | **收集到的用例总数** |
-| **403** | **无数据库环境下实际执行的** |
+跳过的 3 个一直是同一批：数据库重连测试，跳过条件是「**需要一个可连接的 PostgreSQL**」。
 
-> **简历用 406 这个「收集数」口径没问题**（这是通行做法），**但被问到「全绿吗」时要能主动说清**：那 3 个是**有条件跳过的**数据库重连测试，**不是失败**。
+> **v66 这个口径其实更好答**：461 就是「真正跑过并且绿了的」，没有「收集了但没执行」的空隙。
+> **但仍要能主动说清**：套件一共 464 条，另外 3 条是**有条件跳过的**数据库重连测试，**不是失败**。
 >
 > **答不清这一点，会显得数字是拍的。**
 
@@ -243,11 +246,11 @@ cd server && uv run pytest --collect-only -q
 | ✅ **A** | **整个测试套件**从头跑到尾约一秒 |
 | ❌ **B** | 一次六阶段流水线**跑完**约一秒 |
 
-**正确的是 A。** 从语法看它跟在 `406 server tests` 后面，修饰的是那 406 个测试。
+**正确的是 A。** 从语法看它跟在 `461 pytest tests` 后面，修饰的是那 461 个测试。
 
 > ⚠️ **但 `end to end`（端到端）这个词在工程语境里通常指「端到端流程」，很容易被听成 B。** 面试官如果按 B 理解，会问「一秒就跑完六个阶段？那模型调用呢？」—— **你得能立刻分辨他问的是哪个。**
 >
-> **想更清楚可以改成 `406 server tests in about a second`** —— 把 `end to end` 换成 `in`，歧义就没了。
+> **想更清楚可以改成 `461 pytest tests in 1.5 seconds`** —— 把 `end to end` 换成 `in`，歧义就没了。
 
 ## 九、实测数据（已核准）
 
@@ -256,13 +259,13 @@ cd server && uv run pytest
 ```
 
 ```
-403 passed, 3 skipped in 1.38s
+461 passed, 3 skipped in 1.52s
 ```
 
 **用 `time` 包住整条命令：**
 
 ```
-1.26s user  0.21s system  82% cpu  1.768s total
+1.56s user  0.24s system  89% cpu  2.020s total
 ```
 
 **两个数字都对，但含义不同 —— 这正是审计要问的。**
@@ -277,9 +280,9 @@ cd server && uv run pytest
 
 **串行，单进程。**
 
-**证据**：开发依赖里只有 `pytest` 和 `pytest-asyncio`（异步测试支持），**没有装 `pytest-xdist`**（那是并行插件）。
+**证据**：开发依赖里只有 `pytest`、`pytest-asyncio`（异步测试支持）和 `ruff`，**没有装 `pytest-xdist`**（那是并行插件）。
 
-> ⭐ **这一点反而是加分的**：**1.38 秒是单进程串行跑完 403 个用例，不是靠开 8 个进程堆出来的。**
+> ⭐ **这一点反而是加分的**：**1.52 秒是单进程串行跑完 461 个用例，不是靠开 8 个进程堆出来的。**
 >
 > **没有并行还这么快，说明快的原因是「没有 IO 等待」，不是「有并发」。**
 
@@ -289,12 +292,12 @@ cd server && uv run pytest
 
 | 数字 | 含什么 | 不含什么 |
 |---|---|---|
-| **1.38s**（pytest 自己报的） | **含**收集用例 + 执行 | 不含 Python 解释器启动、模块导入、`uv` 自身开销 |
-| **1.77s**（`time` 量的） | 含**全部** —— 从敲回车到回到提示符 | — |
+| **1.52s**（pytest 自己报的） | **含**收集用例 + 执行 | 不含 Python 解释器启动、模块导入、`uv` 自身开销 |
+| **2.02s**（`time` 量的） | 含**全部** —— 从敲回车到回到提示符 | — |
 
-> **报哪个都说得通**（1.38 和 1.77 都能叫「约一秒」），**但被问到时要能说清报的是哪个**。
+> **简历印的「1.5 seconds」就是 pytest 自己报的那个数**，不是 `time` 量的 2.02 秒。**被问到时要能说清报的是哪个。**
 >
-> **推荐报 pytest 自己那个 1.38 秒**，因为它是**可比的** —— 换台机器 `uv` 的启动开销不一样，但套件本身的执行时间可比。
+> **推荐报 pytest 自己那个 1.52 秒**，因为它是**可比的** —— 换台机器 `uv` 的启动开销不一样，但套件本身的执行时间可比。
 
 ### ④ 哪台机器
 
@@ -362,7 +365,7 @@ cd server && uv run pytest
 | 传输层 | **transport layer** |
 | 重定向跟随 | **redirect following** |
 | 速率限制 | **rate limiting** |
-| 收集到的用例 ↔ 实际执行 | **collected ↔ executed**（406 collected, 403 passed, 3 skipped） |
+| 收集到的用例 ↔ 实际执行 | **collected ↔ executed**（464 collected, 461 passed, 3 skipped） |
 | 有条件跳过 | **conditionally skipped** |
 | 串行 ↔ 并行 | **serial ↔ parallel**（`pytest-xdist`） |
 | 端到端 | **end to end**（⚠️ 这里指整个套件，不是一次流水线） |

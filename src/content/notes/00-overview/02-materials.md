@@ -9,11 +9,13 @@ status: done
 
 # 资料与代码索引
 
+> ⚠️ **下面这些外部材料整体停在 v40 口径**（2026-08-18）。简历现在是 **v66**：Beyz 四条并成三条、Periplus 五条收到三条（证据与裁决那条撤下）、WinterFell 提到 Periplus 之前并多一条开场、Skills 行去掉 Go、Periplus 测试数从 406 改成 461。**引用这些文件时按站内笔记的口径为准。**
+
 ## 已有笔记（Obsidian vault：`~/Desktop/Znlm/resume-review/`）
 
 | 文件 | 用不用 | 说明 |
 |---|---|---|
-| `CONCEPT_MAP_v40.md` | ✅ 广度清单 | 已校到 v40，Go / Angular / Django 三条「本机零代码」已订正 |
+| `CONCEPT_MAP_v40.md` | ⚠️ 校到 v40 | 广度清单；Go / Angular / Django 三条「本机零代码」已订正。**Go 在 v66 已撤下** |
 | `beyz/project-related/LEARNING_NOTES_BEYZ_V40.md` | ✅ **Beyz 只用这份** | 引的四条与 v40 一字不差，带真实行号 |
 | `LEARNING_NOTES_BAIDU.md` | ✅ 最完整的一份 | 已按 v40 顺序重排（虚拟列表＝第 2 条、提现＝第 3 条） |
 | `LEARNING_NOTES_BioMap.md` | ✅ 已按 v40 四条重写 | 文首有「哪条看哪个仓库」的表 |

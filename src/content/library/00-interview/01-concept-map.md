@@ -6,7 +6,7 @@ icon: mic-2
 
 # 面试概念清单（对应简历 v40）
 
-> 2026-08-18 校到 v40：条目本身与 v40 的 22 条 bullet 一一对得上，无需增删；改的是下面三处「本机零代码」的过时判断。
+> 2026-08-18 校到 v40；**2026-08-27 对齐 v66**：简历从 22 条收到 **20 条**（Beyz 4→3、Periplus 5→3、WinterFell 4→5），条目本身无需增删——下简历的那几条仍会被问到相邻话题。Skills 行去掉了 `Go` 和 `Evals`。
 
 只列概念名，不解释。先自己过一遍，会的划掉，不会的留着——留下来的才是后面要 focus 的。
 
@@ -161,7 +161,7 @@ icon: mic-2
 - ★ FastAPI [Periplus]：Pydantic v2、依赖注入、`async def` vs `def`、后台任务
 - ★ 自动生成 OpenAPI schema → 前端类型生成的链路 [Periplus]
 - ○ ASGI vs WSGI、uvicorn、并发模型、GIL、asyncio（task/gather/超时/取消）
-- ★ pytest [Periplus]：fixture、参数化、monkeypatch、collect、406 个测试怎么组织
+- ★ pytest [Periplus]：fixture、参数化、monkeypatch、collect、461 个测试怎么组织
 - ○ SQLAlchemy、Alembic 迁移、连接池
 - ⚠ Django [Skills]：ORM、中间件、DRF、admin —— **已有代码**：`~/Desktop/projects/Python/job-tracker/server`
 
@@ -325,7 +325,7 @@ icon: mic-2
 - ★ 编排器只认类型化阶段契约（不认阶段内部实现）
 - ★ 运行状态与阶段产物持久化、崩溃后从最后完成阶段恢复
 - ★ 每次运行的 token 与时间预算
-- ★ **agentic workflow vs multi-agent system**：控制流由代码写死还是由模型决定——本项目 `STAGE_ORDER` 是硬编码 tuple、零 tool call，属前者；简历 v40 的措辞按此选定
+- ★ **agentic workflow vs multi-agent system**：控制流由代码写死还是由模型决定——本项目 `STAGE_ORDER` 是硬编码 tuple、零 tool call，属前者；v40 的措辞按此选定，**v66 索性把 “agentic workflow” 换成了更朴素的 “Six-stage LLM pipeline”，同一个判断走得更远**
 - ○ 多智能体 vs 单模型多轮：收益与代价
 - ○ 阶段并发、限流、失败重试与死信
 - ○ 人类介入（human-in-the-loop）、审批点
@@ -337,7 +337,7 @@ icon: mic-2
 - ★ 指标：证据缺口率、引用完整性、token 成本
 - ★ prompt 或控制流改动 → before/after 逐指标 diff
 - ★ 脚本化接缝（seam）：模型 provider、搜索、页面抓取、时钟全部可替换 → 无 key 无网络可跑
-- ★ 406 个服务端测试、约一秒跑完：确定性从哪来
+- ★ 461 个测试、1.5 秒跑完：确定性从哪来
 - ○ 离线评测 vs 线上评测、A/B、影子流量
 - ○ LLM-as-judge 及其偏差、人工标注、标注一致性
 - ○ 回归门禁：指标劣化是否阻断合并
@@ -376,5 +376,5 @@ Go / Angular / Django 三个已经有本机代码撑着（concept-tracker、job-
 
 1. 先只做一件事：从头到尾划掉「一眼就能讲三分钟」的条目。
 2. 剩下的分两堆——★ 的是必须补的，○ 的是有余力再补。
-3. ★ 里再挑出**数字类**的（500ms、5M PV、30→60 FPS、2,000 QPS、15%、70%、129→76、2.6×、1,020、15 单位、406、60 秒、六事件）——这些一定被追问「怎么测的」。
+3. ★ 里再挑出**数字类**的（5M PV、30→60 FPS、2,000 QPS、15%、70%、129→76、1,020、461、1.5 秒、60 秒、二十个场景；2.6×、15 单位、六事件、500ms 已下简历，但相邻话题仍会问）——这些一定被追问「怎么测的」。
 4. 过完这一遍再进项目串讲和模拟追问。

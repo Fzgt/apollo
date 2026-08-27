@@ -12,11 +12,13 @@ status: done
 
 > **简历原句**
 >
-> Collapsed each obstacle section into **two InstancedMeshes sharing one matrix set**: a **headless Chromium harness sampling renderer stats every frame** put **draw calls down from 129 to 76** and **triangles submitted up 2.6×**, **one bounding volume per mesh being the price of losing per-instance frustum culling**.
+> **Cut draw calls from 129 to 76** by collapsing each obstacle field into **two instanced meshes**, **measured frame by frame in a headless Chromium harness**: **the cost is that off-screen obstacles can no longer be skipped one by one**.
 >
 > ---
 >
-> 把每一段障碍物合并成两个共享同一套矩阵的 InstancedMesh：一个逐帧采样渲染器统计数据的无头 Chromium 测量装置显示，draw call 从 129 降到 76，提交的三角形数上升 2.6 倍 —— 每个 mesh 只剩一个包围盒，这是失去逐实例视锥剔除的代价。
+> 把每一段障碍阵合并成两个实例化 mesh，draw call 从 129 降到 76 —— 由一个无头 Chromium 测量装置逐帧测得；代价是屏幕外的障碍不能再逐个跳过。
+
+> ℹ️ **v66 删掉了「triangles submitted up 2.6×」**，代价那半句改成了大白话。2.6 倍这个数仍要会答——它是「为什么 draw call 少了反而要交代代价」的关键一环。
 
 ## 这条 bullet 在讲什么
 

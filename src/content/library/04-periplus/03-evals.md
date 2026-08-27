@@ -7,9 +7,11 @@ icon: workflow
 # Periplus Golden Set 与离线评测学习笔记
 
 > 仓库路径:`/Users/hanguangjun/Desktop/projects/parthenon-labs/periplus`
-> 对应简历 bullet:**v40 Periplus 第 5 条(最后一条)**,原文逐字如下:
+> 对应简历 bullet:**v66 Periplus 第 3 条(最后一条,v40 时是第 5 条)**,原文逐字如下:
 >
-> *"Scored the pipeline against a golden set rather than by inspection: each case freezes the brief, the retrieved pages and the clock, then asserts ranges — never literal output — on evidence-gap rate, citation integrity and token cost, so a prompt or control-flow change lands as a before/after diff marking every metric better or worse."*
+> *"Ran an offline eval harness against a frozen golden set, asserting ranges rather than literal output on evidence-gap rate, citation integrity and token cost: every prompt change lands as a before/after diff."*
+>
+> v40 原文更长,撤下的两处仍要会答:*each case freezes the brief, the retrieved pages and the clock* 与 *marking every metric better or worse*。
 >
 > **这条是 v40 新增的,此前六份 Periplus 笔记零覆盖。** 别的 bullet 都能在 AI/BACKEND/FRONTEND 三份笔记里找到落点,只有这条没有,所以单独成篇。
 >
@@ -295,17 +297,17 @@ case description 那句写得漂亮,可以直接引用:*"Both look like provenan
 
 ---
 
-## 10. 数字核对(2026-08-18 实测)
+## 10. 数字核对(2026-08-27 实测)
 
 | 数字 | 值 | 怎么复核 |
 |---|---|---|
-| server 测试总数 | **406** | `cd server && uv run pytest --collect-only -q` 后按文件求和 |
+| server 测试总数 | **461 passed / 464 collected** | `cd server && uv run pytest`(通过数);`--collect-only -q` 按文件求和是收集数 |
 | 其中 evals 相关 | 38 | `uv run pytest tests/test_evals.py --collect-only -q` |
 | 评测集 case 数 | 4 | `ls server/evals/cases/*.json` |
 | 全套 eval 跑一次 | `PASS: 4/4 cases · 8727 tokens · $0.000000` | `cd server && uv run python -m periplus.evals --quiet` |
 | 全套墙上时间 | 0.009s(基线报告里的 `wall_seconds`) | 同上,不加 `--quiet` 看完整报告 |
 
-**简历上印的 406 现在是对的。测试还在加,面试前重跑一遍。**
+**简历 v66 印的 461 是「通过数」,和 v40 印的 406(「收集数」)不是同一个口径——被问到要能说清。测试还在加,面试前重跑一遍。**
 
 命令行接口(`__main__.py`)四个开关值得记住,被问"怎么跑"直接答:
 

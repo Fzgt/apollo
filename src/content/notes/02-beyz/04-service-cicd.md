@@ -12,7 +12,9 @@ status: done
 
 > **简历原句**
 >
-> **Sole author of a NestJS and Fastify service** for subscription emails and scheduled payment reminders — **Dockerized, cron-triggered, deployed to EC2 under PM2 through GitHub Actions** — and of the repo's **first CI gate**: lint, typecheck and build on every push.
+> **Sole author of a NestJS service** for subscription emails and scheduled payment reminders, **Dockerized and deployed to EC2 through GitHub Actions**, and of the repo’s **first CI gate on every push**.
+
+> ℹ️ **v66 收短了这一条**：Fastify、cron 触发、PM2，以及 CI 那三步（lint / typecheck / build）都已从简历删除。正文没动，被追问时照样按正文答。
 
 ## 先别拆技术名词：这条证明两件事
 

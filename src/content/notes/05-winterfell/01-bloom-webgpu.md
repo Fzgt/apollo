@@ -12,11 +12,13 @@ status: done
 
 > **简历原句**
 >
-> Built the **bloom pass on the three.js TSL node pipeline**, which a **classic WebGLRenderer cannot execute**. A single **WebGPURenderer** drives WebGPU where present and **its own WebGL2 backend** where absent; **the look survives the fallback instead of quietly degrading**.
+> **Made the neon glow work on machines without WebGPU**: it is built on the **newer three.js node pipeline**, so **one renderer drives WebGPU where the browser has it** and **falls back to WebGL2 where it does not**.
 >
 > ---
 >
-> 在 three.js 的 TSL 节点管线上实现辉光后处理 —— 这是传统 WebGLRenderer 跑不了的。同一个 WebGPURenderer 在支持 WebGPU 时走 WebGPU，不支持时走它自带的 WebGL2 后端；画面效果在回退路径上照样成立，而不是悄悄降级。
+> 让霓虹辉光在没有 WebGPU 的机器上照样成立：它建在 three.js 较新的节点管线上，所以同一个渲染器在浏览器支持时走 WebGPU，不支持时回退到 WebGL2。
+
+> ℹ️ **v66 把这条改成了大白话**：TSL、WebGPURenderer、「classic WebGLRenderer cannot execute」这些词都从简历上撤了。技术事实没变，正文仍按原来的深度讲。
 
 ## 这条 bullet 在讲什么
 

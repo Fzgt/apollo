@@ -12,11 +12,13 @@ status: done
 
 > **简历原句**
 >
-> **Scored the pipeline against a golden set, not by inspection.** Each case **freezes the brief, the retrieved pages and the clock**, then **asserts ranges rather than literal output** on evidence-gap rate, citation integrity and token cost. A prompt or control-flow change lands as a **before/after diff**, every metric marked better or worse.
+> **Ran an offline eval harness against a frozen golden set**, **asserting ranges rather than literal output** on evidence-gap rate, citation integrity and token cost: **every prompt change lands as a before/after diff**.
 >
 > ---
 >
-> 用黄金集给流水线打分，而不是靠肉眼看几个例子。每个用例冻结行程简报、检索到的页面和时钟，然后对证据缺口率、引用完整性与 token 成本断言范围而不是字面输出。一次提示词或控制流改动会以前后对比 diff 的形式落地，每项指标都标出变好还是变坏。
+> 用离线评测装置跑冻结的黄金集，对证据缺口率、引用完整性与 token 成本断言范围而不是字面输出：每次提示词改动都以前后对比 diff 的形式落地。
+
+> ℹ️ **v66 收短了这一条**：「冻结简报、检索页面与时钟」和「每项指标标出变好还是变坏」两处细节已从简历删除。正文没动——它们正是被追问时的答案。
 
 ## 这条 bullet 在讲什么
 

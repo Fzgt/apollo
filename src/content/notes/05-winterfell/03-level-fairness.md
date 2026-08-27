@@ -12,11 +12,13 @@ status: done
 
 > **简历原句**
 >
-> **Swept the live generator across 1,020 generated layouts**, testing every step against **the craft's lateral reach at that level's speed** — every layout had a **continuous path** through it, **no gap narrower than 15 units**, **against a random-scatter control**.
+> **Checked the level generator by machine rather than by playing it**: across **1,020 generated layouts**, every step tested against **how far the craft can move sideways at that stage’s speed**, **every layout had a way through**.
 >
 > ---
 >
-> 让线上那套生成器跑出 1,020 个关卡布局逐个扫描，按该关速度下飞行器的横向可达范围逐步校验 —— 每个布局都存在一条连续可通行的路径，且没有窄于 15 个单位的缺口，并与随机散布的对照组作了比较。
+> 关卡生成器交给机器检验，而不是靠试玩：1,020 个生成的布局逐步校验，按该阶段速度下飞行器能横向移动多远来判定 —— 每个布局都存在一条走得通的路。
+
+> ℹ️ **v66 删掉了「no gap narrower than 15 units」和随机散布对照组**。两处都仍要会答：15 单位是判定阈值，对照组是「这个扫描到底有没有区分力」的答案。
 
 ## 这条 bullet 在讲什么
 

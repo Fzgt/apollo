@@ -12,11 +12,13 @@ status: done
 
 > **简历原句**
 >
-> **Persisted run state, stage artifacts and a pgvector evidence cache in PostgreSQL** under **per-run token and time budgets**. **A run that dies mid-pipeline resumes from the last completed stage.**
+> **Six-stage LLM pipeline behind typed Pydantic stage contracts** filled by **schema-constrained JSON output**, with **run state, stage artifacts and a pgvector cache of local MiniLM embeddings in PostgreSQL**: **a run that dies mid-pipeline resumes from the last completed stage**.
 >
 > ---
 >
-> 在每次运行各自的 token 与时间预算下，把运行状态、阶段产物和 pgvector 证据缓存持久化到 PostgreSQL。流水线中途挂掉的运行可以从最后一个已完成阶段续跑。
+> 六阶段 LLM 流水线，阶段之间只认带类型的 Pydantic 契约，由受 schema 约束的 JSON 输出填充；运行状态、阶段产物，以及本地 MiniLM 向量的 pgvector 缓存都落在 PostgreSQL 里：流水线中途挂掉的运行可以从最后一个已完成阶段续跑。
+
+> ℹ️ **本篇和 [① 六阶段与类型化契约](/docs?section=periplus&item=typed-contract) 共用简历上的第一条。**「per-run token and time budgets」已从简历删除，但预算续跑那一节是这篇最值钱的部分，正文没动。
 
 ## 这条 bullet 在讲什么
 

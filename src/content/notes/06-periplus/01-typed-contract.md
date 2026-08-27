@@ -12,11 +12,13 @@ status: done
 
 > **简历原句**
 >
-> Built a **six-stage agentic workflow** — research, verification, planning, writing, editing and illustration — where the **orchestrator knows only typed stage contracts**, carried through to the React client as **types generated from the OpenAPI schema**.
+> **Six-stage LLM pipeline behind typed Pydantic stage contracts** filled by **schema-constrained JSON output**, with **run state, stage artifacts and a pgvector cache of local MiniLM embeddings in PostgreSQL**: **a run that dies mid-pipeline resumes from the last completed stage**.
 >
 > ---
 >
-> 构建六阶段 agentic 工作流 —— 检索、核实、规划、写作、编辑与配图 —— 编排器只认识带类型的阶段契约；这套契约一路延伸到 React 客户端，类型由 OpenAPI schema 生成。
+> 六阶段 LLM 流水线，阶段之间只认带类型的 Pydantic 契约，由受 schema 约束的 JSON 输出填充；运行状态、阶段产物，以及本地 MiniLM 向量的 pgvector 缓存都落在 PostgreSQL 里：流水线中途挂掉的运行可以从最后一个已完成阶段续跑。
+
+> ℹ️ **v66 把原来的 bullet 1 和 bullet 3 合并成了这一条。**本篇讲契约与编排；持久化与续跑在 [② 持久化与断点续跑](/docs?section=periplus&item=persistence-resume)。「agentic workflow」「OpenAPI 生成前端类型」两个说法已从简历撤下，改成了 Pydantic 与 MiniLM。
 
 ## 这条 bullet 在讲什么
 
@@ -99,7 +101,7 @@ status: done
 | | 说明 |
 |---|---|
 | **可替换** | 换掉某个阶段的实现，不影响其他阶段 —— 编排器只认契约 |
-| **可测试** | 每个阶段可以单独喂输入、验输出，[406 个测试](/docs?section=periplus&item=scripted-seams)就建在这上面 |
+| **可测试** | 每个阶段可以单独喂输入、验输出，[461 个测试](/docs?section=periplus&item=scripted-seams)就建在这上面 |
 | **可恢复** | 产物有类型、能持久化，**所以能从任意已完成的阶段续跑**（见 [② 持久化与 resume](/docs?section=periplus&item=persistence-resume))） |
 
 ### Q：后端契约怎么和 React 保持同步

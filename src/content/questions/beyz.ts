@@ -1,19 +1,19 @@
 import type { QuestionSource } from './types';
 
 /**
- * Beyz —— 简历 v42 四条 bullet 的实战问答。
+ * Beyz —— 简历 bullet 的实战问答（v66 起收到三条，题库仍按原四条分组）。
  * 代码出处见 `content/library/03-beyz/00-notes.md`，这里只放「怎么答」。
  */
 export const beyz: QuestionSource = {
   id: 'beyz',
   title: 'Beyz',
-  subtitle: '实时面试助手 · 简历 v42 四条 bullet',
+  subtitle: '实时面试助手 · 简历 v66 三条 bullet（题库仍按原四条分组）',
   bullets: [
     {
       id: 'bullet-1',
-      title: 'Bullet 1 · 实时链路全流程',
+      title: 'Bullet 1 · 实时链路全流程（v66 第一条 · 前半）',
       resume:
-        'Built the real-time interview copilot end to end: tab and system audio captured through getDisplayMedia, streamed over a WebSocket to Deepgram’s live recognizer, with interim and finalized transcripts reconciled in the client and utterance-end events triggering GPT-4o answers streamed back token by token.',
+        'Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged.',
       questions: [
         {
           id: 'b1-main',
@@ -159,9 +159,9 @@ Deepgram 在开启 \`interim_results\` 之后，同一句话会先发若干条 \
     },
     {
       id: 'bullet-2',
-      title: 'Bullet 2 · 凭据、保活、配额与并发',
+      title: 'Bullet 2 · 凭据、保活、配额与并发（v66 第一条 · 后半）',
       resume:
-        'Kept the transcription credential out of the browser by minting 60-second, usage-scoped keys per session behind a plan gate, held the socket alive across microphone pauses, and logged per-request token usage that backs per-plan quotas; a four-state machine drops overlapping generations.',
+        'Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged. —— v66 已把原来的 bullet 1 与 bullet 2 合并成这一条；四态状态机不再出现在简历上，题目保留。',
       questions: [
         {
           id: 'b2-main',
@@ -281,9 +281,9 @@ Deepgram 在开启 \`interim_results\` 之后，同一句话会先发若干条 \
     },
     {
       id: 'bullet-3',
-      title: 'Bullet 3 · 付费转化链路',
+      title: 'Bullet 3 · 付费转化链路（v66 第二条）',
       resume:
-        'Owned the paid conversion path — Stripe Checkout, trials and lifetime purchases on Next.js, tRPC and Drizzle — with plan eligibility enforced in typed server actions and entitlements written only by signature-verified webhooks across six subscription events, none of which can downgrade a lifetime purchase.',
+        'Owned the paid conversion path — Stripe Checkout, trials and lifetime purchases on Next.js and Drizzle — with entitlements written only by signature-verified webhooks: no event can downgrade a lifetime purchase.',
       questions: [
         {
           id: 'b3-main',
@@ -311,7 +311,7 @@ Deepgram 在开启 \`interim_results\` 之后，同一句话会先发若干条 \
 7. \`users.subscribedPlan\` 这个字段**只在这里被写**。写之前靠 \`stripeCustomerId\` 反查出是哪个用户，而且每一条写语句的 where 里都带 \`ne(subscribedPlan, Lifetime)\`，防止订阅事件把终身用户覆盖掉。
 8. webhook 处理完不往前端推任何东西。用户从 Stripe 跳回 success 页之后，前端自己重新拉一次用户状态，看到的就是已经写好的新套餐。
 
-> ⚠️ 简历这条写的是「on Next.js, tRPC and Drizzle」，但**整条付费链路一行 tRPC 都没有**：tRPC 在这个仓里只出现在 copilot 和 resume 两个 router 上，付费走的是 server actions + webhook route + Drizzle。顺着简历问下来会当场穿帮，已经建议 v43 改成「Next.js and Drizzle」。`,
+> ✅ **这个隐患 v66 已经拆掉**：简历以前写「on Next.js, tRPC and Drizzle」，但**整条付费链路一行 tRPC 都没有**（tRPC 在这个仓里只出现在 copilot 和 resume 两个 router 上，付费走的是 server actions + webhook route + Drizzle）。v66 已改成「Next.js and Drizzle」，顺着简历问下来不会再穿帮。`,
           },
           phrases: [
             'Two paths that never touch: the browser starts the purchase, the webhook is the only thing that grants it.',
@@ -419,9 +419,9 @@ Deepgram 在开启 \`interim_results\` 之后，同一句话会先发若干条 \
     },
     {
       id: 'bullet-4',
-      title: 'Bullet 4 · 独立邮件服务、部署与首个 CI',
+      title: 'Bullet 4 · 独立邮件服务、部署与首个 CI（v66 第三条）',
       resume:
-        'Sole author of a NestJS and Fastify service for subscription emails and scheduled payment reminders — Dockerized, cron-triggered, deployed to EC2 under PM2 through GitHub Actions — and of the repo’s first CI gate: lint, typecheck and build on every push.',
+        'Sole author of a NestJS service for subscription emails and scheduled payment reminders, Dockerized and deployed to EC2 through GitHub Actions, and of the repo’s first CI gate on every push.',
       questions: [
         {
           id: 'b4-main',

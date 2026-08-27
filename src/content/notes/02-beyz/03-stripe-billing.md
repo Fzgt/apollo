@@ -12,7 +12,9 @@ status: done
 
 > **简历原句**
 >
-> **Owned the paid conversion path** — Stripe Checkout, trials and lifetime purchases on Next.js, tRPC and Drizzle — with **plan eligibility enforced in typed server actions** and **entitlements written only by signature-verified webhooks** across six subscription events, **none of which can downgrade a lifetime purchase**.
+> **Owned the paid conversion path** — Stripe Checkout, trials and lifetime purchases on **Next.js and Drizzle** — with **entitlements written only by signature-verified webhooks**: **no event can downgrade a lifetime purchase**.
+
+> ℹ️ **v66 收短了这一条**：tRPC、typed server action 里的套餐校验、以及「六个订阅事件」都已从简历删除。三处仍要会答，正文没动。
 
 ## 先别背 API：这条只讲一件事
 

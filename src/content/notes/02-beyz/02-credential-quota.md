@@ -12,7 +12,9 @@ status: done
 
 > **简历原句**
 >
-> Kept the transcription credential out of the browser by **minting 60-second, usage-scoped keys per session behind a plan gate**, held the socket alive across microphone pauses, and **logged per-request token usage that backs per-plan quotas**; a **four-state machine drops overlapping generations**.
+> Built the real-time interview copilot end to end: tab and system audio through **getDisplayMedia**, streamed over a **WebSocket** to Deepgram on **60-second usage-scoped keys minted per session behind a plan gate**, and answered by **GPT-4o token by token as each utterance ends** — socket kept alive across pauses, token usage logged.
+
+> ℹ️ **本篇和 [① 实时面试 copilot](/docs?section=beyz&item=realtime-copilot) 共用简历上的第一条。**临时密钥与 token 用量还在句子里；**四态状态机 v66 已经不在简历上了**，笔记留着——「两条路径同时触发生成怎么办」照样会被问。
 
 ## 先看懂：这条是在给实时 demo 补生产边界
 

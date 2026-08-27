@@ -12,11 +12,11 @@ status: done
 
 > **简历原句**
 >
-> Delivered the Xiaodu App's **H5 smart-home module in Vue 2**, adding **native iOS/Android sharing via jsBridge**, device detail pages and analytics tracking.
+> Delivered the Xiaodu App’s **H5 smart-home module in Vue 2 on Webpack 3**, **embedded in the native shell**: **iOS/Android sharing through jsBridge**, device detail pages, and **event tracking on the Baidu Statistics API**.
 >
 > ---
 >
-> 用 Vue 2 交付小度 App 的 H5 智能家居模块，通过 jsBridge 调起 iOS/Android 原生分享，并完成设备详情页与埋点。
+> 用 Vue 2（Webpack 3）交付小度 App 的 H5 智能家居模块，嵌在原生壳里：通过 jsBridge 调起 iOS/Android 分享、设备详情页，以及走百度统计 API 的事件埋点。
 
 ## 这条 bullet 在讲什么
 
