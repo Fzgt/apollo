@@ -43,17 +43,36 @@ function stripFrontmatter(md) {
   return md.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
 }
 
+/** 去掉尾巴上的零，`50.0` -> `50`，`0.05` 原样 */
+function trim(n) {
+  return String(Number(n.toFixed(6)));
+}
+
+/**
+ * 中文的「万 / 亿」在英文里没有对应单位，一定会换算。
+ * `5000 万` 写成 `50 million`，数字本身对不上不是错译。
+ * 所以带单位的数一并给出换算后的几种写法，命中任意一种就算数对上了。
+ */
+function scaleAliases(n, unit) {
+  const value = Number(n) * (unit === '亿' ? 1e8 : 1e4);
+  return [trim(value), trim(value / 1e3), trim(value / 1e6), trim(value / 1e9)];
+}
+
 /**
  * 出现过哪些数字。链接目标除外。
  * 只看两位以上：个位数在英文里常写成单词（three to five seconds），不是错。
  * 比的是集合不是次数——同一个数在英文里少出现一次通常只是句式不同
  * （「第 10 秒」写成 the tenth second），少了这个数才是口径出问题。
+ *
+ * 返回 `{ n, aliases }`：aliases 是这个数在英文里可接受的所有写法。
  */
 function numbers(md) {
-  const text = stripFrontmatter(md).replace(/\[[^\]]*\]\([^)]*\)/g, '');
-  return [...text.matchAll(/\d+(?:\.\d+)?/g)]
-    .map(([n]) => n)
-    .filter((n) => n.length >= 2);
+  const text = stripFrontmatter(md)
+    .replace(/\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/(\d),(?=\d{3}\b)/g, '$1'); // 千分位逗号：`2,000` 和 `2000` 是同一个数
+  return [...text.matchAll(/(\d+(?:\.\d+)?)\s*([万亿]?)/g)]
+    .map(([, n, unit]) => ({ n, aliases: unit ? [n, ...scaleAliases(n, unit)] : [n] }))
+    .filter(({ n }) => n.length >= 2);
 }
 
 let failed = 0;
@@ -76,8 +95,12 @@ for (const root of ROOTS) {
       });
     }
 
-    const nb = new Set(numbers(b));
-    const missing = [...new Set(numbers(a))].filter((n) => !nb.has(n));
+    const nb = new Set(numbers(b).map(({ n }) => n));
+    const seen = new Set();
+    const missing = numbers(a)
+      .filter(({ n }) => !seen.has(n) && seen.add(n))
+      .filter(({ aliases }) => !aliases.some((alias) => nb.has(alias)))
+      .map(({ n }) => n);
     if (missing.length) {
       console.log(`✗ ${en}: 中文里有、英文里没有的数字 → ${missing.join(', ')}`);
       failed++;
