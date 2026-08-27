@@ -37,6 +37,10 @@ export interface Note extends NoteFrontmatter {
   /** 'must' = 必看，'ref' = 速查；侧边栏据此加标记 */
   tier?: string;
   content: string;
+  /** 同名 `.en.md` 的正文，没有这个文件就是 undefined */
+  contentEn?: string;
+  /** 英文版 frontmatter 里的标题，切到英文时用 */
+  titleEn?: string;
 }
 
 export interface NoteSection {
@@ -78,9 +82,14 @@ function parseFrontmatter(raw: string): { data: Record<string, string>; body: st
   return { data, body: raw.slice(match[0].length) };
 }
 
-/** `02-beyz` -> `beyz`，`00-day02.md` -> `day02` */
+/** `02-beyz` -> `beyz`，`00-day02.md` -> `day02`，`00-day02.en.md` -> `day02` */
 function stripOrderPrefix(name: string): string {
-  return name.replace(/\.md$/, '').replace(/^\d+[-_]/, '');
+  return name.replace(/(\.en)?\.md$/, '').replace(/^\d+[-_]/, '');
+}
+
+/** `00-day02.en.md` 是 `00-day02.md` 的英文版，不是独立的一篇 */
+function isEnglishVariant(fileName: string): boolean {
+  return fileName.endsWith('.en.md');
 }
 
 function isStatus(value: string | undefined): value is NoteStatus {
@@ -94,12 +103,25 @@ function isStatus(value: string | undefined): value is NoteStatus {
 export function buildCollection(raw: Record<string, string>, contentRoot: string): NoteCollection {
   const sections = new Map<string, NoteSection>();
 
+  // 英文版先单独收一遍：`.en.md` 排在同名 `.md` 前面，正文循环里来不及回填
+  const english = new Map<string, { title?: string; body: string }>();
+  for (const globPath of Object.keys(raw)) {
+    const segments = globPath.replace(/^\.\//, '').split('/');
+    if (segments.length !== 2 || !isEnglishVariant(segments[1])) continue;
+    const { data, body } = parseFrontmatter(raw[globPath]);
+    english.set(`${stripOrderPrefix(segments[0])}/${stripOrderPrefix(segments[1])}`, {
+      title: data.title,
+      body,
+    });
+  }
+
   for (const globPath of Object.keys(raw).sort()) {
     // './02-beyz/00-day02.md' -> ['02-beyz', '00-day02.md']
     const segments = globPath.replace(/^\.\//, '').split('/');
     if (segments.length !== 2) continue;
 
     const [dirName, fileName] = segments;
+    if (isEnglishVariant(fileName)) continue;
     const { data, body } = parseFrontmatter(raw[globPath]);
 
     const sectionId = stripOrderPrefix(dirName);
@@ -116,6 +138,8 @@ export function buildCollection(raw: Record<string, string>, contentRoot: string
       sourcePath: `${contentRoot}/${dirName}/${fileName}`,
       tier: data.tier,
       content: body,
+      contentEn: english.get(`${sectionId}/${itemId}`)?.body,
+      titleEn: english.get(`${sectionId}/${itemId}`)?.title,
     };
 
     let section = sections.get(sectionId);

@@ -11,7 +11,7 @@ import type { Note, NoteSection } from '@/content/collection';
 import { toDocSections } from '@/content/navigation';
 import { REPO_EDIT_BASE } from '@/content/site';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { ChevronLeft, ChevronRight, Edit, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit, Languages, Search } from 'lucide-react';
 
 interface NotesBrowserProps {
   sections: NoteSection[];
@@ -56,6 +56,12 @@ export function NotesBrowser({
     searchParams.get('item') || undefined
   );
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  // 语言只是「读哪一版正文」，不换界面语言；记在 URL 里，分享链接能带上
+  const [lang, setLang] = useState<'zh' | 'en'>(() => {
+    if (searchParams.get('lang') === 'en') return 'en';
+    if (searchParams.get('lang') === 'zh') return 'zh';
+    return localStorage.getItem(`${storageKey}-lang`) === 'en' ? 'en' : 'zh';
+  });
 
   const note = useMemo(
     () => getNote(activeSection, activeItem),
@@ -63,14 +69,25 @@ export function NotesBrowser({
   );
 
   useEffect(() => {
+    localStorage.setItem(`${storageKey}-lang`, lang);
+  }, [storageKey, lang]);
+
+  useEffect(() => {
     const params = new URLSearchParams();
     params.set('section', activeSection);
     if (note?.itemId) {
       params.set('item', note.itemId);
     }
+    if (lang === 'en') {
+      params.set('lang', 'en');
+    }
     setSearchParams(params, { replace: true });
     // 滚动位置交给 RouteMemory：新的一篇从头看，看过的回到上次停的地方
-  }, [activeSection, activeItem, note, setSearchParams]);
+  }, [activeSection, activeItem, note, lang, setSearchParams]);
+
+  // 这一篇没有英文版就照常给中文，不留白页
+  const hasEnglish = Boolean(note?.contentEn);
+  const body = lang === 'en' && note?.contentEn ? note.contentEn : note?.content;
 
   // Cmd+K / Ctrl+K 打开搜索
   useEffect(() => {
@@ -133,7 +150,7 @@ export function NotesBrowser({
             {/* 正文 */}
             <main className="min-w-0 flex-1">
               <motion.article
-                key={`${note?.sectionId}-${note?.itemId}`}
+                key={`${note?.sectionId}-${note?.itemId}-${lang}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
@@ -155,8 +172,38 @@ export function NotesBrowser({
                   </div>
                 )}
 
+                {note && (
+                  <div className="mb-6 flex items-center gap-2">
+                    <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5">
+                      {(['zh', 'en'] as const).map((code) => (
+                        <button
+                          key={code}
+                          onClick={() => setLang(code)}
+                          disabled={code === 'en' && !hasEnglish}
+                          className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                            lang === code
+                              ? 'bg-background text-foreground shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
+                          } disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-muted-foreground`}
+                          title={
+                            code === 'en' && !hasEnglish ? '这一篇还没有英文版' : undefined
+                          }
+                        >
+                          {code === 'zh' ? '中文' : 'English'}
+                        </button>
+                      ))}
+                    </div>
+                    {lang === 'en' && !hasEnglish && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Languages className="h-3.5 w-3.5" />
+                        这一篇还没有英文版，显示中文
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="pb-8">
-                  <MarkdownRenderer content={note?.content ?? '# 页面未找到\n\n请求的笔记不存在。'} />
+                  <MarkdownRenderer content={body ?? '# 页面未找到\n\n请求的笔记不存在。'} />
                 </div>
 
                 <div className="mt-8 border-t border-border pt-6 pb-24 lg:pb-0">
@@ -212,7 +259,7 @@ export function NotesBrowser({
             {/* 目录 */}
             <div className="hidden xl:block w-56 shrink-0">
               <div className="sticky top-36">
-                <TableOfContents content={note?.content ?? ''} />
+                <TableOfContents content={body ?? ''} />
               </div>
             </div>
           </div>
@@ -226,7 +273,7 @@ export function NotesBrowser({
         onNavigate={handleNavigate}
         title={navTitle}
         storageKey={storageKey}
-        content={note?.content}
+        content={body}
         onOpenSearch={() => setIsSearchOpen(true)}
       />
 
