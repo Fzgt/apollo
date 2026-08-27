@@ -23,6 +23,8 @@ function walk(dir) {
 /**
  * 真代码块的正文，去掉行注释——注释是散文，翻译是允许的。
  * ```text 的示意图不算：里面全是中文说明，本来就该翻。
+ *
+ * `--` 也算行注释（SQL）。误伤 `i--` 这类不要紧：两边同样处理，比的是相等。
  */
 function codeBlocks(md) {
   return [...md.matchAll(/```([^\n]*)\n([\s\S]*?)```/g)]
@@ -30,10 +32,15 @@ function codeBlocks(md) {
     .map(([, , body]) =>
     body
       .split('\n')
-      .map((line) => line.replace(/\/\/.*$|#(?!\[).*$/, '').trimEnd())
+      .map((line) => line.replace(/\/\/.*$|--.*$|#(?!\[).*$/, '').trimEnd())
       .join('\n')
       .trim()
   );
+}
+
+/** frontmatter 不是正文：`day: 99` 这种只在中文那份里，比它没有意义 */
+function stripFrontmatter(md) {
+  return md.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
 }
 
 /**
@@ -43,7 +50,7 @@ function codeBlocks(md) {
  * （「第 10 秒」写成 the tenth second），少了这个数才是口径出问题。
  */
 function numbers(md) {
-  const text = md.replace(/\[[^\]]*\]\([^)]*\)/g, '');
+  const text = stripFrontmatter(md).replace(/\[[^\]]*\]\([^)]*\)/g, '');
   return [...text.matchAll(/\d+(?:\.\d+)?/g)]
     .map(([n]) => n)
     .filter((n) => n.length >= 2);
