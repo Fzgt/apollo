@@ -132,20 +132,16 @@ export const EXPERIENCE: EntryBlock[] = [
     subMeta: { en: 'Beijing, China', zh: '中国 北京' },
     bullets: [
       {
+        en: 'Led the React 18 and TypeScript architecture for Digital OS, the team’s core consumer-facing product, enforcing feature boundaries with five custom ESLint import zones: no feature can reach into another, and built its design system on Radix UI, Storybook and CVA over an MSW mock layer, variants typed off the style definitions.',
+        zh: '主导团队核心对客产品 Digital OS 的 React 18 + TypeScript 架构，用五条自定义 ESLint import 分区把模块边界从「约定」变成「约束」：任何 feature 都伸不进另一个；并在 MSW mock 层之上用 Radix UI、Storybook 与 CVA 搭起它的设计系统，变体类型直接从样式定义推出来。',
+      },
+      {
         en: 'Layered TanStack Query in three tiers — API functions, queryOptions factories, typed hooks — single-source cache keys, mutation-driven invalidation and hover prefetch: detail pages open instantly, with no request at all.',
         zh: '把 TanStack Query 分成三层 —— API 函数、queryOptions 工厂、带类型的 hook —— 缓存键单一来源、由 mutation 驱动失效、悬停预取：详情页秒开，而且一个请求都不发。',
       },
       {
-        en: 'Led the React 18 and TypeScript architecture for Digital OS, the team’s core consumer-facing product, enforcing feature boundaries with custom ESLint rules.',
-        zh: '主导团队核心对客产品 Digital OS 的 React 18 + TypeScript 架构，用自定义 ESLint 规则把模块边界从「约定」变成「约束」。',
-      },
-      {
-        en: 'Built a design system on Radix UI, Storybook and CVA, plus an MSW mock layer that let frontend delivery run independent of backend progress.',
-        zh: '基于 Radix UI、Storybook 与 CVA 搭建设计系统，并用 MSW mock 层让前端交付不再被后端进度卡住。',
-      },
-      {
-        en: 'Developed the LIMS platform in Vue 3 and TypeScript for sample management and SOP workflows, integrating the Luckysheet SDK and a CLI for one-command project scaffolding.',
-        zh: '用 Vue 3 与 TypeScript 开发 LIMS 平台的样本管理与 SOP 流程，集成 Luckysheet SDK，并做了一条命令初始化项目的 CLI。',
+        en: 'Developed the LIMS platform in Vue 3 and TypeScript for sample management and SOP workflows, extending the Luckysheet SDK with custom cell actions and a per-cell JSON contract, plus a scaffolding CLI.',
+        zh: '用 Vue 3 与 TypeScript 开发 LIMS 平台的样本管理与 SOP 流程，扩展 Luckysheet SDK：自定义单元格操作与单元格级 JSON 契约，另配一条命令初始化项目的脚手架 CLI。',
       },
     ],
   },
