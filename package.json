@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -b --force",
     "check": "npm run lint && npm run typecheck && npm run build",
     "preview": "vite preview",
     "sync:blog": "node scripts/sync-blog.mjs"

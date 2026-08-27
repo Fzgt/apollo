@@ -30,3 +30,6 @@ AGENTS.md
 .env
 .env.local
 .env.*.local
+
+# tsc -b 的增量缓存，每次 typecheck 都会变，不进仓库
+*.tsbuildinfo

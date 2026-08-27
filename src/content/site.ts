@@ -10,3 +10,8 @@ export const REPO_DEV_URL = 'https://github.dev/Fzgt/apollo';
 export const BLOG_REPO = 'Fzgt/Blog';
 export const BLOG_REPO_URL = `https://github.com/${BLOG_REPO}`;
 export const BLOG_ISSUES_URL = `${BLOG_REPO_URL}/issues`;
+
+/** 单词本交件口：把本地攒的生词一次性开成一个 issue，等着被补释义 */
+export const DICTIONARY_ISSUE_URL = `${REPO_URL}/issues/new?title=${encodeURIComponent(
+  'Dictionary: new words'
+)}&labels=dictionary`;

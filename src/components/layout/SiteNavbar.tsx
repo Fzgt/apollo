@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+  BookMarked,
   BookOpen,
   CalendarCheck,
   FileText,
@@ -36,6 +37,7 @@ const NAV_LINKS = [
   { label: 'Questions', href: '/questions', Icon: MessageCircleQuestion },
   { label: 'Applications', href: '/apply', Icon: Send },
   { label: 'Blog', href: '/blog', Icon: PenLine },
+  { label: 'Words', href: '/words', Icon: BookMarked },
   { label: 'Resume', href: '/resume', Icon: FileText },
 ];
 

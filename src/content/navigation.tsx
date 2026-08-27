@@ -66,17 +66,16 @@ const SECTION_TITLES_EN: Record<string, string> = {
 
 /**
  * 内容层的分组结构 -> 侧边栏要的形状。
- * 英文模式下取 `.en.md` 里的标题；那一篇还没翻就照常用中文，不留空。
+ * 站点只讲英文：标题取 `.en.md` 里的，那一篇还没翻就落回中文原标题，不留空。
  */
-export function toDocSections(sections: NoteSection[], lang: 'zh' | 'en' = 'zh'): DocSection[] {
-  const pick = (zh: string, en?: string) => (lang === 'en' && en ? en : zh);
+export function toDocSections(sections: NoteSection[]): DocSection[] {
   return sections.map((section) => ({
     id: section.id,
-    title: pick(section.title, SECTION_TITLES_EN[section.id] ?? section.titleEn),
+    title: SECTION_TITLES_EN[section.id] ?? section.titleEn ?? section.title,
     icon: section.icon ? ICONS[section.icon] : undefined,
     items: section.items.map((item) => ({
       id: item.itemId,
-      title: pick(item.title, item.titleEn),
+      title: item.titleEn ?? item.title,
       tier: item.tier,
     })),
   }));

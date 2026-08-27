@@ -17,8 +17,6 @@ interface SearchResult {
 interface DocsSearchProps {
   /** 搜索范围。两个 tab 各搜各的 */
   notes: Note[];
-  /** 当前正文语言：搜的就是屏幕上那一版，搜英文不该命中中文原文 */
-  lang: 'zh' | 'en';
   isOpen: boolean;
   onClose: () => void;
   onNavigate: (sectionId: string, itemId?: string) => void;
@@ -35,16 +33,16 @@ function excerptAround(text: string, index: number, length: number) {
   }`;
 }
 
-export function DocsSearch({ notes, lang, isOpen, onClose, onNavigate }: DocsSearchProps) {
+export function DocsSearch({ notes, isOpen, onClose, onNavigate }: DocsSearchProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const results = useMemo<SearchResult[]>(() => {
     const q = query.trim().toLowerCase();
-    /** 没翻的那一篇仍按中文搜，不然它在英文模式下彻底搜不到 */
+    /** 搜的就是屏幕上那一版：翻过的搜英文，没翻的仍按中文原文搜，不然它彻底搜不到 */
     const view = (note: Note) =>
-      lang === 'en' && note.contentEn
+      note.contentEn
         ? {
             title: note.titleEn ?? note.title,
             sectionTitle: note.sectionEn ?? note.section,
@@ -93,7 +91,7 @@ export function DocsSearch({ notes, lang, isOpen, onClose, onNavigate }: DocsSea
     }
 
     return found;
-  }, [notes, query, lang]);
+  }, [notes, query]);
 
   useEffect(() => {
     setSelectedIndex(0);

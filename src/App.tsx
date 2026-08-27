@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { SiteNavbar } from '@/components/layout/SiteNavbar';
 import { RouteMemory } from '@/components/layout/RouteMemory';
+import { WordCapture } from '@/components/dictionary/WordCapture';
 import { SITE_NAME, SITE_TAGLINE } from '@/content/site';
 import NotFound from './pages/NotFound';
 
@@ -12,6 +13,7 @@ const QuestionsPage = lazy(() => import('./pages/QuestionsPage'));
 const ApplicationsPage = lazy(() => import('./pages/ApplicationsPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 const ResumePage = lazy(() => import('./pages/ResumePage'));
+const DictionaryPage = lazy(() => import('./pages/DictionaryPage'));
 const SharedResumePage = lazy(() => import('./pages/SharedResumePage'));
 
 /** 私人笔记站：设个标题，顺手挂上 noindex */
@@ -56,6 +58,7 @@ const App = () => {
     <PageMeta />
     <RouteMemory />
     {!bare && <SiteNavbar />}
+    {!bare && <WordCapture />}
     <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -64,6 +67,7 @@ const App = () => {
         <Route path="/questions" element={<QuestionsPage />} />
         <Route path="/apply" element={<ApplicationsPage />} />
         <Route path="/blog" element={<BlogPage />} />
+        <Route path="/words" element={<DictionaryPage />} />
         <Route path="/resume" element={<ResumePage />} />
         <Route path="/cv" element={<SharedResumePage />} />
         <Route path="*" element={<NotFound />} />

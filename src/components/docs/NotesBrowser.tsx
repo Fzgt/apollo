@@ -38,15 +38,15 @@ export function NotesBrowser({
   storageKey,
 }: NotesBrowserProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const docSections = useMemo(() => toDocSections(sections, lang), [sections, lang]);
+  const docSections = useMemo(() => toDocSections(sections), [sections]);
   const flattenedNav = useMemo(
     () =>
       notes.map((note) => ({
         sectionId: note.sectionId,
         itemId: note.itemId,
-        title: lang === 'en' && note.titleEn ? note.titleEn : note.title,
+        title: note.titleEn ?? note.title,
       })),
-    [notes, lang]
+    [notes]
   );
 
   const [activeSection, setActiveSection] = useState(
@@ -56,13 +56,6 @@ export function NotesBrowser({
     searchParams.get('item') || undefined
   );
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  // 语言只是「读哪一版正文」，不换界面语言；记在 URL 里，分享链接能带上。
-  // 默认英文：有英文版就读英文，没有的那篇自动落回中文
-  const [lang, setLang] = useState<'zh' | 'en'>(() => {
-    if (searchParams.get('lang') === 'zh') return 'zh';
-    if (searchParams.get('lang') === 'en') return 'en';
-    return localStorage.getItem(`${storageKey}-lang`) === 'zh' ? 'zh' : 'en';
-  });
 
   const note = useMemo(
     () => getNote(activeSection, activeItem),
@@ -70,23 +63,18 @@ export function NotesBrowser({
   );
 
   useEffect(() => {
-    localStorage.setItem(`${storageKey}-lang`, lang);
-  }, [storageKey, lang]);
-
-  useEffect(() => {
     const params = new URLSearchParams();
     params.set('section', activeSection);
     if (note?.itemId) {
       params.set('item', note.itemId);
     }
-    params.set('lang', lang);
     setSearchParams(params, { replace: true });
     // 滚动位置交给 RouteMemory：新的一篇从头看，看过的回到上次停的地方
-  }, [activeSection, activeItem, note, lang, setSearchParams]);
+  }, [activeSection, activeItem, note, setSearchParams]);
 
-  // 这一篇没有英文版就照常给中文，不留白页
+  // 站点只讲英文。还没翻的那一篇给中文原文兜底 —— 空页面比一页中文糟得多
   const hasEnglish = Boolean(note?.contentEn);
-  const body = lang === 'en' && note?.contentEn ? note.contentEn : note?.content;
+  const body = note?.contentEn ?? note?.content;
 
   // Cmd+K / Ctrl+K 打开搜索
   useEffect(() => {
@@ -118,7 +106,6 @@ export function NotesBrowser({
     <div className="min-h-screen bg-background">
       <DocsSearch
         notes={notes}
-        lang={lang}
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onNavigate={handleNavigate}
@@ -150,7 +137,7 @@ export function NotesBrowser({
             {/* 正文 */}
             <main className="min-w-0 flex-1">
               <motion.article
-                key={`${note?.sectionId}-${note?.itemId}-${lang}`}
+                key={`${note?.sectionId}-${note?.itemId}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
@@ -172,33 +159,10 @@ export function NotesBrowser({
                   </div>
                 )}
 
-                {note && (
-                  <div className="mb-6 flex items-center gap-2">
-                    <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5">
-                      {(['zh', 'en'] as const).map((code) => (
-                        <button
-                          key={code}
-                          onClick={() => setLang(code)}
-                          disabled={code === 'en' && !hasEnglish}
-                          className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                            lang === code
-                              ? 'bg-background text-foreground shadow-sm'
-                              : 'text-muted-foreground hover:text-foreground'
-                          } disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-muted-foreground`}
-                          title={
-                            code === 'en' && !hasEnglish ? 'No English version yet' : undefined
-                          }
-                        >
-                          {code === 'zh' ? '中文' : 'English'}
-                        </button>
-                      ))}
-                    </div>
-                    {lang === 'en' && !hasEnglish && (
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Languages className="h-3.5 w-3.5" />
-                        No English version yet — showing Chinese
-                      </span>
-                    )}
+                {note && !hasEnglish && (
+                  <div className="mb-6 flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                    <Languages className="h-3.5 w-3.5 shrink-0" />
+                    Not translated yet — showing the original Chinese draft.
                   </div>
                 )}
 
