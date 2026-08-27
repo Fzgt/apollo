@@ -1,5 +1,5 @@
 ---
-title: "⑤ P2 白屏事故"
+title: "③ P2 白屏事故"
 tier: must
 section: 百度
 icon: landmark
@@ -8,7 +8,7 @@ level: A
 status: done
 ---
 
-# ⑤ P2 白屏事故
+# ③ P2 白屏事故
 
 > **简历原句**
 >

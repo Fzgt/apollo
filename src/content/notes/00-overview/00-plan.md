@@ -9,7 +9,9 @@ status: done
 
 # 简历面试复习总纲
 
-对应简历 **v40**。bullet 总数 **22**：Beyz 4、BioMap 4、Baidu 5、Periplus 5、WinterFell 4。
+对应简历 **v66**。bullet 总数 **20**：Beyz 3、BioMap 4、Baidu 5、WinterFell 5、Periplus 3。
+
+笔记仍是 22 篇：Beyz ①② 现在合并成简历上的第一条，Periplus ⑤ 证据与判断分离已不在简历上——两处都留着，因为面试官照样会问。
 
 ## 推进顺序
 
@@ -20,12 +22,12 @@ status: done
 | 3 | Beyz ② 凭证、状态机与用量 | S |
 | 4 | Beyz ③ Stripe + ④ 服务/部署/CI | A |
 | 5 | BioMap 全部四条 | B |
-| 6 | Baidu ① H5/JSBridge + ③ 提现 + ④ Webpack | A |
-| 7 | Baidu ② 虚拟列表 + ⑤ 生产白屏 | S |
+| 6 | Baidu ⑤ H5/JSBridge + ④ 提现 + ② Webpack | A |
+| 7 | Baidu ① 虚拟列表 + ③ 生产白屏 | S |
 | 8 | Periplus ① 六阶段与 typed contract | S |
-| 9 | Periplus ② 证据与裁决 | S |
-| 10 | Periplus ③ 持久化/resume + ④ scripted seam | S |
-| 11 | Periplus ⑤ golden set 与 evals | S |
+| 9 | Periplus ⑤ 证据与裁决 | S |
+| 10 | Periplus ② 持久化/resume + ③ scripted seam | S |
+| 11 | Periplus ④ golden set 与 evals | S |
 | 12 | WinterFell 四条 | B |
 | 13 | 技能栏 Angular / Go / Django | A |
 | 14 | 全份模拟面试 | — |

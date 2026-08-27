@@ -1,5 +1,5 @@
 ---
-title: "② 虚拟列表信息流"
+title: "① 虚拟列表信息流"
 tier: must
 section: 百度
 icon: landmark
@@ -8,7 +8,7 @@ level: S
 status: done
 ---
 
-# ② 虚拟列表信息流
+# ① 虚拟列表信息流
 
 > **简历原句**
 >

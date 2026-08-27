@@ -100,7 +100,7 @@ status: done
 |---|---|
 | **可替换** | 换掉某个阶段的实现，不影响其他阶段 —— 编排器只认契约 |
 | **可测试** | 每个阶段可以单独喂输入、验输出，[406 个测试](/docs?section=periplus&item=scripted-seams)就建在这上面 |
-| **可恢复** | 产物有类型、能持久化，**所以能从任意已完成的阶段续跑**（见 [③ 持久化与 resume](/docs?section=periplus&item=persistence-resume)） |
+| **可恢复** | 产物有类型、能持久化，**所以能从任意已完成的阶段续跑**（见 [② 持久化与 resume](/docs?section=periplus&item=persistence-resume))） |
 
 ### Q：后端契约怎么和 React 保持同步
 

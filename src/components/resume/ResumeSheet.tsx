@@ -168,6 +168,10 @@ export function ResumeSheet({ bilingual = false }: { bilingual?: boolean }) {
             </span>
           ))}
         </p>
+        <p className="mt-1 text-[13.5px] text-[#1a1a1a]">
+          {RESUME_HEADER.tagline.en}
+          <Inline zh={RESUME_HEADER.tagline.zh} bilingual={bilingual} />
+        </p>
       </header>
 
       <SectionHeading {...SECTION_TITLES.skills} bilingual={bilingual} />

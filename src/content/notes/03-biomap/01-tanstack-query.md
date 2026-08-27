@@ -1,5 +1,5 @@
 ---
-title: "③ TanStack Query 三层"
+title: "① TanStack Query 三层"
 tier: must
 section: BioMap
 icon: microscope
@@ -8,7 +8,7 @@ level: B
 status: done
 ---
 
-# ③ TanStack Query 三层
+# ① TanStack Query 三层
 
 > **简历原句**
 >

@@ -1,5 +1,5 @@
 ---
-title: "④ Webpack 3 → 5 迁移"
+title: "② Webpack 3 → 5 迁移"
 tier: must
 section: 百度
 icon: landmark
@@ -8,7 +8,7 @@ level: A
 status: done
 ---
 
-# ④ Webpack 3 → 5 迁移
+# ② Webpack 3 → 5 迁移
 
 > **简历原句**
 >

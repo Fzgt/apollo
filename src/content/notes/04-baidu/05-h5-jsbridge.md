@@ -1,5 +1,5 @@
 ---
-title: "① H5 与 JSBridge"
+title: "⑤ H5 与 JSBridge"
 tier: must
 section: 百度
 icon: landmark
@@ -8,7 +8,7 @@ level: B
 status: done
 ---
 
-# ① H5 与 JSBridge
+# ⑤ H5 与 JSBridge
 
 > **简历原句**
 >
@@ -118,7 +118,7 @@ class JSBridge {
 
 > **现代更好的做法是 `navigator.sendBeacon`**，浏览器专门为「卸载时可靠上报」提供的 API，还不阻塞卸载。**能主动提这个是加分项。**
 
-**PV 的口径**（会被追一层）：⭐ **SPA 里路由切换不重新加载页面，统计 SDK 默认不会再报一次 PV，必须手动调 `_trackPageview`。** 同一个产品埋点方式不同，PV 能差好几倍 —— 详见 [② 虚拟列表](/docs?section=baidu&item=virtual-list) 里 5M PV 那一节。
+**PV 的口径**（会被追一层）：⭐ **SPA 里路由切换不重新加载页面，统计 SDK 默认不会再报一次 PV，必须手动调 `_trackPageview`。** 同一个产品埋点方式不同，PV 能差好几倍 —— 详见 [① 虚拟列表](/docs?section=baidu&item=virtual-list)) 里 5M PV 那一节。
 
 ## 六、本篇术语英文对照
 

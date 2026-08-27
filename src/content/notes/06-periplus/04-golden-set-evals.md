@@ -1,5 +1,5 @@
 ---
-title: "⑤ golden set 与离线评测"
+title: "④ golden set 与离线评测"
 tier: must
 section: Periplus
 icon: workflow
@@ -8,7 +8,7 @@ level: S
 status: done
 ---
 
-# ⑤ golden set 与离线评测
+# ④ golden set 与离线评测
 
 > **简历原句**
 >
@@ -304,7 +304,7 @@ PASS: 4/4 cases · 8727 tokens · $0.000000
 > ⭐ **三个知识点全在这三行注释里：**
 >
 > 1. **新鲜度窗口是按声明类型分的** —— 价格 180 天，位置永不过期
-> 2. **判定过期的是代码，不是模型**（见 [② 证据与判断分离](/docs?section=periplus&item=evidence-judgment)）
+> 2. **判定过期的是代码，不是模型**（见 [⑤ 证据与判断分离](/docs?section=periplus&item=evidence-judgment))）
 > 3. **「过期」≠「缺口」** —— 它是「可用但要带提示」，不是「没法给用户看」
 
 ## 十三、⭐ 写评测的人想过自己会怎么被骗

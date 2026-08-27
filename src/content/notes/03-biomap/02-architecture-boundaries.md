@@ -26,7 +26,7 @@ status: done
 
 **面试里先抛这句话，再用例子落地。** 这比逐条介绍 ESLint 规则高一个层次 —— ⭐ **展示的是判断力，不是工具熟练度。**
 
-> **顺带**：这句话同时也解释了 [④ 设计系统与 MSW](/docs?section=biomap&item=design-system-msw) 那条 —— **那两条表面上没关系，其实是同一个思想的两次应用，合起来讲比分开讲各强一倍。**
+> **顺带**：这句话同时也解释了 [③ 设计系统与 MSW](/docs?section=biomap&item=design-system-msw)) 那条 —— **那两条表面上没关系，其实是同一个思想的两次应用，合起来讲比分开讲各强一倍。**
 
 ## 30 秒口播稿
 
@@ -104,7 +104,7 @@ blog 引了 comments 的一个工具函数
 |---|---|---|
 | **架构边界** | README 里画一张依赖方向图 | ⭐ **一条 ESLint 规则 —— 违规直接编译报错** |
 | **代码风格** | 「大家注意一下命名」 | 格式化工具 + lint 规则 |
-| **前后端解耦** | 「接口先约定好，后端慢慢写」 | **MSW 拦在网络层**（见 [④](/docs?section=biomap&item=design-system-msw)） |
+| **前后端解耦** | 「接口先约定好，后端慢慢写」 | **MSW 拦在网络层**（见 [③](/docs?section=biomap&item=design-system-msw))） |
 
 > ⭐ **和 [Beyz 的四态机](/docs?section=beyz&item=credential-quota)、[Stripe 的终身档保护](/docs?section=beyz&item=stripe-billing)、[TanStack Query 的 `Omit`](/docs?section=biomap&item=tanstack-query) 是同一个思想：把「不该发生的事」从「靠自觉」变成「做不到」。**
 >

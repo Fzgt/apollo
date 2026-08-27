@@ -1,5 +1,5 @@
 ---
-title: "① LIMS 与命令式 SDK"
+title: "④ LIMS 与命令式 SDK"
 tier: must
 section: BioMap
 icon: microscope
@@ -8,7 +8,7 @@ level: B
 status: done
 ---
 
-# ① LIMS 与命令式 SDK
+# ④ LIMS 与命令式 SDK
 
 > **简历原句**
 >

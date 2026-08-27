@@ -1,5 +1,5 @@
 ---
-title: "③ 持久化与断点续跑"
+title: "② 持久化与断点续跑"
 tier: must
 section: Periplus
 icon: workflow
@@ -8,7 +8,7 @@ level: S
 status: done
 ---
 
-# ③ 持久化与断点续跑
+# ② 持久化与断点续跑
 
 > **简历原句**
 >
@@ -121,7 +121,7 @@ status: done
 
 **「向量」（embedding）是什么**：把一段文字转换成一串数字，**意思相近的文字，数字也相近**。这样就能问「有没有和这段话意思差不多的、我已经抓过的内容」。
 
-**失效靠的是 [② 那套新鲜度窗口](/docs?section=periplus&item=evidence-judgment)** —— **缓存本身不设过期时间，是消费它的时候按日期判断过没过期。**
+**失效靠的是 [⑤ 那套新鲜度窗口](/docs?section=periplus&item=evidence-judgment))** —— **缓存本身不设过期时间，是消费它的时候按日期判断过没过期。**
 
 > ⭐ **这个区分值得说**：**缓存不负责判断「新不新鲜」，只负责「别重复干活」。新鲜度是业务语义，归判断过期的那个函数管。**
 
@@ -146,7 +146,7 @@ CREATE INDEX evidence_cache_embedding_idx
 >
 > （空库只会得到一个单簇的索引，在积累够行数之前它退化成全表扫描。**那是一个正确但慢的索引 —— 绝不会给出错的答案。**）
 
-> ⭐ 「**宁可慢也不能错**」 —— 和 [② 那条「宁可没有日期也不要猜一个」](/docs?section=periplus&item=evidence-judgment) 是同一个价值观。
+> ⭐ 「**宁可慢也不能错**」 —— 和 [⑤ 那条「宁可没有日期也不要猜一个」](/docs?section=periplus&item=evidence-judgment)) 是同一个价值观。
 
 **还有一个「失败也不炸」的设计**：算向量失败或数据库出错时，缓存**返回「没找到相似的」而不是抛异常** —— 所以 **PostgreSQL 抖一下只会导致重复抓一次页面，不会让整个 run 挂掉。**
 
