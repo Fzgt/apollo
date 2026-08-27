@@ -38,15 +38,15 @@ export function NotesBrowser({
   storageKey,
 }: NotesBrowserProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const docSections = useMemo(() => toDocSections(sections), [sections]);
+  const docSections = useMemo(() => toDocSections(sections, lang), [sections, lang]);
   const flattenedNav = useMemo(
     () =>
       notes.map((note) => ({
         sectionId: note.sectionId,
         itemId: note.itemId,
-        title: note.title,
+        title: lang === 'en' && note.titleEn ? note.titleEn : note.title,
       })),
-    [notes]
+    [notes, lang]
   );
 
   const [activeSection, setActiveSection] = useState(
@@ -118,6 +118,7 @@ export function NotesBrowser({
     <div className="min-h-screen bg-background">
       <DocsSearch
         notes={notes}
+        lang={lang}
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onNavigate={handleNavigate}
@@ -133,7 +134,7 @@ export function NotesBrowser({
                 className="w-full mb-4 shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-sm"
               >
                 <Search className="w-4 h-4" />
-                <span className="flex-1 text-left">搜索笔记</span>
+                <span className="flex-1 text-left">Search notes</span>
                 <kbd className="text-xs px-1.5 py-0.5 rounded bg-background border border-border">⌘K</kbd>
               </button>
               <DocsSidebar
@@ -165,7 +166,7 @@ export function NotesBrowser({
                     )}
                     {note.level && note.level !== '—' && (
                       <span className="rounded-md border border-border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground">
-                        {note.level} 级
+                        Level {note.level}
                       </span>
                     )}
                   </div>
@@ -185,7 +186,7 @@ export function NotesBrowser({
                               : 'text-muted-foreground hover:text-foreground'
                           } disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-muted-foreground`}
                           title={
-                            code === 'en' && !hasEnglish ? '这一篇还没有英文版' : undefined
+                            code === 'en' && !hasEnglish ? 'No English version yet' : undefined
                           }
                         >
                           {code === 'zh' ? '中文' : 'English'}
@@ -195,14 +196,14 @@ export function NotesBrowser({
                     {lang === 'en' && !hasEnglish && (
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Languages className="h-3.5 w-3.5" />
-                        这一篇还没有英文版，显示中文
+                        No English version yet — showing Chinese
                       </span>
                     )}
                   </div>
                 )}
 
                 <div className="pb-8">
-                  <MarkdownRenderer content={body ?? '# 页面未找到\n\n请求的笔记不存在。'} />
+                  <MarkdownRenderer content={body ?? '# Page not found\n\nThat note does not exist.'} />
                 </div>
 
                 <div className="mt-8 border-t border-border pt-6 pb-24 lg:pb-0">
@@ -215,7 +216,7 @@ export function NotesBrowser({
                         className="flex items-center gap-1.5 hover:text-foreground transition-colors"
                       >
                         <Edit className="w-4 h-4" />
-                        在 GitHub 上编辑这一页
+                        Edit this page on GitHub
                       </a>
                     )}
                   </div>
@@ -228,7 +229,7 @@ export function NotesBrowser({
                       >
                         <span className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                           <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                          上一页
+                          Previous
                         </span>
                         <span className="font-medium text-foreground break-words">{prevNav.title}</span>
                       </button>
@@ -242,7 +243,7 @@ export function NotesBrowser({
                         className="group flex flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50 sm:items-end sm:text-right"
                       >
                         <span className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                          下一页
+                          Next
                           <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </span>
                         <span className="font-medium text-foreground break-words">{nextNav.title}</span>

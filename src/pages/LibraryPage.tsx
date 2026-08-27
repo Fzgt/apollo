@@ -8,7 +8,7 @@ export default function LibraryPage() {
       sections={librarySections}
       notes={allLibraryNotes}
       getNote={getLibraryNote}
-      navTitle="笔记"
+      navTitle="Notes"
       storageKey="library"
     />
   );

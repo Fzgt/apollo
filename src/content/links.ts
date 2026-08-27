@@ -23,10 +23,10 @@ export interface QuickLinkGroup {
 
 export const quickLinkGroups: QuickLinkGroup[] = [
   {
-    title: '身份',
-    hint: '网申表单里那几个空',
+    title: 'Identity',
+    hint: 'The fields every application form asks for',
     links: [
-      { label: '邮箱', value: 'fzgt320@gmail.com', href: 'mailto:fzgt320@gmail.com' },
+      { label: 'Email', value: 'fzgt320@gmail.com', href: 'mailto:fzgt320@gmail.com' },
       { label: 'GitHub', value: 'https://github.com/Fzgt', href: 'https://github.com/Fzgt' },
       {
         label: 'LinkedIn',
@@ -34,15 +34,15 @@ export const quickLinkGroups: QuickLinkGroup[] = [
         href: 'https://www.linkedin.com/in/fzgt/',
       },
       {
-        label: '简历直链',
+        label: 'Resume link',
         value: 'https://data-api.fzgt320.workers.dev/resume',
         href: 'https://data-api.fzgt320.workers.dev/resume',
       },
     ],
   },
   {
-    title: '作品',
-    hint: '被要「给个代码看看」的时候',
+    title: 'Work',
+    hint: 'For when someone asks to see the code',
     links: [
       {
         label: 'WinterFell',

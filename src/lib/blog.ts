@@ -111,7 +111,7 @@ function normalizeLabels(labels: GitHubIssue['labels']): BlogLabel[] {
 export async function loadSnapshotIndex(signal?: AbortSignal): Promise<BlogIndex> {
   const res = await fetch(assetUrl('data/blog/index.json'), { signal });
   if (!res.ok) {
-    throw new Error(`快照读取失败（${res.status}）`);
+    throw new Error(`Could not read the snapshot (${res.status})`);
   }
   const data = (await res.json()) as Omit<BlogIndex, 'source'>;
   return { ...data, source: 'snapshot' };
@@ -133,8 +133,8 @@ export async function fetchLiveIndex(signal?: AbortSignal): Promise<BlogIndex> {
     if (!res.ok) {
       throw new Error(
         res.status === 403
-          ? 'GitHub 接口限流了，先看快照'
-          : `GitHub 接口返回 ${res.status}`
+          ? 'GitHub rate-limited us — showing the snapshot'
+          : `GitHub returned ${res.status}`
       );
     }
 
@@ -181,7 +181,7 @@ export async function loadPostBody(number: number, signal?: AbortSignal): Promis
 
   const res = await fetch(assetUrl(`data/blog/${number}.json`), { signal });
   if (!res.ok) {
-    throw new Error(`这篇还没同步到快照里（#${number}）`);
+    throw new Error(`This post is not in the snapshot yet (#${number})`);
   }
 
   const post = (await res.json()) as { body?: string };

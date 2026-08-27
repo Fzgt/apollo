@@ -42,7 +42,7 @@ export function QuickLinkRow({ link }: { link: QuickLink }) {
         whileHover={{ x: 3 }}
         whileTap={{ scale: 0.995 }}
         transition={{ x: { type: 'spring', stiffness: 420, damping: 34 }, scale: { duration: 0.12 } }}
-        aria-label={copied ? '已复制' : `复制${link.label}`}
+        aria-label={copied ? 'Copied' : `Copy ${link.label}`}
         className={cn(
           'relative flex min-w-0 flex-1 items-center gap-2.5 overflow-hidden py-2 pl-4 pr-1.5 text-left outline-none',
           'transition-[box-shadow] duration-200 hover:z-10 hover:shadow-[0_8px_24px_-22px_hsl(var(--foreground))]',
@@ -74,7 +74,7 @@ export function QuickLinkRow({ link }: { link: QuickLink }) {
         href={link.href}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={`打开${link.label}`}
+        aria-label={`Open ${link.label}`}
         className="relative mr-2 rounded-md p-1.5 text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
       >
         <ArrowUpRight className="size-3.5" />

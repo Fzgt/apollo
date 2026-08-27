@@ -74,7 +74,7 @@ export function TableOfContents({ content, className }: TableOfContentsProps) {
 
   return (
     <nav className={cn('text-sm', className)}>
-      <h4 className="mb-4 font-semibold text-foreground">{'本页目录'}</h4>
+      <h4 className="mb-4 font-semibold text-foreground">{'On this page'}</h4>
       {/* 长文的目录会比视口还高。不给它自己的滚动条的话，sticky 容器整个被撑出
           屏幕，后半截永远够不着——那正是「目录坏了」的样子。 */}
       <ul className="max-h-[calc(100vh-13rem)] space-y-2 overflow-y-auto overscroll-contain pr-2">

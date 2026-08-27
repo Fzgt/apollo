@@ -6,17 +6,17 @@ export const STATUS_META: Record<
   { label: string; className: string; Icon: LucideIcon }
 > = {
   todo: {
-    label: '未开始',
+    label: 'Not started',
     className: 'border-border bg-muted/50 text-muted-foreground',
     Icon: Circle,
   },
   doing: {
-    label: '进行中',
+    label: 'In progress',
     className: 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400',
     Icon: CircleDot,
   },
   done: {
-    label: '已完成',
+    label: 'Done',
     className: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
     Icon: CheckCircle2,
   },

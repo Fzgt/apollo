@@ -82,10 +82,10 @@ export class ErrorBoundary extends Component<Props, State> {
         }}
       >
         <h1 style={{ margin: 0, fontSize: 28 }}>
-          页面加载失败 / Failed to load
+          Failed to load
         </h1>
         <p style={{ margin: 0, opacity: 0.7, lineHeight: 1.6 }}>
-          可能是站点更新后缓存未刷新，请清除缓存后重试。
+          The site may have been updated since this page was cached. Clear the cache and try again.
           <br />
           This may be a stale cache after a site update. Please clear your cache
           and reload.
@@ -103,7 +103,7 @@ export class ErrorBoundary extends Component<Props, State> {
             fontWeight: 600,
           }}
         >
-          刷新 / Reload
+          Reload
         </button>
       </div>
     );

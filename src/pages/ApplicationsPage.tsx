@@ -100,8 +100,8 @@ export default function ApplicationsPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="搜题目 —— 公司名、题干、关键词都行"
-              aria-label="搜索投递答案"
+              placeholder="Search — company, question or keyword"
+              aria-label="Search form answers"
               className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-24 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
             />
             <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
@@ -109,7 +109,7 @@ export default function ApplicationsPage() {
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  aria-label="清空搜索"
+                  aria-label="Clear search"
                   className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   <X className="size-4" />
@@ -128,7 +128,7 @@ export default function ApplicationsPage() {
                   {isFiltered ? hitCount : answerCount}
                 </motion.span>
                 <span className="text-muted-foreground">
-                  {isFiltered ? `/ ${answerCount}` : '条'}
+                  {isFiltered ? `/ ${answerCount}` : 'answers'}
                 </span>
               </span>
             </div>
@@ -136,7 +136,7 @@ export default function ApplicationsPage() {
 
           <div className="mt-2 flex items-center justify-between gap-3 text-xs text-muted-foreground">
             <span className="min-w-0 truncate">
-              网申表单里粘过的答案。右侧图标直接复制，点行展开是为了核对。
+              Answers already pasted into application forms. Copy from the icon on the right; expand a row only to check it.
             </span>
             {openIds.size > 0 && (
               <button
@@ -145,7 +145,7 @@ export default function ApplicationsPage() {
                 className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted hover:text-foreground"
               >
                 <ChevronsDownUp className="size-3.5" />
-                全部收起
+                Collapse all
               </button>
             )}
           </div>
@@ -162,7 +162,7 @@ export default function ApplicationsPage() {
                   )}
                   {group.companySpecific && (
                     <span className="ml-auto shrink-0 rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
-                      仅此公司
+                      This company only
                     </span>
                   )}
                 </div>
@@ -183,7 +183,7 @@ export default function ApplicationsPage() {
             {isFiltered && hitCount === 0 && (
               <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
                 <SearchX className="size-6" />
-                <p className="text-sm">没有匹配的题目</p>
+                <p className="text-sm">No matching answers</p>
               </div>
             )}
           </div>

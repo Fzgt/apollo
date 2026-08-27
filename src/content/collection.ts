@@ -41,11 +41,15 @@ export interface Note extends NoteFrontmatter {
   contentEn?: string;
   /** 英文版 frontmatter 里的标题，切到英文时用 */
   titleEn?: string;
+  /** 英文版 frontmatter 里的分组名 */
+  sectionEn?: string;
 }
 
 export interface NoteSection {
   id: string;
   title: string;
+  /** 英文分组名，取组内第一篇英文版的 section 字段 */
+  titleEn?: string;
   icon?: string;
   items: Note[];
 }
@@ -104,13 +108,14 @@ export function buildCollection(raw: Record<string, string>, contentRoot: string
   const sections = new Map<string, NoteSection>();
 
   // 英文版先单独收一遍：`.en.md` 排在同名 `.md` 前面，正文循环里来不及回填
-  const english = new Map<string, { title?: string; body: string }>();
+  const english = new Map<string, { title?: string; section?: string; body: string }>();
   for (const globPath of Object.keys(raw)) {
     const segments = globPath.replace(/^\.\//, '').split('/');
     if (segments.length !== 2 || !isEnglishVariant(segments[1])) continue;
     const { data, body } = parseFrontmatter(raw[globPath]);
     english.set(`${stripOrderPrefix(segments[0])}/${stripOrderPrefix(segments[1])}`, {
       title: data.title,
+      section: data.section,
       body,
     });
   }
@@ -140,12 +145,19 @@ export function buildCollection(raw: Record<string, string>, contentRoot: string
       content: body,
       contentEn: english.get(`${sectionId}/${itemId}`)?.body,
       titleEn: english.get(`${sectionId}/${itemId}`)?.title,
+      sectionEn: english.get(`${sectionId}/${itemId}`)?.section,
     };
 
     let section = sections.get(sectionId);
     if (!section) {
       // 分组的标题和图标由组内第一篇（文件名序号最小的）决定
-      section = { id: sectionId, title: note.section, icon: note.icon, items: [] };
+      section = {
+        id: sectionId,
+        title: note.section,
+        titleEn: note.sectionEn,
+        icon: note.icon,
+        items: [],
+      };
       sections.set(sectionId, section);
     }
     section.items.push(note);

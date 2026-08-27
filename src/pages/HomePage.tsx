@@ -73,10 +73,10 @@ export default function HomePage() {
   const critical = useMemo(() => allNotes.filter((note) => note.level === 'S'), []);
 
   const stats = [
-    { label: '投递答案', value: answerCount, href: '/apply' },
-    { label: '真题', value: questionCount, href: '/questions' },
-    { label: '项目笔记', value: allLibraryNotes.length, href: '/library' },
-    { label: '复习笔记', value: allNotes.length, href: '/docs' },
+    { label: 'Form answers', value: answerCount, href: '/apply' },
+    { label: 'Real questions', value: questionCount, href: '/questions' },
+    { label: 'Project notes', value: allLibraryNotes.length, href: '/library' },
+    { label: 'Revision notes', value: allNotes.length, href: '/docs' },
   ];
 
   return (
@@ -94,8 +94,9 @@ export default function HomePage() {
               {SITE_NAME}
             </h1>
             <p className="mt-4 max-w-2xl text-muted-foreground">
-              网申和面试的底料都在这里：现搜现粘的表单答案、真的被问过的题、六段经历各自的讲法，
-              以及一份随时能发出去的简历。本地写 Markdown，push 上线。
+              Everything the applications and interviews run on: form answers to search and paste,
+              questions that were really asked, how each of the six roles is told, and a resume ready
+              to send. Written locally in Markdown, live on push.
             </p>
 
             {/* 常用：给别人的那几行字。整行即复制按钮 */}
@@ -138,11 +139,11 @@ export default function HomePage() {
             >
               <Send className="h-5 w-5 text-muted-foreground" />
               <h3 className="mt-3 flex items-center gap-1 font-medium text-foreground">
-                填表单
+                Filling a form
                 <ArrowRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                搜关键词，右侧图标一键复制，不用展开。
+                Search a keyword and copy from the icon on the right — no need to expand.
               </p>
             </Link>
             <Link
@@ -151,11 +152,11 @@ export default function HomePage() {
             >
               <MessageCircleQuestion className="h-5 w-5 text-muted-foreground" />
               <h3 className="mt-3 flex items-center gap-1 font-medium text-foreground">
-                面试前
+                Before an interview
                 <ArrowRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                只收真的被问过的题，中英双语，含追问。
+                Only questions that were really asked, in both languages, follow-ups included.
               </p>
             </Link>
             <Link
@@ -164,11 +165,11 @@ export default function HomePage() {
             >
               <FileText className="h-5 w-5 text-muted-foreground" />
               <h3 className="mt-3 flex items-center gap-1 font-medium text-foreground">
-                要发简历
+                Sending the resume
                 <ArrowRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                网页版对着 PDF 重排，原件在页内下载。
+                The web version is laid out against the PDF; the original is on the page.
               </p>
             </Link>
           </section>
@@ -177,8 +178,8 @@ export default function HomePage() {
           {open.length > 0 && (
             <section className="mt-12">
               <div className="mb-4 flex items-baseline justify-between gap-2">
-                <h2 className="text-lg font-semibold text-foreground">还没结的</h2>
-                <span className="text-sm text-muted-foreground">{open.length} 页</span>
+                <h2 className="text-lg font-semibold text-foreground">Still open</h2>
+                <span className="text-sm text-muted-foreground">{open.length} pages</span>
               </div>
               <div className="overflow-hidden rounded-xl border border-border bg-card">
                 {open.map((note) => (
@@ -199,8 +200,8 @@ export default function HomePage() {
           {/* S 级 */}
           <section className="mt-12">
             <div className="mb-4 flex items-baseline justify-between gap-2">
-              <h2 className="text-lg font-semibold text-foreground">会被追到底的</h2>
-              <span className="text-sm text-muted-foreground">S 级 {critical.length} 页</span>
+              <h2 className="text-lg font-semibold text-foreground">Where they will dig in</h2>
+              <span className="text-sm text-muted-foreground">{critical.length} level-S pages</span>
             </div>
             <div className="overflow-hidden rounded-xl border border-border bg-card">
               {critical.map((note) => (
@@ -222,9 +223,10 @@ export default function HomePage() {
             >
               <CalendarCheck className="h-5 w-5 shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
-                <h3 className="font-medium text-foreground">十四天复习计划</h3>
+                <h3 className="font-medium text-foreground">The fourteen-day revision plan</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  十四天的日程已经走完，{allNotes.length} 篇留在「计划」里；上面两张清单都是从它里挑的。
+                  The fourteen days are done; {allNotes.length} pages remain under Plan, and both
+                  lists above are drawn from them.
                 </p>
               </div>
               <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
@@ -233,27 +235,29 @@ export default function HomePage() {
 
           {/* 怎么维护 */}
           <section className="mb-20 mt-12 rounded-xl border border-border bg-card p-6">
-            <h2 className="font-semibold text-foreground">怎么维护这个站</h2>
+            <h2 className="font-semibold text-foreground">How to maintain this site</h2>
             <ol className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li>
-                <span className="text-foreground">1.</span> 笔记是{' '}
+                <span className="text-foreground">1.</span> Notes live at{' '}
                 <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
-                  src/content/&lt;集合&gt;/&lt;分组&gt;/&lt;笔记&gt;.md
+                  src/content/&lt;collection&gt;/&lt;section&gt;/&lt;note&gt;.md
                 </code>
-                ，丢一个 .md 进去导航自动出现，文件名的数字前缀决定顺序。
+                . Drop a .md in and it appears in the navigation; the numeric filename prefix
+                sets the order.
               </li>
               <li>
-                <span className="text-foreground">2.</span> 题库和投递答案是 TS 数据 ——{' '}
-                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">content/questions</code> 与{' '}
+                <span className="text-foreground">2.</span> Questions and form answers are TS data ——{' '}
+                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">content/questions</code> and{' '}
                 <code className="rounded bg-muted px-1.5 py-0.5 text-xs">content/applications</code>
-                ，加一组写一个文件挂进数组。
+                . Add a group by writing one file and hanging it off the array.
               </li>
               <li>
-                <span className="text-foreground">3.</span> push 后 Vercel 自动上线；上面的四个数和
-                「还没结的」都是算出来的，不用手改。
+                <span className="text-foreground">3.</span> Vercel deploys on push; the four numbers
+                above and the "Still open" list are all computed, never edited by hand.
               </li>
               <li>
-                <span className="text-foreground">4.</span> 人不在电脑前，用{' '}
+                <span className="text-foreground">4.</span> Away from the computer, edit in the
+                browser with{' '}
                 <a
                   href={REPO_DEV_URL}
                   target="_blank"
@@ -262,8 +266,9 @@ export default function HomePage() {
                 >
                   github.dev
                 </a>{' '}
-                在浏览器里改（或在仓库页面按{' '}
-                <kbd className="rounded border border-border px-1 text-xs">.</kbd>）。
+                (or press{' '}
+                <kbd className="rounded border border-border px-1 text-xs">.</kbd> on the repository
+                page).
               </li>
             </ol>
             <a
@@ -273,7 +278,7 @@ export default function HomePage() {
               className="mt-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <Github className="h-4 w-4" />
-              仓库：{REPO_URL.replace('https://github.com/', '')}
+              {REPO_URL.replace('https://github.com/', '')}
             </a>
           </section>
         </div>

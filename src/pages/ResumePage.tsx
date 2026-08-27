@@ -6,9 +6,9 @@ import { RESUME_PDF } from '@/content/resume';
 import { cn } from '@/lib/utils';
 
 /**
- * 简历页。正文是 HTML 重排的，版式对着 PDF 抄：Times 衬线、章节标题下一条细线、
+ * Resume页。正文是 HTML 重排的，版式对着 PDF 抄：Times 衬线、章节标题下一条细线、
  * 左标题右日期两栏、en dash 悬挂缩进。纸面在深色模式下也保持白底黑字——
- * 简历本来就是一张纸，跟着主题翻转反而不像了。
+ * Resume本来就是一张纸，跟着主题翻转反而不像了。
  *
  * 中英对照是预先写好的静态文本，不调翻译接口：这是个纯静态站，没有服务端，
  * 而机翻在这些句子上会出硬伤（"drops overlapping generations" 会被译反）。
@@ -54,10 +54,10 @@ export default function ResumePage() {
           >
             <div>
               <h1 className="text-2xl font-bold text-foreground md:text-3xl">
-                简历
+                Resume
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                版式对着 PDF 重排 · 原件在下载里
+                Laid out against the PDF · the original is in the download
               </p>
             </div>
 
@@ -74,7 +74,7 @@ export default function ResumePage() {
                 )}
               >
                 <Languages className="h-4 w-4" />
-                {bilingual ? '只看英文' : '中英对照'}
+                {bilingual ? 'English only' : 'Side by side'}
               </button>
               <a
                 href={RESUME_PDF}
@@ -83,7 +83,7 @@ export default function ResumePage() {
                 className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <FileText className="h-4 w-4" />
-                在线打开 PDF
+                Open PDF
               </a>
               <a
                 href={RESUME_PDF}
@@ -91,7 +91,7 @@ export default function ResumePage() {
                 className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
               >
                 <Download className="h-4 w-4" />
-                下载 PDF
+                Download PDF
               </a>
             </div>
           </div>

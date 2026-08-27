@@ -8,14 +8,14 @@ export function SiteFooter() {
       <div className="container flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <div className="leading-tight">
           <p className="font-medium text-foreground">{SITE_NAME}</p>
-          <p className="mt-0.5 text-xs">{SITE_TAGLINE} · 私人笔记，不对外索引</p>
+          <p className="mt-0.5 text-xs">{SITE_TAGLINE} · Private notes, not indexed</p>
         </div>
         <div className="flex items-center gap-6">
           <Link to="/" className="transition-colors hover:text-foreground">
-            总览
+            Overview
           </Link>
           <Link to="/docs" className="transition-colors hover:text-foreground">
-            计划
+            Plan
           </Link>
           <a
             href={REPO_URL}

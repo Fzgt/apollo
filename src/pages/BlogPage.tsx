@@ -116,7 +116,7 @@ export default function BlogPage() {
       }
     } catch (error) {
       if (!controller.signal.aborted) {
-        setSyncNote(error instanceof Error ? error.message : '同步失败');
+        setSyncNote(error instanceof Error ? error.message : 'Sync failed');
       }
     } finally {
       if (!controller.signal.aborted) setIsSyncing(false);
@@ -136,7 +136,7 @@ export default function BlogPage() {
           }
         } catch (error) {
           if (!controller.signal.aborted) {
-            setIndexError(error instanceof Error ? error.message : '快照读取失败');
+            setIndexError(error instanceof Error ? error.message : 'Could not read the snapshot');
           }
         }
       }
@@ -226,7 +226,7 @@ export default function BlogPage() {
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
-          setBodyError(error instanceof Error ? error.message : '正文读取失败');
+          setBodyError(error instanceof Error ? error.message : 'Could not read the post body');
         }
       })
       .finally(() => {
@@ -238,8 +238,8 @@ export default function BlogPage() {
 
   const isFiltered = visiblePosts.length !== posts.length;
   const syncedLabel = index
-    ? `${index.source === 'live' ? '刚从 GitHub 同步' : '快照'} · ${formatDate(index.syncedAt)}`
-    : '读取中…';
+    ? `${index.source === 'live' ? 'Just synced from GitHub' : 'Snapshot'} · ${formatDate(index.syncedAt)}`
+    : 'Loading…';
 
   return (
     <div className="min-h-screen bg-background">
@@ -253,9 +253,9 @@ export default function BlogPage() {
           {/* 页头 */}
           <div className="flex flex-col gap-3 border-b border-border py-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground md:text-3xl">博客</h1>
+              <h1 className="text-2xl font-bold text-foreground md:text-3xl">Blog</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                文章写在{' '}
+                Posts live in the issues of{' '}
                 <a
                   href={BLOG_ISSUES_URL}
                   target="_blank"
@@ -264,7 +264,7 @@ export default function BlogPage() {
                 >
                   {BLOG_REPO}
                 </a>{' '}
-                的 issues 里，这里自动同步 · 共 {posts.length} 篇
+                , synced automatically · {posts.length} posts
               </p>
             </div>
 
@@ -276,26 +276,26 @@ export default function BlogPage() {
                 className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/50 px-2.5 py-1.5 transition-colors hover:bg-muted hover:text-foreground disabled:opacity-60"
               >
                 <RefreshCw className={cn('h-3.5 w-3.5', isSyncing && 'animate-spin')} />
-                {isSyncing ? '同步中' : '同步'}
+                {isSyncing ? 'Syncing' : 'Sync'}
               </button>
             </div>
           </div>
 
           {syncNote && (
             <p className="mt-3 text-xs text-muted-foreground">
-              实时同步没成功（{syncNote}），当前显示的是构建时的快照。
+              Live sync failed ({syncNote}); showing the build-time snapshot.
             </p>
           )}
 
           <div className="py-6">
             {indexError && !index && (
               <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-                文章列表没读出来：{indexError}
+                Could not read the post list: {indexError}
               </p>
             )}
 
             {!index && !indexError && (
-              <p className="py-12 text-center text-sm text-muted-foreground">加载中…</p>
+              <p className="py-12 text-center text-sm text-muted-foreground">Loading…</p>
             )}
 
             {/* 列表 */}
@@ -306,20 +306,20 @@ export default function BlogPage() {
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="搜标题、摘要、标签…"
-                    aria-label="搜索文章"
+                    placeholder="Search titles, summaries, tags…"
+                    aria-label="Search posts"
                     className="w-full rounded-lg border border-border bg-card py-2 pl-9 pr-28 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
                   />
                   {posts.length > 0 && (
                     <div
                       title={
                         isFiltered
-                          ? `共 ${posts.length} 篇，筛选后剩 ${visiblePosts.length} 篇`
+                          ? `${visiblePosts.length} of ${posts.length} posts`
                           : undefined
                       }
                       className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-baseline gap-1 text-xs tabular-nums"
                     >
-                      {isFiltered && <span className="text-muted-foreground">显示</span>}
+                      {isFiltered && <span className="text-muted-foreground">showing</span>}
                       <motion.span
                         key={visiblePosts.length}
                         initial={{ opacity: 0, y: -3 }}
@@ -332,7 +332,7 @@ export default function BlogPage() {
                         {visiblePosts.length}
                       </motion.span>
                       <span className="text-muted-foreground">
-                        {isFiltered ? `/ 共 ${posts.length} 篇` : '篇'}
+                        {isFiltered ? `/ ${posts.length}` : 'posts'}
                       </span>
                     </div>
                   )}
@@ -362,9 +362,9 @@ export default function BlogPage() {
                   <Chip
                     active={unreadOnly}
                     onClick={() => setUnreadOnly((prev) => !prev)}
-                    title="只看还没读过的"
+                    title="Show unread only"
                   >
-                    只看未读
+                    Unread only
                   </Chip>
                 </div>
 
@@ -372,13 +372,13 @@ export default function BlogPage() {
                   <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
                     <SearchX className="size-8" />
                     <p className="text-sm">
-                      一共 {posts.length} 篇，但没有符合当前筛选条件的
+                      {posts.length} posts in total, but none match the current filters
                     </p>
                     <button
                       onClick={resetFilters}
                       className="rounded-lg border border-border px-3 py-1.5 text-xs transition-colors hover:bg-muted hover:text-foreground"
                     >
-                      重置筛选
+                      Reset filters
                     </button>
                   </div>
                 ) : (
@@ -418,7 +418,7 @@ export default function BlogPage() {
                       className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       <ArrowLeft className="h-4 w-4" />
-                      全部文章
+                      All posts
                     </button>
 
                     {activePost && (
@@ -428,9 +428,9 @@ export default function BlogPage() {
                         </h1>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                           <span>#{activePost.number}</span>
-                          <span>写于 {formatDate(activePost.createdAt)}</span>
+                          <span>Written {formatDate(activePost.createdAt)}</span>
                           {activePost.updatedAt !== activePost.createdAt && (
-                            <span>改于 {formatDate(activePost.updatedAt)}</span>
+                            <span>Updated {formatDate(activePost.updatedAt)}</span>
                           )}
                           {activePost.labels.map((label) => (
                             <span
@@ -451,19 +451,19 @@ export default function BlogPage() {
                     )}
 
                     {isBodyLoading && (
-                      <p className="py-12 text-center text-sm text-muted-foreground">加载中…</p>
+                      <p className="py-12 text-center text-sm text-muted-foreground">Loading…</p>
                     )}
 
                     {bodyError && (
                       <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-                        {bodyError}。可以到{' '}
+                        {bodyError}. You can open it{' '}
                         <a
                           href={`${BLOG_ISSUES_URL}/${activeNumber}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-primary underline underline-offset-4"
                         >
-                          GitHub 上看原文
+                          View on GitHub
                         </a>
                         。
                       </p>
@@ -472,7 +472,7 @@ export default function BlogPage() {
                     {!isBodyLoading && !bodyError && body !== null && (
                       <div className="pb-8">
                         <Suspense
-                          fallback={<p className="text-sm text-muted-foreground">正文渲染中…</p>}
+                          fallback={<p className="text-sm text-muted-foreground">Rendering…</p>}
                         >
                           <MarkdownRenderer content={body} />
                         </Suspense>
@@ -488,7 +488,7 @@ export default function BlogPage() {
                           className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                         >
                           <ExternalLink className="h-4 w-4" />
-                          在 GitHub 上看这篇
+                          on GitHub
                         </a>
                       )}
 
@@ -500,7 +500,7 @@ export default function BlogPage() {
                           >
                             <span className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
                               <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                              上一篇
+                              Previous
                             </span>
                             <span className="break-words font-medium text-foreground">
                               {prevPost.title}
@@ -516,7 +516,7 @@ export default function BlogPage() {
                             className="group flex flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50 sm:items-end sm:text-right"
                           >
                             <span className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
-                              下一篇
+                              Next
                               <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                             </span>
                             <span className="break-words font-medium text-foreground">

@@ -34,7 +34,7 @@ export function PostRow({
       layout="position"
       role="link"
       tabIndex={0}
-      aria-label={`阅读 ${post.title}`}
+      aria-label={`Read ${post.title}`}
       onClick={() => onOpen(post.number)}
       onKeyDown={(event) => {
         if (event.currentTarget === event.target && event.key === 'Enter') onOpen(post.number);
@@ -112,7 +112,7 @@ export function PostRow({
 
       <span
         className="relative z-10 hidden w-20 shrink-0 items-center justify-end gap-1 text-[11px] text-muted-foreground sm:inline-flex"
-        title={`写于 ${post.createdAt.slice(0, 10)}`}
+        title={`Written ${post.createdAt.slice(0, 10)}`}
       >
         <Clock className="size-3" />
         {timeAgo(post.createdAt)}
@@ -129,7 +129,7 @@ export function PostRow({
               : 'text-muted-foreground'
           )}
         >
-          {isRead ? '已读' : '未读'}
+          {isRead ? 'Read' : 'Unread'}
         </span>
 
         <div className="absolute inset-y-0 right-0 flex items-center gap-1 sm:pointer-events-none sm:opacity-0 sm:transition-opacity sm:duration-150 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100">
@@ -147,10 +147,10 @@ export function PostRow({
                 ? 'bg-success/15 text-success'
                 : 'hover:bg-muted'
             )}
-            title={isRead ? '标记为未读' : '标记为已读'}
+            title={isRead ? 'Mark as unread' : 'Mark as read'}
           >
             <Check className="size-3.5" />
-            <span className="hidden xl:inline">{isRead ? '已读' : '标记已读'}</span>
+            <span className="hidden xl:inline">{isRead ? 'Read' : 'Mark read'}</span>
           </motion.button>
           <motion.button
             type="button"
@@ -161,8 +161,8 @@ export function PostRow({
               window.open(post.url, '_blank', 'noopener,noreferrer');
             }}
             className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            title="在 GitHub 上看原文"
-            aria-label="在 GitHub 上看原文"
+            title="View on GitHub"
+            aria-label="View on GitHub"
           >
             <ExternalLink className="size-3.5" />
           </motion.button>

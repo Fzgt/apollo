@@ -125,7 +125,7 @@ export function ApplicationRow({ answer, number, isOpen, onToggle, hits }: Appli
         <button
           type="button"
           onClick={copy}
-          aria-label={copied ? '已复制' : '复制答案'}
+          aria-label={copied ? 'Copied' : 'Copy answer'}
           className={cn(
             'relative z-10 mr-2 shrink-0 rounded-md p-1.5 transition-colors',
             copied

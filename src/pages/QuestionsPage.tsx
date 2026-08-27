@@ -274,8 +274,8 @@ export default function QuestionsPage() {
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="搜题目 —— 跨 bullet，中英文都行"
-                  aria-label="搜索题目"
+                  placeholder="Search questions — across bullets, either language"
+                  aria-label="Search questions"
                   className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-24 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
                 />
                 <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
@@ -283,7 +283,7 @@ export default function QuestionsPage() {
                     <button
                       type="button"
                       onClick={() => setQuery('')}
-                      aria-label="清空搜索"
+                      aria-label="Clear search"
                       className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                       <X className="size-4" />
@@ -302,7 +302,7 @@ export default function QuestionsPage() {
                       {isFiltered ? hitCount : questionCount}
                     </motion.span>
                     <span className="text-muted-foreground">
-                      {isFiltered ? `/ ${questionCount}` : '题'}
+                      {isFiltered ? `/ ${questionCount}` : 'questions'}
                     </span>
                   </span>
                 </div>
@@ -311,8 +311,8 @@ export default function QuestionsPage() {
               <div className="mx-auto mt-2 flex max-w-2xl items-center justify-between gap-3 text-xs text-muted-foreground">
                 <span className="min-w-0 truncate">
                   {isFiltered
-                    ? '搜索跨全部 bullet；点左边任意一条即可退出搜索'
-                    : '被问过的题和该怎么答。代码出处在「笔记」，这里只管出口的那句话。'}
+                    ? 'Search spans every bullet; click any item on the left to leave the search'
+                    : 'Questions that were asked, and how to answer them. The code lives under Notes; this page is only about the sentence you say.'}
                 </span>
                 {openIds.size > 0 && (
                   <button
@@ -321,7 +321,7 @@ export default function QuestionsPage() {
                     className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted hover:text-foreground"
                   >
                     <ChevronsDownUp className="size-3.5" />
-                    全部收起
+                    Collapse all
                   </button>
                 )}
               </div>
@@ -348,7 +348,7 @@ export default function QuestionsPage() {
                               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/60 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
                             >
                               <Shuffle className="size-3.5" />
-                              随机抽题
+                              Random question
                             </button>
                             <button
                               type="button"
@@ -356,7 +356,7 @@ export default function QuestionsPage() {
                               className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             >
                               <ChevronsUpDown className="size-3.5" />
-                              展开本组
+                              Expand this group
                             </button>
                           </div>
                         )}
@@ -370,7 +370,7 @@ export default function QuestionsPage() {
 
                     {slot.rows.length === 0 ? (
                       <p className="px-4 py-8 text-center text-xs text-muted-foreground">
-                        这条还没出过题
+                        No questions here yet
                       </p>
                     ) : (
                       slot.rows.map((row) => (
@@ -390,7 +390,7 @@ export default function QuestionsPage() {
                 {isFiltered && hitCount === 0 && (
                   <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
                     <SearchX className="size-6" />
-                    <p className="text-sm">没有匹配的题目</p>
+                    <p className="text-sm">No matching questions</p>
                   </div>
                 )}
               </div>

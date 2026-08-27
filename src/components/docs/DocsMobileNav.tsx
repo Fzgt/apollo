@@ -28,7 +28,7 @@ export function DocsMobileNav({
   activeSection,
   activeItem,
   onNavigate,
-  title = '笔记',
+  title = 'Notes',
   storageKey,
   content,
   onOpenSearch,
@@ -67,7 +67,7 @@ export function DocsMobileNav({
         onClick={() => setIsOpen(true)}
         style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
         className="lg:hidden fixed right-4 z-40 p-4 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 transition-colors"
-        aria-label="打开笔记导航"
+        aria-label="Open note navigation"
       >
         <Menu className="w-6 h-6" />
       </button>
@@ -95,7 +95,7 @@ export function DocsMobileNav({
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-2 rounded-lg hover:bg-muted transition-colors"
-                  aria-label="关闭笔记导航"
+                  aria-label="Close note navigation"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -111,7 +111,7 @@ export function DocsMobileNav({
                     className="flex w-full items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
                     <Search className="h-4 w-4" />
-                    <span className="flex-1 text-left">搜索笔记</span>
+                    <span className="flex-1 text-left">Search notes</span>
                   </button>
                 </div>
               )}
@@ -120,8 +120,8 @@ export function DocsMobileNav({
                 <div className="mx-4 mt-4 flex shrink-0 rounded-lg bg-muted/50 p-1 text-sm">
                   {(
                     [
-                      { id: 'toc', label: '本页目录' },
-                      { id: 'notes', label: '全部笔记' },
+                      { id: 'toc', label: 'On this page' },
+                      { id: 'notes', label: 'All notes' },
                     ] as const
                   ).map((option) => (
                     <button

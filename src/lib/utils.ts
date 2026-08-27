@@ -35,11 +35,11 @@ export function timeAgo(iso: string): string {
   if (Number.isNaN(time)) return '';
 
   const minutes = Math.floor((Date.now() - time) / 60000);
-  if (minutes < 60) return `${Math.max(1, minutes)} 分钟前`;
+  if (minutes < 60) return `${Math.max(1, minutes)} min ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} 小时前`;
+  if (hours < 24) return `${hours} h ago`;
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days} 天前`;
+  if (days < 30) return `${days} d ago`;
   const months = Math.floor(days / 30);
-  return months < 12 ? `${months} 个月前` : `${Math.floor(months / 12)} 年前`;
+  return months < 12 ? `${months} mo ago` : `${Math.floor(months / 12)} y ago`;
 }

@@ -30,13 +30,13 @@ import { BuildStamp } from './BuildStamp';
  * 图标是第二条线索，扫一眼靠形状就能定位，不必逐字读。
  */
 const NAV_LINKS = [
-  { label: '总览', href: '/', Icon: LayoutDashboard },
-  { label: '计划', href: '/docs', Icon: CalendarCheck },
-  { label: '笔记', href: '/library', Icon: BookOpen },
-  { label: '题库', href: '/questions', Icon: MessageCircleQuestion },
-  { label: '投递', href: '/apply', Icon: Send },
-  { label: '博客', href: '/blog', Icon: PenLine },
-  { label: '简历', href: '/resume', Icon: FileText },
+  { label: 'Overview', href: '/', Icon: LayoutDashboard },
+  { label: 'Plan', href: '/docs', Icon: CalendarCheck },
+  { label: 'Notes', href: '/library', Icon: BookOpen },
+  { label: 'Questions', href: '/questions', Icon: MessageCircleQuestion },
+  { label: 'Applications', href: '/apply', Icon: Send },
+  { label: 'Blog', href: '/blog', Icon: PenLine },
+  { label: 'Resume', href: '/resume', Icon: FileText },
 ];
 
 export function SiteNavbar() {
@@ -64,7 +64,7 @@ export function SiteNavbar() {
       whileTap={{ scale: 0.95 }}
       onClick={toggleTheme}
       className="rounded-lg bg-muted/80 p-2 transition-colors hover:bg-muted"
-      aria-label="切换主题"
+      aria-label="Toggle theme"
     >
       {theme === 'dark' ? (
         <Sun className="h-5 w-5 text-foreground" />
@@ -137,7 +137,7 @@ export function SiteNavbar() {
                 href={REPO_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="GitHub 仓库（新窗口打开）"
+                aria-label="GitHub repository (opens in a new tab)"
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
                 <Github className="h-5 w-5" />
@@ -150,7 +150,7 @@ export function SiteNavbar() {
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 aria-expanded={isMobileMenuOpen}
                 aria-controls="site-mobile-menu"
-                aria-label={isMobileMenuOpen ? '关闭导航菜单' : '打开导航菜单'}
+                aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
                 className="p-2 text-muted-foreground transition-colors hover:text-foreground"
               >
                 {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -166,7 +166,7 @@ export function SiteNavbar() {
             id="site-mobile-menu"
             role="dialog"
             aria-modal="true"
-            aria-label="导航菜单"
+            aria-label="Navigation menu"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}

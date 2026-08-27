@@ -42,7 +42,7 @@ export function BuildStamp({ className }: { className?: string }) {
 
   const absolute = formatStamp(BUILD_DATE);
   const title = [
-    `构建于 ${absolute}（${relative}）`,
+    `Built ${absolute} (${relative})`,
     __COMMIT_SHA__ ? `commit ${__COMMIT_SHA__}` : null,
   ]
     .filter(Boolean)
@@ -51,7 +51,7 @@ export function BuildStamp({ className }: { className?: string }) {
   const content = (
     <>
       <History className="size-3.5 shrink-0" />
-      <span className="whitespace-nowrap tabular-nums">更新于 {absolute}</span>
+      <span className="whitespace-nowrap tabular-nums">Updated {absolute}</span>
     </>
   );
 

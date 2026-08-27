@@ -93,12 +93,12 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
                   : 'bg-muted text-muted-foreground'
               )}
             >
-              {kind === 'main' ? '主问' : '追问'}
+              {kind === 'main' ? 'Main' : 'Follow-up'}
             </span>
             {unresolved && (
               <span className="inline-flex shrink-0 items-center gap-1 rounded bg-warning/15 px-1.5 py-0.5 text-[11px] font-medium text-warning">
                 <AlertTriangle className="size-3" />
-                待补
+                To write
               </span>
             )}
             {asked && (
@@ -136,7 +136,7 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
           >
             <div className="border-t border-border/60 px-4 pb-5 pl-11 pt-4">
               <Suspense
-                fallback={<p className="text-sm text-muted-foreground">渲染中…</p>}
+                fallback={<p className="text-sm text-muted-foreground">Rendering…</p>}
               >
                 <MarkdownRenderer content={a.zh} className="max-w-none" />
               </Suspense>
@@ -153,7 +153,7 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
                 <div className="mt-4 rounded-lg border border-border bg-card/60 p-3">
                   <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                     <Quote className="size-3" />
-                    可以直接说出口的英文
+                    English you can say out loud
                   </p>
                   <ul className="space-y-1.5">
                     {phrases.map((phrase) => (
