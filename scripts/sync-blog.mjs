@@ -80,6 +80,8 @@ function toExcerpt(body) {
     .replace(/`([^`]*)`/g, '$1')
     .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    // 正文里夹着 GitHub 写的裸 HTML（截图、<kbd>、<br>），摘要不该显示标签源码
+    .replace(/<\/?(?:img|br|kbd)\b[^>]*>/gi, ' ')
     .replace(/^\s{0,3}#{1,6}\s+/gm, '')
     .replace(/^\s{0,3}>\s?/gm, '')
     .replace(/[*_~]/g, '')

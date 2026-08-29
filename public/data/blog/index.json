@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-08-29T14:35:34.775Z",
+  "syncedAt": "2026-08-29T15:01:23.753Z",
   "translated": [
     56,
     55,
@@ -379,7 +379,7 @@
       "createdAt": "2026-08-04T13:39:00Z",
       "updatedAt": "2026-08-23T11:48:45Z",
       "url": "https://github.com/Fzgt/Blog/issues/40",
-      "excerpt": "MCP <img width=\"400\" height=\"200\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/23b89882-e7de-4f68-afb9-665b76b93439\" /> An ag…",
+      "excerpt": "MCP An agent can act because it has tools. MCP is what lets an agent plug into more external tools through one standard interface.",
       "headings": [
         "MCP"
       ]
@@ -740,7 +740,7 @@
       "createdAt": "2026-07-24T23:54:57Z",
       "updatedAt": "2026-07-28T00:39:06Z",
       "url": "https://github.com/Fzgt/Blog/issues/22",
-      "excerpt": "How scheduling works <img width=\"1556\" height=\"132\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/349b525f-dd50-4148-aaea-cfeb…",
+      "excerpt": "How scheduling works In one sentence: update tasks are sorted into two queues by whether they should be handled now (delayed vs ready); read…",
       "headings": [
         "1. A picture to start with",
         "2. Step one: two kinds of task",

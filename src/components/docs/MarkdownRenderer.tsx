@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import remarkCjkFriendly from 'remark-cjk-friendly';
 import { cn } from '@/lib/utils';
 import { headingIdByLine } from '@/lib/headings';
+import { inlineHtmlImages } from '@/lib/markdown-html';
 import { Copy, Check } from 'lucide-react';
 
 interface MarkdownRendererProps {
@@ -151,6 +152,8 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
   const idByLine = useMemo(() => headingIdByLine(content), [content]);
   const lineId = (node?: { position?: { start?: { line?: number } } }) =>
     idByLine.get(node?.position?.start?.line ?? -1);
+  // Line-preserving, so the line numbers idByLine was built from still line up.
+  const source = useMemo(() => inlineHtmlImages(content), [content]);
 
   return (
     <div className={cn('prose-docs max-w-full [overflow-wrap:anywhere]', className)}>
@@ -297,7 +300,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           ),
         }}
       >
-        {content}
+        {source}
       </ReactMarkdown>
     </div>
   );
