@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Check, Clock, ExternalLink } from 'lucide-react';
 import { cn, timeAgo } from '@/lib/utils';
 import type { BlogPostMeta } from '@/lib/blog';
+import { labelText } from '@/content/blog-en';
 
 const MAX_SHOWN_LABELS = 2;
 
@@ -89,7 +90,7 @@ export function PostRow({
                 <span
                   key={label.name}
                   className="inline-flex max-w-24 items-center gap-1 truncate rounded border border-border bg-muted/60 px-1.5 py-0.5 text-[11px] text-muted-foreground"
-                  title={label.name}
+                  title={labelText(label.name)}
                 >
                   {label.color && (
                     <span
@@ -97,7 +98,7 @@ export function PostRow({
                       style={{ backgroundColor: `#${label.color}` }}
                     />
                   )}
-                  {label.name}
+                  {labelText(label.name)}
                 </span>
               ))}
               {extraLabels > 0 && (

@@ -1,10 +1,160 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-08-19T04:03:47.976Z",
+  "syncedAt": "2026-08-29T14:35:34.775Z",
+  "translated": [
+    56,
+    55,
+    54,
+    53,
+    52,
+    51,
+    50,
+    49,
+    48,
+    47,
+    46,
+    45,
+    44,
+    43,
+    42,
+    41,
+    40,
+    39,
+    38,
+    37,
+    36,
+    35,
+    34,
+    33,
+    32,
+    31,
+    30,
+    29,
+    28,
+    27,
+    26,
+    25,
+    24,
+    23,
+    22,
+    21,
+    20,
+    19,
+    18,
+    17,
+    16,
+    15,
+    14,
+    13,
+    12,
+    11,
+    10,
+    9,
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1
+  ],
   "posts": [
     {
+      "number": 56,
+      "title": "Blobs, Binary Transfer, and Base64: When Do You Need to Encode?",
+      "labels": [],
+      "createdAt": "2026-08-24T13:21:41Z",
+      "updatedAt": "2026-08-24T13:21:41Z",
+      "url": "https://github.com/Fzgt/Blog/issues/56",
+      "excerpt": "The conclusion first Blob and Base64 are not two file formats. They are concepts at two different levels: - Blob: an object holding binary d…",
+      "headings": [
+        "The conclusion first",
+        "1. What does MediaRecorder produce every 250ms?",
+        "2. Why can WebSocket send a Blob directly?",
+        "3. What is Base64?",
+        "4. Which channels take binary directly?",
+        "5. Which places accept text only?",
+        "6. When should you actually use Base64?",
+        "7. What Base64 costs"
+      ]
+    },
+    {
+      "number": 55,
+      "title": "SSE (Server-Sent Events) — an HTTP Response That Never Ends",
+      "labels": [],
+      "createdAt": "2026-08-23T13:15:36Z",
+      "updatedAt": "2026-08-23T13:15:36Z",
+      "url": "https://github.com/Fzgt/Blog/issues/55",
+      "excerpt": "SSE always felt mysterious to me. It is actually the crudest of the real-time options: an HTTP response that never ends. Absorb that sentenc…",
+      "headings": [
+        "1. What it actually is",
+        "2. What the raw response looks like",
+        "3. The browser side",
+        "4. The one thing SSE really adds over a raw stream",
+        "5. Compared with the alternatives",
+        "6. The four things that bite in practice",
+        "7. Two cases from my own projects, one each way",
+        "8. In one sentence"
+      ]
+    },
+    {
+      "number": 54,
+      "title": "Reviewing a Full-Stack Stack — tRPC / Zod / React Hook Form",
+      "labels": [],
+      "createdAt": "2026-08-23T12:45:56Z",
+      "updatedAt": "2026-08-23T12:45:56Z",
+      "url": "https://github.com/Fzgt/Blog/issues/54",
+      "excerpt": "Looking back at a full-stack project built on Next.js + tRPC + Zod + React Hook Form, the problems these tools solve turn out to be layered,…",
+      "headings": []
+    },
+    {
+      "number": 53,
+      "title": "The Toolchain for Diagnosing Production Problems",
+      "labels": [],
+      "createdAt": "2026-08-23T12:45:55Z",
+      "updatedAt": "2026-08-23T12:45:55Z",
+      "url": "https://github.com/Fzgt/Blog/issues/53",
+      "excerpt": "① Sentry, automated On every release, CI uploads that build's source maps under the release version and archives them — privately, never dep…",
+      "headings": []
+    },
+    {
+      "number": 52,
+      "title": "Debounce in Depth — leading / trailing / cancel",
+      "labels": [],
+      "createdAt": "2026-08-23T12:45:53Z",
+      "updatedAt": "2026-08-23T12:45:53Z",
+      "url": "https://github.com/Fzgt/Blog/issues/52",
+      "excerpt": "Earlier I only wrote the most basic form: run n milliseconds after the last trigger. Real situations usually need a more flexible combinatio…",
+      "headings": []
+    },
+    {
+      "number": 51,
+      "title": "for await...of and Async Iteration",
+      "labels": [
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        }
+      ],
+      "createdAt": "2026-08-21T03:25:46Z",
+      "updatedAt": "2026-08-21T03:25:46Z",
+      "url": "https://github.com/Fzgt/Blog/issues/51",
+      "excerpt": "Everything that unfolded out of one line of streaming code: for await (const text of textStream) stream.update(text); --- 1. What it solves …",
+      "headings": [
+        "1. What it solves",
+        "2. What the sugar unfolds into",
+        "3. The async iteration protocol",
+        "4. Two constraints you have to know",
+        "5. Errors and early exit",
+        "6. Dropping the braces",
+        "7. Where it actually shows up",
+        "8. The trap everyone hits: incremental or cumulative"
+      ]
+    },
+    {
       "number": 50,
-      "title": "MCP & Agent沙箱 & SWE-bench & 过拟合与数据集划分",
+      "title": "MCP, Agent Sandboxing, SWE-bench, and Overfitting",
       "labels": [
         {
           "name": "AI",
@@ -18,19 +168,19 @@
       "createdAt": "2026-08-18T11:25:29Z",
       "updatedAt": "2026-08-18T11:30:32Z",
       "url": "https://github.com/Fzgt/Blog/issues/50",
-      "excerpt": "目录 - 一、MCP（Model Context Protocol） - 二、Agent 沙箱隔离 - 三、SWE-bench 跑分水平 - 四、机器学习基础：过拟合与数据集划分 - 五、附：grep --- 一、MCP（Model Context Protocol） 1.0 概…",
+      "excerpt": "Contents - 1. MCP (Model Context Protocol) - 2. Agent sandboxing - 3. What a SWE-bench score means - 4. ML basics: overfitting and splitting…",
       "headings": [
-        "目录",
-        "一、MCP（Model Context Protocol）",
-        "二、Agent 沙箱隔离",
-        "三、SWE-bench 跑分水平",
-        "四、机器学习基础：过拟合与数据集划分",
-        "五、附：grep"
+        "Contents",
+        "1. MCP (Model Context Protocol)",
+        "2. Agent sandboxing",
+        "3. What a SWE-bench score means",
+        "4. ML basics: overfitting and splitting a dataset",
+        "5. Appendix: grep"
       ]
     },
     {
       "number": 49,
-      "title": "概念清单（对应简历 v40）",
+      "title": "Concept Checklist (against CV v40)",
       "labels": [
         {
           "name": "知识体系",
@@ -40,22 +190,22 @@
       "createdAt": "2026-08-18T07:48:00Z",
       "updatedAt": "2026-08-18T07:48:00Z",
       "url": "https://github.com/Fzgt/Blog/issues/49",
-      "excerpt": "2026-08-18 校到 v40：条目本身与 v40 的 22 条 bullet 一一对得上，无需增删；改的是下面三处「本机零代码」的过时判断。 只列概念名，不解释。先自己过一遍，会的划掉，不会的留着——留下来的才是后面要 focus 的。 标记 - ★ 简历原文出现，追问几乎…",
+      "excerpt": "Checked against v40 on 2026-08-18: the entries map one to one onto v40's 22 bullets, so nothing was added or removed. What changed is the th…",
       "headings": [
-        "一、前端",
-        "二、后端",
-        "三、图形学 [WinterFell]",
-        "四、AI [Periplus][Beyz]",
-        "附录：⚠ 汇总——只在 Skills 行出现、本机无代码",
-        "建议的过法"
+        "1. Front end",
+        "2. Back end",
+        "3. Graphics [WinterFell]",
+        "4. AI [Periplus][Beyz]",
+        "Appendix: the ⚠ list — Skills line only, no code on this machine",
+        "How to work through this"
       ]
     },
     {
       "number": 48,
-      "title": "Winterfell性能优化笔记",
+      "title": "WinterFell Performance Notes",
       "labels": [],
       "createdAt": "2026-08-18T05:04:08Z",
-      "updatedAt": "2026-08-18T05:04:08Z",
+      "updatedAt": "2026-08-23T12:46:21Z",
       "url": "https://github.com/Fzgt/Blog/issues/48",
       "excerpt": "WinterFell A WebGPU neon runner: twenty scenes, three and a half kilometres of track, and somewhere to arrive. Play the live demo · Steer wi…",
       "headings": [
@@ -71,7 +221,7 @@
     },
     {
       "number": 47,
-      "title": "深入理解LLM Roadmap",
+      "title": "A Roadmap for Understanding LLMs",
       "labels": [
         {
           "name": "AI",
@@ -81,21 +231,21 @@
       "createdAt": "2026-08-11T06:51:24Z",
       "updatedAt": "2026-08-11T06:52:05Z",
       "url": "https://github.com/Fzgt/Blog/issues/47",
-      "excerpt": "学习路径总览 --- 第一步：神经网络 & 深度学习直觉（1-2 周） 不需要手推数学证明，重点是建立直觉: - 神经网络到底在学什么（参数、权重、损失函数、梯度下降——理解\"是什么\"而非\"怎么推导\"） - 什么是\"表示学习\"（embedding）——为什么文字能变成向量，向量之…",
+      "excerpt": "The path --- Step 1: intuition for neural networks and deep learning (1–2 weeks) You do not need to derive the maths. The point is intuition…",
       "headings": [
-        "学习路径总览",
-        "第一步：神经网络 & 深度学习直觉（1-2 周）",
-        "第二步：Transformer 架构（重点花时间，核心中的核心）",
-        "第三步：大模型训练全流程",
-        "第四步：推理阶段的关键概念（直接决定你怎么用好模型）",
-        "第五步：Agent / 工具调用背后的原理（串联你已有的应用层经验）",
-        "建议学习节奏",
-        "资源汇总"
+        "The path",
+        "Step 1: intuition for neural networks and deep learning (1–2 weeks)",
+        "Step 2: the Transformer architecture (spend the time here)",
+        "Step 3: how a large model is trained",
+        "Step 4: inference-time concepts (these decide how well you use a model)",
+        "Step 5: what is behind agents and tool calling (connects to what you already build)",
+        "Suggested pace",
+        "All the resources"
       ]
     },
     {
       "number": 46,
-      "title": "Langchain & Langgraph",
+      "title": "LangChain and LangGraph",
       "labels": [
         {
           "name": "AI",
@@ -105,19 +255,19 @@
       "createdAt": "2026-08-11T05:41:37Z",
       "updatedAt": "2026-08-11T05:41:48Z",
       "url": "https://github.com/Fzgt/Blog/issues/46",
-      "excerpt": "LangChain vs LangGraph 差异对比 一、基本定位 | | LangChain | LangGraph | |---|---|---| | 定位 | 高层开发框架，快速搭建 LLM 应用 | 底层执行引擎，编排有状态、可控的 agent | | 类比 | 预制零…",
+      "excerpt": "LangChain vs LangGraph 1. What each one is | | LangChain | LangGraph | |---|---|---| | Role | A high-level framework for building LLM applic…",
       "headings": [
-        "一、基本定位",
-        "二、核心差异不只是\"线性 vs 分支\"",
-        "三、能否独立使用",
-        "四、适用场景",
-        "五、迁移路径参考",
-        "六、一句话总结"
+        "1. What each one is",
+        "2. The core difference is not just \"linear vs branching\"",
+        "3. Can they be used separately",
+        "4. When to use which",
+        "5. Migration path",
+        "6. In one sentence"
       ]
     },
     {
       "number": 45,
-      "title": "periplus项目笔记",
+      "title": "Periplus Project Notes",
       "labels": [
         {
           "name": "AI",
@@ -127,13 +277,13 @@
       "createdAt": "2026-08-10T14:29:06Z",
       "updatedAt": "2026-08-10T14:58:26Z",
       "url": "https://github.com/Fzgt/Blog/issues/45",
-      "excerpt": "AI Related 项目地址： https://github.com/parthenon-labs/periplus 证据锚定，防幻觉 SourceDocument.evidencefor 校验引用是原文的精确子串，不是原文才拒收。 模型引用原文时经常「顺手改一个数字、合并两句…",
+      "excerpt": "AI Repository: https://github.com/parthenon-labs/periplus Evidence anchoring, against hallucination SourceDocument.evidencefor checks that a…",
       "headings": [
-        "证据锚定，防幻觉",
-        "盲审，防确认偏误",
-        "失败当数据,不当异常，自愈重试",
-        "预算编排",
-        "结构化并发,两层节流"
+        "Evidence anchoring, against hallucination",
+        "Blind review, against confirmation bias",
+        "Failure as data, not as an exception: self-healing retries",
+        "Budget orchestration",
+        "Structured concurrency, throttled at two levels"
       ]
     },
     {
@@ -148,21 +298,21 @@
       "createdAt": "2026-08-10T08:47:25Z",
       "updatedAt": "2026-08-10T14:22:22Z",
       "url": "https://github.com/Fzgt/Blog/issues/44",
-      "excerpt": "Agent Engineering 核心概念 幻觉 指模型编造出一段看起来通顺、自信满满，实际上却不存在于任何事实或原文依据里的内容——它不是\"说谎\"，是模型在填补空白时习惯性地选了统计上最像答案的词，而不是核实过的词。 模型总结一份文档时，经常会把两句话捏合成一句、把数字改动一…",
+      "excerpt": "Core concepts in agent engineering Hallucination A model producing text that reads smoothly and sounds confident but is not grounded in any …",
       "headings": [
-        "幻觉",
-        "Structured Output",
-        "Tool Calling",
+        "Hallucination",
+        "Structured output",
+        "Tool calling",
         "RAG",
         "Grounding",
-        "Prompt Injection",
+        "Prompt injection",
         "Guardrails",
         "Eval"
       ]
     },
     {
       "number": 43,
-      "title": "2026年最新的React最佳实践",
+      "title": "React Best Practices in 2026",
       "labels": [
         {
           "name": "React",
@@ -172,19 +322,19 @@
       "createdAt": "2026-08-06T03:51:35Z",
       "updatedAt": "2026-08-06T03:51:35Z",
       "url": "https://github.com/Fzgt/Blog/issues/43",
-      "excerpt": "整理于 2026-08-06。一手来源为主（react.dev / GitHub releases），二手来源已标注。 注意：搜索 \"React best practices 2026\" 出来的内容大量是 SEO 农场文 —— 互相抄袭、掺杂过时信息、把 2024 年的东西包装成…",
+      "excerpt": "Compiled 2026-08-06. Primary sources where possible (react.dev, GitHub releases); secondary sources are marked. A warning: searching \"React …",
       "headings": [
-        "一、版本现状",
-        "二、三件真正变了的事",
-        "三、生态的其他确定变化",
-        "四、常被提到的代码级实践",
-        "五、投入优先级（个人判断）",
-        "来源"
+        "1. Where the versions stand",
+        "2. Three things that genuinely changed",
+        "3. Other confirmed ecosystem changes",
+        "4. Code-level practices that keep coming up",
+        "5. Where to spend the effort (my own judgement)",
+        "Sources"
       ]
     },
     {
       "number": 42,
-      "title": "搭建一套完整的现代AI编程开发环境",
+      "title": "Setting Up a Complete Modern AI Coding Environment",
       "labels": [
         {
           "name": "AI",
@@ -194,17 +344,17 @@
       "createdAt": "2026-08-06T00:39:45Z",
       "updatedAt": "2026-08-06T05:24:01Z",
       "url": "https://github.com/Fzgt/Blog/issues/42",
-      "excerpt": "cc-switch 执行以下命令添加CC Switch的Homebrew仓库： brew tap farion1231/ccswitch 然后执行以下命令安装CC Switch： brew install --cask cc-switch 不想老是点权限确认，可以在启动时添加这个…",
+      "excerpt": "cc-switch Add the CC Switch Homebrew tap: brew tap farion1231/ccswitch Then install it: brew install --cask cc-switch If you are tired of co…",
       "headings": [
         "cc-switch",
-        "安装Claude Code常用Skill",
-        "生图生视频的skill",
-        "长时程跑任务的提示词"
+        "Installing common Claude Code skills",
+        "Image and video generation skills",
+        "Prompts for long-running tasks"
       ]
     },
     {
       "number": 41,
-      "title": "Promise零碎知识点",
+      "title": "Promise Odds and Ends",
       "labels": [
         {
           "name": "知识体系",
@@ -214,12 +364,12 @@
       "createdAt": "2026-08-05T03:22:11Z",
       "updatedAt": "2026-08-05T04:12:00Z",
       "url": "https://github.com/Fzgt/Blog/issues/41",
-      "excerpt": "async 一定返回 Promise,所以这两种写法几乎等价: .catch(() => {})会把rejected状态的Promise洗成resolved .then 回调里抛出的错误(或返回的 rejected promise),会【下沉】到链条后面的下一个 rejectio…",
+      "excerpt": "async always returns a promise, so these two are near-equivalent: .catch(() => {}) launders a rejected promise into a resolved one An error …",
       "headings": []
     },
     {
       "number": 40,
-      "title": "AI related concepts",
+      "title": "AI Related Concepts",
       "labels": [
         {
           "name": "AI",
@@ -227,9 +377,9 @@
         }
       ],
       "createdAt": "2026-08-04T13:39:00Z",
-      "updatedAt": "2026-08-11T15:00:54Z",
+      "updatedAt": "2026-08-23T11:48:45Z",
       "url": "https://github.com/Fzgt/Blog/issues/40",
-      "excerpt": "MCP <img width=\"400\" height=\"200\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/23b89882-e7de-4f68-afb9-665b76b93439\" /> Agent…",
+      "excerpt": "MCP <img width=\"400\" height=\"200\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/23b89882-e7de-4f68-afb9-665b76b93439\" /> An ag…",
       "headings": [
         "MCP"
       ]
@@ -239,19 +389,19 @@
       "title": "Algorithm",
       "labels": [],
       "createdAt": "2026-07-31T10:50:11Z",
-      "updatedAt": "2026-07-31T10:58:40Z",
+      "updatedAt": "2026-08-23T11:48:44Z",
       "url": "https://github.com/Fzgt/Blog/issues/39",
-      "excerpt": "做树的题如何判断需不需要helper函数 - 函数的\"输入输出\"和\"你想要的最终结果\"是否一致，所以maxDepth不需要，而中序遍历需要。 - 或者函数的参数对应不上。（需要两个参数比较左右是否镜像，isSymmetric只有一个)",
+      "excerpt": "Tree problems: when do you need a helper function? - Ask whether the function's input and output already match the answer you want. maxDepth…",
       "headings": [
-        "做树的题如何判断需不需要helper函数"
+        "Tree problems: when do you need a helper function?"
       ]
     },
     {
       "number": 38,
-      "title": "PostgreQL",
+      "title": "PostgreSQL",
       "labels": [],
       "createdAt": "2026-07-31T04:51:08Z",
-      "updatedAt": "2026-07-31T04:51:08Z",
+      "updatedAt": "2026-08-23T11:48:38Z",
       "url": "https://github.com/Fzgt/Blog/issues/38",
       "excerpt": "",
       "headings": []
@@ -266,14 +416,14 @@
         }
       ],
       "createdAt": "2026-07-29T09:38:53Z",
-      "updatedAt": "2026-07-29T09:38:53Z",
+      "updatedAt": "2026-08-23T11:48:46Z",
       "url": "https://github.com/Fzgt/Blog/issues/37",
       "excerpt": "",
       "headings": []
     },
     {
       "number": 36,
-      "title": "页面加载顺序与LongTask",
+      "title": "Page Load Order and Long Tasks",
       "labels": [
         {
           "name": "性能优化",
@@ -283,16 +433,16 @@
       "createdAt": "2026-07-28T03:37:36Z",
       "updatedAt": "2026-07-28T03:38:00Z",
       "url": "https://github.com/Fzgt/Blog/issues/36",
-      "excerpt": "一、CSS 是不是在 JS 之前下载 答案：不是严格意义上的\"谁先谁后\"，更准确的理解是——并行下载，但两者阻塞的对象不同，摆放位置是为了性能考虑而约定俗成。 浏览器怎么处理这两类资源 浏览器解析HTML是从上到下的，遇到<link>标签（CSS）和<script>标签（JS）就…",
+      "excerpt": "1. Is CSS downloaded before JavaScript? Answer: not strictly \"one before the other\". More accurately — they download in parallel, but they b…",
       "headings": [
-        "一、CSS 是不是在 JS 之前下载",
-        "二、如何理解 Long Task（长任务）",
-        "一句话总结全部"
+        "1. Is CSS downloaded before JavaScript?",
+        "2. Understanding long tasks",
+        "Everything in one sentence"
       ]
     },
     {
       "number": 35,
-      "title": "ReactSSR Hydrate 与 Qwik",
+      "title": "React SSR Hydration, and Qwik",
       "labels": [
         {
           "name": "React",
@@ -306,19 +456,19 @@
       "createdAt": "2026-07-28T03:36:40Z",
       "updatedAt": "2026-07-28T03:36:40Z",
       "url": "https://github.com/Fzgt/Blog/issues/35",
-      "excerpt": "一、Hydrate 到底在解决什么问题 服务器渲染出来的HTML，本质上只是\"看起来对\"的静态标签——这份HTML上没有绑定任何事件监听器，点按钮不会有反应，因为交互逻辑都是JS写的，服务器只生成了HTML文本，没有执行任何\"绑定事件\"的动作。 浏览器下载完这份HTML后，还要把…",
+      "excerpt": "1. What hydration is actually for The HTML a server renders is just static markup that looks right. It has no event listeners attached. Clic…",
       "headings": [
-        "一、Hydrate 到底在解决什么问题",
-        "二、为什么这一步永远省不掉",
-        "三、React 18 的改进：选择性 Hydration",
-        "四、注水（Rehydration）/ 脱水（Dehydration）—— 用比喻理解",
-        "五、Qwik —— 另一套完全不同的思路",
-        "一句话总结全部"
+        "1. What hydration is actually for",
+        "2. Why this step can never be skipped",
+        "3. React 18's improvement: selective hydration",
+        "4. Hydration and dehydration — the metaphor",
+        "5. Qwik — a completely different approach",
+        "Everything in one sentence"
       ]
     },
     {
       "number": 34,
-      "title": "React 同构/SSR",
+      "title": "Isomorphic Rendering and SSR in React",
       "labels": [
         {
           "name": "React",
@@ -332,19 +482,19 @@
       "createdAt": "2026-07-28T03:35:07Z",
       "updatedAt": "2026-07-28T03:35:07Z",
       "url": "https://github.com/Fzgt/Blog/issues/34",
-      "excerpt": "一、\"同构\"到底在说什么 正常情况下，React代码只在浏览器里跑：用户打开页面，先下载一个几乎空的HTML，再下载JS，JS执行完才把内容渲染出来。HTML下载完到JS执行完之前，用户看到的是白屏。 \"同构\"（Isomorphic）说的是：同一份React代码，既能在Node.…",
+      "excerpt": "1. What \"isomorphic\" actually means Normally React only runs in the browser: the user opens the page, downloads a near-empty HTML file, down…",
       "headings": [
-        "一、\"同构\"到底在说什么",
-        "二、两种部署方式的实际差别",
-        "三、流式渲染（Streaming SSR）—— 原理详解",
-        "四、同构渲染解决了哪些性能指标",
-        "五、Serverless环境部署需要的改变",
-        "一句话总结全部"
+        "1. What \"isomorphic\" actually means",
+        "2. What the two deployment paths really differ on",
+        "3. Streaming SSR, in detail",
+        "4. Which performance metrics isomorphic rendering helps",
+        "5. What changes on serverless",
+        "Everything in one sentence"
       ]
     },
     {
       "number": 33,
-      "title": "合成事件",
+      "title": "Synthetic Events",
       "labels": [
         {
           "name": "React",
@@ -354,18 +504,18 @@
       "createdAt": "2026-07-28T02:21:44Z",
       "updatedAt": "2026-07-28T02:21:44Z",
       "url": "https://github.com/Fzgt/Blog/issues/33",
-      "excerpt": "React 如何实现自身的事件系统 / 什么是合成事件 一、什么是\"合成事件\"（SyntheticEvent） 写onClick={(e) => {...}}时，这个e不是浏览器原生的事件对象，而是React自己包了一层的合成事件对象。 合成事件本质是一个\"包装器/适配层\"——模…",
+      "excerpt": "How React builds its own event system 1. What a synthetic event is When you write onClick={(e) => {...}}, that e is not the browser's native…",
       "headings": [
-        "一、什么是\"合成事件\"（SyntheticEvent）",
-        "二、为什么要自己造一层合成事件——三个原因",
-        "三、具体怎么实现的",
-        "四、历史知识点：事件池化（Event Pooling）—— React 17移除",
-        "一句话总结"
+        "1. What a synthetic event is",
+        "2. Why build this layer at all — three reasons",
+        "3. How it actually works",
+        "4. History: event pooling, removed in React 17",
+        "In one sentence"
       ]
     },
     {
       "number": 32,
-      "title": "Hooks 不能写在条件判断/循环/嵌套函数里，业务场景必须要 if 怎么办",
+      "title": "Hooks Can't Go in Conditionals, Loops, or Nested Functions — So What if the Business Logic Needs an if?",
       "labels": [
         {
           "name": "React",
@@ -375,18 +525,18 @@
       "createdAt": "2026-07-28T01:23:17Z",
       "updatedAt": "2026-07-28T01:28:38Z",
       "url": "https://github.com/Fzgt/Blog/issues/32",
-      "excerpt": "为什么不能写在if里——问题本质是\"顺序\" React Hooks使用一个单向链表来保存组件的状态和副作用，每次组件渲染时，React会按照定义的顺序依次执行每个Hook——只要能保证每次渲染，hook被调用的顺序和次数完全一致，具体业务逻辑要不要执行是有办法灵活处理的，不是\"这…",
+      "excerpt": "Why not inside an if — the real issue is order React keeps a component's state and effects in a singly linked list, and on each render it ru…",
       "headings": [
-        "为什么不能写在if里——问题本质是\"顺序\"",
-        "解法1（最常用）：把if判断从\"要不要调用hook\"，挪到\"hook内部要不要执行逻辑\"",
-        "解法2：条件渲染的是\"整个逻辑块\"，就提取成独立子组件",
-        "解法3（小众，适用场景更窄）：用组件外状态（zustand等）",
-        "三种解法怎么选"
+        "Why not inside an if — the real issue is order",
+        "Solution 1 (the usual one): move the if from \"should I call the hook\" to \"should the hook's body do the work\"",
+        "Solution 2: if the whole block of logic is conditional, extract a child component",
+        "Solution 3 (niche, narrower): state outside the component (Zustand and friends)",
+        "Choosing between them"
       ]
     },
     {
       "number": 31,
-      "title": "React整体渲染流程",
+      "title": "The React Render Pipeline, End to End",
       "labels": [
         {
           "name": "React",
@@ -396,9 +546,9 @@
       "createdAt": "2026-07-28T00:38:17Z",
       "updatedAt": "2026-07-28T00:38:17Z",
       "url": "https://github.com/Fzgt/Blog/issues/31",
-      "excerpt": "一次完整更新全流程图PLUS版 0. 触发更新：setState被调用 → reconciler分配lane（requestUpdateLane） → 判断同步/异步 ┌─ 同步lane：直接调 performSyncWorkOnRoot，不进Scheduler，立即执行完 │ …",
+      "excerpt": "One complete update, the fuller version 0. An update is triggered: setState is called → the reconciler assigns a lane (requestUpdateLane) → …",
       "headings": [
-        "一次完整更新全流程图PLUS版"
+        "One complete update, the fuller version"
       ]
     },
     {
@@ -413,19 +563,19 @@
       "createdAt": "2026-07-28T00:01:50Z",
       "updatedAt": "2026-07-28T00:07:55Z",
       "url": "https://github.com/Fzgt/Blog/issues/30",
-      "excerpt": "基本用法 - isPending：布尔值，标记这次transition是否还在进行中 - startTransition：函数，把一次状态更新标记成\"低优先级、可被打断\" --- ⚠️ 核心规则：传给 startTransition 的函数必须是同步的 React官方文档原文： …",
+      "excerpt": "The basics - isPending: a boolean saying whether this transition is still in flight - startTransition: a function that marks a state update …",
       "headings": [
-        "基本用法",
-        "⚠️ 核心规则：传给 startTransition 的函数必须是同步的",
-        "❌ 常见误用：把异步的 .then() 回调塞进 startTransition",
-        "✅ 正确写法：await/then之后的更新，要再包一层 startTransition",
-        "附带澄清：useTransition/isPending 和 Suspense 是两套独立的loading机制",
-        "一句话总结"
+        "The basics",
+        "⚠️ The core rule: the function you pass must be synchronous",
+        "❌ The common mistake: putting an async .then() callback inside",
+        "✅ The right way: wrap again after the await",
+        "While we are here: isPending and Suspense are two separate loading mechanisms",
+        "In one sentence"
       ]
     },
     {
       "number": 29,
-      "title": "React零碎知识点汇总①",
+      "title": "React Miscellany ①",
       "labels": [
         {
           "name": "React",
@@ -435,14 +585,14 @@
       "createdAt": "2026-07-27T08:05:50Z",
       "updatedAt": "2026-07-28T00:07:55Z",
       "url": "https://github.com/Fzgt/Blog/issues/29",
-      "excerpt": "一、getDerivedStateFromProps 是什么：类组件专属的静态生命周期方法，作用是\"根据最新传进来的props，决定要不要更新state\"。 关键特点： - 静态方法，拿不到this，不能调用this.setState，只能通过return一个对象来更新state…",
+      "excerpt": "1. getDerivedStateFromProps What it is: a class-only static lifecycle method that decides whether the newest props should update state. The …",
       "headings": [
-        "一、getDerivedStateFromProps",
-        "二、Concurrent Mode（并发模式）",
-        "三、\"Jotai对Concurrent Mode完全友好\"——需要澄清的说法",
-        "四、Portal",
-        "五、react.d.ts 是什么文件",
-        "六、FID 已被 INP 取代（2024年3月起）"
+        "1. getDerivedStateFromProps",
+        "2. Concurrent mode",
+        "3. \"Jotai is fully concurrent-friendly\" — a claim that needs qualifying",
+        "4. Portals",
+        "5. What react.d.ts is",
+        "6. FID has been replaced by INP (since March 2024)"
       ]
     },
     {
@@ -461,18 +611,18 @@
       "createdAt": "2026-07-27T08:03:39Z",
       "updatedAt": "2026-07-28T00:09:43Z",
       "url": "https://github.com/Fzgt/Blog/issues/28",
-      "excerpt": "解决什么问题 React.memo/PureComponent靠\"浅比较props/state\"来判断要不要跳过渲染，但有个隐蔽的坑：如果传的是对象/数组/函数，哪怕内容一样，只要不是同一个引用，浅比较就会判定\"变了\"，照样触发重渲染。 即使style内容永远一样，因为每次都是新…",
+      "excerpt": "What it solves React.memo and PureComponent decide whether to skip a render by shallow-comparing props and state. There is a quiet trap in t…",
       "headings": [
-        "解决什么问题",
-        "具体怎么用（三步）",
-        "追踪特定组件的两种方式",
-        "实际效果",
-        "一句话总结"
+        "What it solves",
+        "How to use it, in three steps",
+        "Two ways to track specific components",
+        "What you get",
+        "In one sentence"
       ]
     },
     {
       "number": 27,
-      "title": "useContext + createContext + useReducer = Redux ／ 事件委托",
+      "title": "useContext + createContext + useReducer = Redux, and Event Delegation",
       "labels": [
         {
           "name": "React",
@@ -480,18 +630,18 @@
         }
       ],
       "createdAt": "2026-07-27T04:38:01Z",
-      "updatedAt": "2026-07-28T02:23:19Z",
+      "updatedAt": "2026-08-23T11:48:48Z",
       "url": "https://github.com/Fzgt/Blog/issues/27",
-      "excerpt": "一、createContext + useContext + useReducer ≈ 手搓Redux 1. createContext / useContext 解决什么问题 解决 props层层传递（prop drilling） 的问题——不用一层层手动转发，跳过中间所有层级…",
+      "excerpt": "1. createContext + useContext + useReducer ≈ hand-rolled Redux 1. What createContext and useContext solve Prop drilling. Instead of forwardi…",
       "headings": [
-        "一、createContext + useContext + useReducer ≈ 手搓Redux",
-        "二、事件委托",
-        "一句话记忆"
+        "1. createContext + useContext + useReducer ≈ hand-rolled Redux",
+        "2. Event delegation",
+        "Worth remembering"
       ]
     },
     {
       "number": 26,
-      "title": "React CaptureValue与闭包",
+      "title": "Closures and Captured Values in React",
       "labels": [
         {
           "name": "React",
@@ -501,20 +651,20 @@
       "createdAt": "2026-07-27T03:33:25Z",
       "updatedAt": "2026-07-28T00:07:54Z",
       "url": "https://github.com/Fzgt/Blog/issues/26",
-      "excerpt": "闭包 与 Capture Value（捕获值陷阱）笔记 一、闭包的严格定义（MDN权威说法） A closure is the combination of a function bundled together with references to its surroundin…",
+      "excerpt": "Notes on closures and the captured-value trap 1. The strict definition (from MDN) A closure is the combination of a function bundled togethe…",
       "headings": [
-        "一、闭包的严格定义（MDN权威说法）",
-        "二、常见的\"三个条件\"说法，不是闭包的严格定义，而是\"闭包效应变得可观察\"的常见场景",
-        "三、Capture Value（捕获值陷阱）—— 闭包机制在特定场景下的一个具体现象",
-        "四、根本原因：不是\"useEffect是异步\"，而是\"依赖数组为空导致只创建一次闭包\"",
-        "五、setInterval不是必要条件，只是最常见的演示方式",
-        "六、怎么用ref解决",
-        "一句话总结全部"
+        "1. The strict definition (from MDN)",
+        "2. The \"three conditions\" people quote are not the definition — they describe when the effect becomes visible",
+        "3. Captured values — one specific symptom of closures",
+        "4. The root cause is not \"useEffect is asynchronous\", it is the empty dependency array",
+        "5. setInterval is not required — it is just the easiest demonstration",
+        "6. Fixing it with a ref",
+        "The whole thing in one sentence"
       ]
     },
     {
       "number": 25,
-      "title": "useState与useReducer的diff",
+      "title": "useState vs useReducer",
       "labels": [
         {
           "name": "React",
@@ -524,13 +674,13 @@
       "createdAt": "2026-07-27T01:53:05Z",
       "updatedAt": "2026-07-28T00:07:53Z",
       "url": "https://github.com/Fzgt/Blog/issues/25",
-      "excerpt": "useState 与 useReducer 的关系 一句话结论 useState 是 useReducer 的语法糖 —— 底层走同一套 dispatch 机制，只是 React 内置了一个超简单的默认 reducer，你不用自己写。 --- React内置的那个默认reduce…",
+      "excerpt": "How useState and useReducer relate The short answer useState is sugar over useReducer. Same dispatch machinery underneath; React just suppli…",
       "headings": [
-        "一句话结论",
-        "React内置的那个默认reducer（源码里真实存在）",
-        "核心区别：两者的 action 含义完全不同",
-        "用法对比",
-        "什么时候用哪个"
+        "The short answer",
+        "React's built-in default reducer (it really is in the source)",
+        "The core difference: action means different things",
+        "Side by side",
+        "Which one to reach for"
       ]
     },
     {
@@ -545,18 +695,18 @@
       "createdAt": "2026-07-25T10:10:22Z",
       "updatedAt": "2026-07-28T00:07:53Z",
       "url": "https://github.com/Fzgt/Blog/issues/24",
-      "excerpt": "useLayoutEffect 理解笔记 一句话定位 useLayoutEffect 是\"页面画出来之前，最后一次能改DOM\"的机会。 在整个流程里卡在哪 为什么它是\"同步\"的 它会阻塞浏览器绘制——浏览器要等它跑完，才会把这次DOM改动画到屏幕上。 正因为阻塞，才能做到：用户在…",
+      "excerpt": "Notes on useLayoutEffect What it is, in one sentence useLayoutEffect is the last chance to change the DOM before the page is painted. Where …",
       "headings": [
-        "一句话定位",
-        "在整个流程里卡在哪",
-        "为什么它是\"同步\"的",
-        "常见疑问：\"在里面改DOM，会不会重新走一遍diff？\"",
-        "和 getSnapshotBeforeUpdate 的对照"
+        "What it is, in one sentence",
+        "Where it sits in the pipeline",
+        "Why it is synchronous",
+        "The common question: \"does changing the DOM in here re-run the diff?\"",
+        "Compared with getSnapshotBeforeUpdate"
       ]
     },
     {
       "number": 23,
-      "title": "React Reconciler的理解",
+      "title": "Understanding the React Reconciler",
       "labels": [
         {
           "name": "React",
@@ -566,21 +716,21 @@
       "createdAt": "2026-07-25T06:19:52Z",
       "updatedAt": "2026-07-28T00:07:52Z",
       "url": "https://github.com/Fzgt/Blog/issues/23",
-      "excerpt": "区分React里有两种性质完全不同的\"暂停/打断\" | | Render阶段的\"可打断\" | Commit阶段的\"暂停\"（View Transition相关） | |---|---|---| | 打断原因 | 被更高优先级的任务抢占 | 要等浏览器把过渡动画播完 | | 打断的对…",
+      "excerpt": "Two completely different kinds of \"pause\" in React | | Interruptible render phase | Commit-phase pause (View Transitions) | |---|---|---| | …",
       "headings": [
-        "区分React里有两种性质完全不同的\"暂停/打断\"",
-        "一、Reconciler概念",
-        "二、双缓存结构",
-        "三、构建 Fiber Tree （Render阶段）",
-        "四、React Diff 算法",
-        "一句话串联全部",
-        "快照工具getSnapShotBeforeUpdate()与ComponentDidUpdate()",
-        "Commit阶段"
+        "Two completely different kinds of \"pause\" in React",
+        "1. What the reconciler is",
+        "2. Double buffering",
+        "3. Building the fiber tree (the render phase)",
+        "4. The React diff algorithm",
+        "Tying it together",
+        "getSnapshotBeforeUpdate and componentDidUpdate",
+        "The commit phase"
       ]
     },
     {
       "number": 22,
-      "title": "React Scheduler的理解",
+      "title": "Understanding the React Scheduler",
       "labels": [
         {
           "name": "React",
@@ -590,16 +740,16 @@
       "createdAt": "2026-07-24T23:54:57Z",
       "updatedAt": "2026-07-28T00:39:06Z",
       "url": "https://github.com/Fzgt/Blog/issues/22",
-      "excerpt": "Scheduler 调度流程 <img width=\"1556\" height=\"132\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/349b525f-dd50-4148-aaea-cfebb5d7b0…",
+      "excerpt": "How scheduling works <img width=\"1556\" height=\"132\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/349b525f-dd50-4148-aaea-cfeb…",
       "headings": [
-        "一、先建立一个画面",
-        "二、第一步：任务分成两类",
-        "三、第二步：taskQueue 里怎么排队",
-        "四、第三步：怎么不卡住页面 —— 核心机制",
-        "五、第四步：workLoop 到底在循环什么",
-        "六、关于\"这个任务具体是干嘛的\"",
-        "七、Scheduler内部工作图(对应↓全流程图的④b⑤⑥)",
-        "Lanes模型和Scheduler调度器的关系"
+        "1. A picture to start with",
+        "2. Step one: two kinds of task",
+        "3. Step two: the ordering inside taskQueue",
+        "4. Step three: how the page stays responsive — the core mechanism",
+        "5. Step four: what workLoop actually loops over",
+        "6. What the task actually is",
+        "7. Inside the scheduler (steps ④b, ⑤, and ⑥ of the full diagram below)",
+        "How lanes relate to the scheduler"
       ]
     },
     {
@@ -612,20 +762,20 @@
         }
       ],
       "createdAt": "2026-07-24T04:22:39Z",
-      "updatedAt": "2026-07-28T00:07:51Z",
+      "updatedAt": "2026-08-23T12:46:20Z",
       "url": "https://github.com/Fzgt/Blog/issues/21",
-      "excerpt": "Bullet 3 ⭐ 虚拟列表 —— 500+ DOM → 20,30 FPS → 60 FPS Built the infinite scroll Feed for the Xiaodu App homepage (daily PV 5M+) based on Haokan V…",
+      "excerpt": "Bullet 3 ⭐ Virtual list — 500+ DOM nodes → 20/30 FPS → 60 FPS Built the infinite scroll Feed for the Xiaodu App homepage (daily PV 5M+) base…",
       "headings": [
-        "Bullet 3 ⭐ 虚拟列表 —— 500+ DOM → 20,30 FPS → 60 FPS",
-        "Debounce 深入 —— leading / trailing / cancel 的完整实现",
-        "线上问题排查工具链",
-        "全栈项目的技术栈复盘 —— tRPC / Zod / React Hook Form",
-        "小结"
+        "Bullet 3 ⭐ Virtual list — 500+ DOM nodes → 20/30 FPS → 60 FPS",
+        "Debounce in depth — leading, trailing, and cancel",
+        "The toolchain for diagnosing production problems",
+        "Reviewing a full-stack project's choices — tRPC, Zod, React Hook Form",
+        "In summary"
       ]
     },
     {
       "number": 20,
-      "title": "React-Query & LCP计算 & Testing",
+      "title": "React Query, Measuring LCP, and Testing",
       "labels": [
         {
           "name": "React",
@@ -635,16 +785,16 @@
       "createdAt": "2026-07-24T03:11:29Z",
       "updatedAt": "2026-07-28T00:07:51Z",
       "url": "https://github.com/Fzgt/Blog/issues/20",
-      "excerpt": "React-Query API用法 - queryKey：决定这份数据存在缓存里的\"哪个格子\"，两个地方用同样的queryKey就能共享同一份缓存。 - queryFn：具体怎么去请求，React Query不关心内部用fetch还是axios，只要求返回一个Promise。 -…",
+      "excerpt": "React Query The API - queryKey decides which slot in the cache this data occupies. Two places using the same queryKey share one cache entry.…",
       "headings": [
-        "API用法",
-        "三层架构：为什么要拆、每层各自的职责",
-        "QueryConfig类型是怎么做到\"不让传queryKey/queryFn\"的（真实bulletproof-react代码）",
-        "useMutation + invalidateQueries：提交后怎么让缓存自动刷新",
-        "预加载：prefetchQuery vs ensureQueryData",
-        "原生LCP的测量原理",
-        "banner渲染完成的判断（用img的onload）",
-        "banner + list 都完成后计算最终耗时（用Jotai存状态）"
+        "The API",
+        "Three layers: why split, and what each one is for",
+        "How QueryConfig blocks queryKey and queryFn (the real bulletproof-react code)",
+        "useMutation and invalidateQueries: refreshing the cache after a write",
+        "Prefetching: prefetchQuery vs ensureQueryData",
+        "How native LCP is measured",
+        "Knowing when the banner has rendered (using img.onload)",
+        "Computing the total once both banner and list are ready (state in Jotai)"
       ]
     },
     {
@@ -654,15 +804,15 @@
       "createdAt": "2026-07-19T03:57:29Z",
       "updatedAt": "2026-07-24T04:23:56Z",
       "url": "https://github.com/Fzgt/Blog/issues/19",
-      "excerpt": "Bullet 1:小度 App H5 智能家居模块 —— jsBridge + 混合应用 Delivered the Xiaodu App's embedded H5 smart home module (Vue 2 + Webpack 3), implementing nati…",
+      "excerpt": "Bullet 1: the Xiaodu App's H5 smart home module — jsBridge and a hybrid app Delivered the Xiaodu App's embedded H5 smart home module (Vue 2 …",
       "headings": [
-        "Bullet 1:小度 App H5 智能家居模块 —— jsBridge + 混合应用",
-        "Bullet 2:提现功能 QPS 2000+ —— 高并发场景下的前端防御"
+        "Bullet 1: the Xiaodu App's H5 smart home module — jsBridge and a hybrid app",
+        "Bullet 2: withdrawals at 2,000+ QPS — front-end defence under high concurrency"
       ]
     },
     {
       "number": 18,
-      "title": "HTTP 缓存策略",
+      "title": "HTTP Caching Strategies",
       "labels": [
         {
           "name": "知识体系",
@@ -672,20 +822,20 @@
       "createdAt": "2025-09-06T03:33:32Z",
       "updatedAt": "2026-07-29T02:33:34Z",
       "url": "https://github.com/Fzgt/Blog/issues/18",
-      "excerpt": "问题:说一下 HTTP 缓存策略,有什么区别,分别解决了什么问题 答案: HTTP 缓存策略是一种用来提高网络应用性能的技术,主要目的是减少数据的重复传输,减轻服务器负担,加快客户端加载速度。不同的缓存策略有各自的特点和适用场景,主要包括: 1. 强缓存(Strong Cache…",
+      "excerpt": "Question: explain the HTTP caching strategies — how do they differ, and what does each one solve? Answer: HTTP caching is a technique for ma…",
       "headings": [
-        "问题:说一下 HTTP 缓存策略,有什么区别,分别解决了什么问题",
-        "1. 强缓存(Strong Cache)",
-        "2. 协商缓存(Negotiated Cache)",
-        "3. 不缓存策略",
-        "如何选择:不同缓存策略的应用场景",
-        "三种策略对比总结",
-        "强缓存 协商缓存 工作机制"
+        "Question: explain the HTTP caching strategies — how do they differ, and what does each one solve?",
+        "1. Strong caching",
+        "2. Negotiated caching",
+        "3. No caching",
+        "Choosing between them",
+        "The three side by side",
+        "How strong and negotiated caching work"
       ]
     },
     {
       "number": 17,
-      "title": "TS笔记",
+      "title": "TypeScript Notes",
       "labels": [
         {
           "name": "知识体系",
@@ -695,17 +845,17 @@
       "createdAt": "2025-09-06T01:57:38Z",
       "updatedAt": "2026-07-28T08:13:40Z",
       "url": "https://github.com/Fzgt/Blog/issues/17",
-      "excerpt": "泛型 Generic - 泛型就是类型的参数化。像函数可以接收参数一样，泛型允许你给类型定义参数，从而提高复用性和灵活性。 泛型约束 Generic Constraints - 有时我们希望限制泛型的范围，可以用 extends： 类型type - type 关键字可以给一个类型…",
+      "excerpt": "Generics A generic is a parameterised type. Just as a function takes arguments, generics let you give a type parameters, which makes it reus…",
       "headings": [
-        "泛型 Generic",
-        "类型type",
-        "五种常用映射类型 Mapped Types",
-        "补充"
+        "Generics",
+        "type",
+        "Five groups of mapped types",
+        "Extras"
       ]
     },
     {
       "number": 16,
-      "title": "性能监控SDK",
+      "title": "A Performance Monitoring SDK",
       "labels": [
         {
           "name": "性能优化",
@@ -713,24 +863,24 @@
         }
       ],
       "createdAt": "2025-08-21T11:08:42Z",
-      "updatedAt": "2026-07-28T00:08:59Z",
+      "updatedAt": "2026-08-23T11:48:43Z",
       "url": "https://github.com/Fzgt/Blog/issues/16",
-      "excerpt": "前置准备 - 使用webpack就没有那么多优势了，因为作为SDK就是个JS或TS文件，而webpack的优势在于他的loader和插件。 - 所以首选Rollup专门用于JS打包的，还有 esbuild(golang) 和 swc (rust、对标babel、构建速度对标esb…",
+      "excerpt": "Groundwork - Webpack does not buy you much here. An SDK is a single JS or TS file, and Webpack's strength is its loaders and plugins. - Roll…",
       "headings": []
     },
     {
       "number": 15,
-      "title": "待定",
+      "title": "TBD",
       "labels": [],
       "createdAt": "2025-08-21T08:40:11Z",
-      "updatedAt": "2026-07-28T08:13:28Z",
+      "updatedAt": "2026-08-23T11:48:39Z",
       "url": "https://github.com/Fzgt/Blog/issues/15",
-      "excerpt": "执行代码分析 和 生成报告 都可以在sonar cloud进行，只需要在跑CI的时候sonar scanner或者GitActions插件传数据给sonar cloud 生成的报告内容 - 潜在运行时错误，未使用的变量，死代码 - 安全漏洞 XSS、SQL注入风险。不安全的函数/…",
+      "excerpt": "Both the code analysis and the report can run on SonarCloud. All you need is for CI to push the data up — either the Sonar Scanner or the Gi…",
       "headings": []
     },
     {
       "number": 14,
-      "title": "Webpack优化与原理分析",
+      "title": "Webpack Optimisation and Internals",
       "labels": [
         {
           "name": "性能优化",
@@ -744,12 +894,21 @@
       "createdAt": "2025-08-17T15:50:34Z",
       "updatedAt": "2026-07-29T01:52:46Z",
       "url": "https://github.com/Fzgt/Blog/issues/14",
-      "excerpt": "https://ke.qq.com/webcourse/1647350/103691469#taid=12145403010556662&vid=387702293148710449 现在视频的播放引擎里面都是webAssembly。 Webpack的软肋是JS，JS运行在JIT…",
-      "headings": []
+      "excerpt": "https://ke.qq.com/webcourse/1647350/103691469#taid=12145403010556662&vid=387702293148710449 Video playback engines are all WebAssembly now. …",
+      "headings": [
+        "I/O",
+        "Tooling",
+        "Caching",
+        "Mechanics",
+        "Implementing CommonJS",
+        "The Webpack lifecycle",
+        "Parcel",
+        "Minifying the bundle"
+      ]
     },
     {
       "number": 13,
-      "title": "如何优化各性能指标",
+      "title": "Optimising Each Performance Metric",
       "labels": [
         {
           "name": "性能优化",
@@ -759,12 +918,12 @@
       "createdAt": "2025-08-17T13:45:13Z",
       "updatedAt": "2026-07-28T00:08:30Z",
       "url": "https://github.com/Fzgt/Blog/issues/13",
-      "excerpt": "FID (首次输入延迟) - 减少主线程阻塞。所以说React18的concurrent模式，能优化FID。 - 拆包，代码分割，避免大bundle。 - 路由级别拆分，lazy(() => import('./Home'))，wepack会去自动拆异步包，通过懒加载，首次的体积…",
+      "excerpt": "FID (First Input Delay) - Block the main thread less. This is why React 18's concurrent mode helps FID. - Split the bundle. Avoid one huge f…",
       "headings": []
     },
     {
       "number": 12,
-      "title": "CDN 原理解析",
+      "title": "How a CDN Works",
       "labels": [
         {
           "name": "性能优化",
@@ -772,14 +931,14 @@
         }
       ],
       "createdAt": "2025-08-17T12:33:29Z",
-      "updatedAt": "2026-07-28T00:08:29Z",
+      "updatedAt": "2026-08-23T11:48:41Z",
       "url": "https://github.com/Fzgt/Blog/issues/12",
-      "excerpt": "- 放到CDN上的图片还会被优化 自动压缩、格式转换、尺寸调整。 - 即使不是网站首页公共访问的图片，个人信息的图片也可能被别的用户多次查看，所以也是有必要放cdn的。特别热门用户。",
+      "excerpt": "- Images on a CDN still get optimised: automatic compression, format conversion, resizing. - Even images that are not public front-page asse…",
       "headings": []
     },
     {
       "number": 11,
-      "title": "Cookie Session Token 解析",
+      "title": "Cookies, Sessions, and Tokens",
       "labels": [
         {
           "name": "知识体系",
@@ -789,12 +948,12 @@
       "createdAt": "2025-08-17T11:27:16Z",
       "updatedAt": "2026-07-28T00:11:56Z",
       "url": "https://github.com/Fzgt/Blog/issues/11",
-      "excerpt": "- Cookie是用来保存sessionId httpOnly secure等信息，保存用户登陆态的，避免用户每次都要重新登陆，账号和密码是不会存在Cookie里的。Cookie发送和存储都是浏览器自动完成的。且每次http请求会自动发送Cookie。且响应中设置set-cook…",
+      "excerpt": "- A cookie holds things like the session ID, httpOnly, and secure. It keeps the user logged in so they do not have to sign in again on every…",
       "headings": []
     },
     {
       "number": 10,
-      "title": "像素与视口",
+      "title": "Pixels and the Viewport",
       "labels": [
         {
           "name": "知识体系",
@@ -804,19 +963,19 @@
       "createdAt": "2025-08-14T07:04:32Z",
       "updatedAt": "2026-07-28T08:19:15Z",
       "url": "https://github.com/Fzgt/Blog/issues/10",
-      "excerpt": "前端像素与视口知识点整理 1. 物理像素 vs CSS 像素 | 概念 | 说明 | |---|---| | 物理像素 | 屏幕上真实存在的发光小点,硬件层面固定不变(如 iPhone 6 屏幕分辨率 750×1334) | | CSS 像素 | 我们写代码时用的逻辑单位(如 w…",
+      "excerpt": "Pixels and the viewport 1. Physical pixels vs CSS pixels | Concept | What it is | |---|---| | Physical pixel | A real light-emitting dot on …",
       "headings": [
-        "1. 物理像素 vs CSS 像素",
-        "2. 视口(Viewport)",
-        "3. 手机像素与移动端适配问题",
-        "4. 完美视口(Perfect Viewport)",
-        "5. vw(viewport width)单位",
-        "知识点串联总结"
+        "1. Physical pixels vs CSS pixels",
+        "2. The viewport",
+        "3. Phone pixels and mobile adaptation",
+        "4. The perfect viewport",
+        "5. The vw unit",
+        "Putting it together"
       ]
     },
     {
       "number": 9,
-      "title": "阿里P8前端一面二面 & React面试问题",
+      "title": "Alibaba P8 Front-end Interviews & React Questions",
       "labels": [
         {
           "name": "React",
@@ -830,16 +989,16 @@
       "createdAt": "2025-08-14T07:01:17Z",
       "updatedAt": "2026-07-28T08:06:34Z",
       "url": "https://github.com/Fzgt/Blog/issues/9",
-      "excerpt": "阿里P8资深前端架构师1面 （我在从老家回来高速上全程聊了48分钟） 1.简单做个自我介绍 开始打断了我，嗯。百度的经历你不用介绍了，我在lBS6年，你的老大我很熟。 2.我也来自我介绍下，我是阿里支付宝大前端负责人，我们的团队分工很多，你看你喜欢哪一个类型的。 3.聊一下近一年…",
+      "excerpt": "Alibaba P8 senior front-end architect, round 1 (48 minutes, the whole drive back from my hometown on the motorway.) 1. Give me a short intro…",
       "headings": [
-        "阿里P8资深前端架构师1面",
-        "阿里P8 2面",
-        "React面试问题"
+        "Alibaba P8 senior front-end architect, round 1",
+        "Alibaba P8, round 2",
+        "React interview questions"
       ]
     },
     {
       "number": 8,
-      "title": "React HOC深度解析",
+      "title": "Higher-Order Components in Depth",
       "labels": [
         {
           "name": "React",
@@ -849,12 +1008,12 @@
       "createdAt": "2025-08-13T07:07:25Z",
       "updatedAt": "2026-07-28T00:07:51Z",
       "url": "https://github.com/Fzgt/Blog/issues/8",
-      "excerpt": "个人理解 - hoc就相当于把一个组件传到一个 中间件性质的组件里处理，给这个传进去的组件赋能，然后返回一个新组件。 - 所谓赋能 既可以是对这个组件数据上的赋能也可以是UI上的。 - 如果是 授权管理 和 数据获取 的应用场景，那就是在父组件完成逻辑的处理，然后通过组件的pro…",
+      "excerpt": "How I think about it - An HOC is like passing a component through a piece of middleware: it takes a component, gives it something extra, and…",
       "headings": []
     },
     {
       "number": 7,
-      "title": "React 如何封装组件",
+      "title": "How to Structure a React Component",
       "labels": [
         {
           "name": "React",
@@ -864,7 +1023,7 @@
       "createdAt": "2025-08-12T14:17:54Z",
       "updatedAt": "2026-07-28T00:07:50Z",
       "url": "https://github.com/Fzgt/Blog/issues/7",
-      "excerpt": "比较通用的方案是： 通过区分 容器组件 和 UI组件。 只把最通用性的部分提取出成UI组件。然后通过参数控制不同样式的UI。 而逻辑都写到容器组件里，容器组件里再嵌套封装的UI组件来使用。 避免在封装组件的时候引入业务逻辑到里边，难免后边会变动。 <img width=\"281\"…",
+      "excerpt": "The approach that generalises well: separate container components from UI components. Extract only the genuinely reusable part into a UI com…",
       "headings": []
     },
     {
@@ -879,19 +1038,19 @@
       "createdAt": "2025-08-11T10:32:38Z",
       "updatedAt": "2026-07-28T01:30:45Z",
       "url": "https://github.com/Fzgt/Blog/issues/6",
-      "excerpt": "为什么会有hooks？解决了什么问题 历史背景：hooks出现前的最佳实践是 class组件做容器组件 + function组件做UI组件， 因为function组件不能定义state，只能通过props传值，组件能力很薄弱。 痛点1：状态逻辑很难在组件间复用——只能靠HOC或r…",
+      "excerpt": "Why hooks exist, and what they fixed Some history. Before hooks, the accepted pattern was class components as containers and function compon…",
       "headings": [
-        "为什么会有hooks？解决了什么问题",
-        "为什么要用useCallback",
-        "useState的理解",
-        "useEffect的理解",
-        "React.memo()与pureComponent与ShouldComponentUpdate",
-        "简版useState实现"
+        "Why hooks exist, and what they fixed",
+        "Why useCallback",
+        "Understanding useState",
+        "Understanding useEffect",
+        "React.memo vs PureComponent vs shouldComponentUpdate",
+        "A minimal useState"
       ]
     },
     {
       "number": 5,
-      "title": "对with的理解",
+      "title": "Understanding `with`",
       "labels": [
         {
           "name": "知识体系",
@@ -901,12 +1060,12 @@
       "createdAt": "2025-08-09T01:35:01Z",
       "updatedAt": "2026-07-28T00:11:39Z",
       "url": "https://github.com/Fzgt/Blog/issues/5",
-      "excerpt": "研究with的背景 Vue2的Compiler在编译模版时，会将 template -> ast -> render函数 -> VNode。生成的render函数中用到了 with 导致了性能问题。 为什么Vue2用with with能够扩展作用域链，让其内部作用域能够轻松访问其…",
+      "excerpt": "Why look at with at all Vue 2's compiler turns a template into an AST, then a render function, then VNodes. The generated render function us…",
       "headings": []
     },
     {
       "number": 4,
-      "title": "Vue原理+源码解析",
+      "title": "Vue Internals and Source Reading",
       "labels": [
         {
           "name": "知识体系",
@@ -916,21 +1075,21 @@
       "createdAt": "2025-08-07T08:56:24Z",
       "updatedAt": "2026-07-28T00:11:38Z",
       "url": "https://github.com/Fzgt/Blog/issues/4",
-      "excerpt": "区分Vue2离线编译和在线编译 - 在线编译 runtime + compiler 即使用 vue/dist/vue.esm.js - 离线编译 runtime 即使用 vue/dist/vue.runtime.esm.js 如果要性能优化，就把 compiler拆出去 节省线上…",
+      "excerpt": "Vue 2: offline vs online compilation - Online — runtime + compiler, i.e. vue/dist/vue.esm.js - Offline — runtime only, i.e. vue/dist/vue.run…",
       "headings": [
-        "区分Vue2离线编译和在线编译",
-        "vue-loader的作用",
-        "Object.defineProperty能监听数组吗",
-        "Vue2数组重写的原因",
-        "Vue2响应式原理",
-        "keep-alive原理",
-        "什么时候使用nextTick",
-        "Compiler编译流程"
+        "Vue 2: offline vs online compilation",
+        "What vue-loader does",
+        "Can Object.defineProperty observe arrays?",
+        "Why Vue 2 rewrote the array methods",
+        "Vue 2 reactivity",
+        "How keep-alive works",
+        "When to use nextTick",
+        "The compiler pipeline"
       ]
     },
     {
       "number": 3,
-      "title": "JS垃圾回收机制",
+      "title": "How JavaScript Garbage Collection Works",
       "labels": [
         {
           "name": "知识体系",
@@ -940,25 +1099,25 @@
       "createdAt": "2025-08-03T14:09:41Z",
       "updatedAt": "2026-07-28T08:04:14Z",
       "url": "https://github.com/Fzgt/Blog/issues/3",
-      "excerpt": "垃圾回收机制 涉及面试题：V8 下的垃圾回收机制是怎么样的？ （1）垃圾回收概述 垃圾回收机制(GC:Garbage Collection),执行环境负责管理代码执行过程中使用的内存。垃圾收集器会定期（周期性）找出那些不在继续使用的变量，然后释放其内存。但是这个过程不是实时的，因…",
+      "excerpt": "Garbage collection Interview question this covers: how does garbage collection work in V8? (1) Overview Garbage collection (GC) means the ru…",
       "headings": [
-        "垃圾回收机制",
-        "新生代算法",
-        "老生代算法"
+        "Garbage collection",
+        "The young generation",
+        "The old generation"
       ]
     },
     {
       "number": 2,
-      "title": "前端资源+国外前端博主",
+      "title": "Front-end Resources and Bloggers Worth Following",
       "labels": [],
       "createdAt": "2025-08-03T14:08:40Z",
       "updatedAt": "2026-07-28T08:03:05Z",
       "url": "https://github.com/Fzgt/Blog/issues/2",
-      "excerpt": "前端资源 京程一灯腾讯云 https://cloud.tencent.com/developer/column/75529/tag-0 冴羽 https://github.com/mqyqingfeng/Blog node+实践系列 https://github.com/webf…",
+      "excerpt": "Front-end resources Yideng on Tencent Cloud https://cloud.tencent.com/developer/column/75529/tag-0 Yayu https://github.com/mqyqingfeng/Blog …",
       "headings": [
-        "前端资源",
-        "TS学习资源",
-        "国外前端博主"
+        "Front-end resources",
+        "TypeScript",
+        "Front-end bloggers abroad"
       ]
     },
     {
@@ -966,9 +1125,9 @@
       "title": "Focusing on",
       "labels": [],
       "createdAt": "2025-08-01T06:44:01Z",
-      "updatedAt": "2026-07-19T03:36:47Z",
+      "updatedAt": "2026-08-23T11:48:40Z",
       "url": "https://github.com/Fzgt/Blog/issues/1",
-      "excerpt": "前端知识体系 Recap - JS 各项特性及原理 ⭐️ - Vue2/3 各用法及底层原理 - React 各特性+Hooks+底层原理 ⭐️ - React 各状态管理库 - React 生态周边库 - Webpack 底层原理+优化手段 ⭐️ - Vite+对各构建工具的理…",
+      "excerpt": "Front-end knowledge recap - JavaScript features and how they work under the hood ⭐️ - Vue 2/3 APIs and internals - React features, hooks, an…",
       "headings": []
     }
   ]

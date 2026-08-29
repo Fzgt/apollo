@@ -1,6 +1,6 @@
 {
   "number": 12,
-  "title": "CDN 原理解析",
-  "body": "- 放到CDN上的图片还会被优化 自动压缩、格式转换、尺寸调整。\n- 即使不是网站首页公共访问的图片，个人信息的图片也可能被别的用户多次查看，所以也是有必要放cdn的。特别热门用户。",
-  "updatedAt": "2026-07-28T00:08:29Z"
+  "title": "How a CDN Works",
+  "body": "\n- Images on a CDN still get optimised: automatic compression, format conversion, resizing.\n- Even images that are not public front-page assets are worth putting on a CDN. A profile picture is private data, but other users still load it many times over — especially for popular accounts.\n",
+  "updatedAt": "2026-08-23T11:48:41Z"
 }

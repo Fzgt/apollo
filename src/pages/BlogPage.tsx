@@ -24,6 +24,7 @@ import {
   type BlogPostMeta,
 } from '@/lib/blog';
 import { cn } from '@/lib/utils';
+import { labelText } from '@/content/blog-en';
 
 // 正文渲染（react-markdown + prism）和目录只在点开文章时才需要，
 // 静态引入会让列表页白白多下 150kB+，所以拆成按需加载。
@@ -72,7 +73,7 @@ function matchesQuery(post: BlogPostMeta, query: string): boolean {
     post.excerpt,
     ...(post.headings ?? []),
     `#${post.number}`,
-    ...post.labels.map((l) => l.name),
+    ...post.labels.map((l) => `${l.name} ${labelText(l.name)}`),
   ]
     .join(' ')
     .toLowerCase();
@@ -353,7 +354,7 @@ export default function BlogPage() {
                             style={{ backgroundColor: `#${label.color}` }}
                           />
                         )}
-                        {label.name}
+                        {labelText(label.name)}
                         <span className="tabular-nums opacity-60">{label.count}</span>
                       </Chip>
                     );
@@ -443,7 +444,7 @@ export default function BlogPage() {
                                   style={{ backgroundColor: `#${label.color}` }}
                                 />
                               )}
-                              {label.name}
+                              {labelText(label.name)}
                             </span>
                           ))}
                         </div>
@@ -463,9 +464,9 @@ export default function BlogPage() {
                           rel="noopener noreferrer"
                           className="text-primary underline underline-offset-4"
                         >
-                          View on GitHub
+                          on GitHub
                         </a>
-                        。
+                        .
                       </p>
                     )}
 

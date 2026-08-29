@@ -1,6 +1,6 @@
 {
   "number": 7,
-  "title": "React 如何封装组件",
-  "body": "比较通用的方案是：\n\n通过区分 容器组件 和 UI组件。\n\n只把最通用性的部分提取出成UI组件。然后通过参数控制不同样式的UI。\n\n而逻辑都写到容器组件里，容器组件里再嵌套封装的UI组件来使用。\n避免在封装组件的时候引入业务逻辑到里边，难免后边会变动。\n\n<img width=\"281\" height=\"307\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/145b21fa-7a1a-4024-b24c-cd7c30b2fe90\" />\n\n类似这种 只需要通过传参来控制 button 是展示 “新增商品” 还是 “提交修改”\n\n让负责新增功能的容器组件 和 负责修改功能的容器组件 分别去调封装的UI组件就好了。\n\n补充一点：现代 React 项目里这个模式通常用自定义 Hook 来承载容器层的逻辑，而不一定非要写一个容器组件，但分离的思想是一样的。",
+  "title": "How to Structure a React Component",
+  "body": "\nThe approach that generalises well: separate container components from UI components.\n\nExtract only the genuinely reusable part into a UI component, and control the different looks through props.\n\nAll the logic lives in the container, which nests the UI component inside it. Keep business logic out of the reusable component — it will change sooner or later.\n\n<img width=\"281\" height=\"307\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/145b21fa-7a1a-4024-b24c-cd7c30b2fe90\" />\n\nSomething like this: one prop decides whether the button reads \"Add product\" or \"Save changes\".\n\nThen the container that handles adding and the container that handles editing both call the same UI component.\n\nOne more note: in a modern React codebase the container layer usually ends up in a custom hook rather than an actual container component. The separation is the same idea either way.\n",
   "updatedAt": "2026-07-28T00:07:50Z"
 }

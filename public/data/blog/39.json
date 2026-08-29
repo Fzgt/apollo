@@ -1,6 +1,6 @@
 {
   "number": 39,
   "title": "Algorithm",
-  "body": "## 做树的题如何判断需不需要helper函数\n- 函数的\"输入输出\"和\"你想要的最终结果\"是否一致，所以maxDepth不需要，而中序遍历需要。\n- 或者函数的参数对应不上。（需要两个参数比较左右是否镜像，isSymmetric只有一个)\n```js\nfunction isSymmetric(root: TreeNode | null): boolean {\n    return isMirror(root.left, root.right);\n};\n```\n",
-  "updatedAt": "2026-07-31T10:58:40Z"
+  "body": "\n## Tree problems: when do you need a helper function?\n\n- Ask whether the function's input and output already match the answer you want. `maxDepth` does, so it needs no helper; an inorder traversal does not.\n- Or ask whether the parameters line up. Checking mirror symmetry needs two nodes to compare, and `isSymmetric` only takes one.\n\n```js\nfunction isSymmetric(root: TreeNode | null): boolean {\n    return isMirror(root.left, root.right);\n};\n```\n",
+  "updatedAt": "2026-08-23T11:48:44Z"
 }

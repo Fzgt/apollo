@@ -35,6 +35,8 @@ export interface BlogIndex {
   /** 数据抓取时间 */
   syncedAt: string;
   posts: BlogPostMeta[];
+  /** 快照里已经是英文的那些 issue 号，见 scripts/sync-blog.mjs */
+  translated?: number[];
   /** snapshot = 构建期快照，live = 刚从 GitHub 拉的 */
   source: 'snapshot' | 'live';
 }
@@ -88,6 +90,40 @@ function toHeadings(body: string): string[] {
   return headings;
 }
 
+/**
+ * 英文层不在这一层做，构建期就合进快照了（scripts/sync-blog.mjs）。
+ * 这里只负责：运行期从 GitHub 拉到的是中文原文，凡是快照里已有译文的，
+ * 标题、摘要、目录一律以快照为准，别让实时同步把英文冲回中文。
+ */
+const snapshotPosts = new Map<number, BlogPostMeta>();
+const translatedNumbers = new Set<number>();
+let snapshotLoaded = false;
+
+function rememberSnapshot(index: BlogIndex): void {
+  snapshotPosts.clear();
+  for (const post of index.posts) snapshotPosts.set(post.number, post);
+
+  translatedNumbers.clear();
+  for (const number of index.translated ?? []) translatedNumbers.add(number);
+
+  snapshotLoaded = true;
+}
+
+function preferSnapshotMeta(post: BlogPostMeta): BlogPostMeta {
+  if (!translatedNumbers.has(post.number)) return post;
+
+  const snapshot = snapshotPosts.get(post.number);
+  if (!snapshot) return post;
+
+  // 标签、时间、链接还是以 GitHub 最新的为准，只有文字部分用译文
+  return {
+    ...post,
+    title: snapshot.title,
+    excerpt: snapshot.excerpt,
+    headings: snapshot.headings,
+  };
+}
+
 interface GitHubIssue {
   number: number;
   title: string;
@@ -114,7 +150,9 @@ export async function loadSnapshotIndex(signal?: AbortSignal): Promise<BlogIndex
     throw new Error(`Could not read the snapshot (${res.status})`);
   }
   const data = (await res.json()) as Omit<BlogIndex, 'source'>;
-  return { ...data, source: 'snapshot' };
+  const index: BlogIndex = { ...data, source: 'snapshot' };
+  rememberSnapshot(index);
+  return index;
 }
 
 /**
@@ -154,16 +192,18 @@ export async function fetchLiveIndex(signal?: AbortSignal): Promise<BlogIndex> {
     repo: BLOG_REPO,
     syncedAt: new Date().toISOString(),
     source: 'live',
-    posts: issues.map((issue) => ({
-      number: issue.number,
-      title: issue.title,
-      labels: normalizeLabels(issue.labels),
-      createdAt: issue.created_at,
-      updatedAt: issue.updated_at,
-      url: issue.html_url,
-      excerpt: toExcerpt(issue.body ?? ''),
-      headings: toHeadings(issue.body ?? ''),
-    })),
+    posts: issues.map((issue) =>
+      preferSnapshotMeta({
+        number: issue.number,
+        title: issue.title,
+        labels: normalizeLabels(issue.labels),
+        createdAt: issue.created_at,
+        updatedAt: issue.updated_at,
+        url: issue.html_url,
+        excerpt: toExcerpt(issue.body ?? ''),
+        headings: toHeadings(issue.body ?? ''),
+      })
+    ),
   };
 
   liveIndexCache = index;
@@ -174,13 +214,25 @@ export function getCachedLiveIndex(): BlogIndex | null {
   return liveIndexCache;
 }
 
-/** 正文：内存缓存 → 构建期快照文件 */
+/**
+ * 正文：内存缓存 → 构建期快照文件。
+ *
+ * 有译文的那几篇要跳过内存缓存 —— 缓存里是实时同步顺手收下的中文原文，
+ * 英文正文只在快照文件里。快照还没读到时一律先信快照，免得竞态下闪一下中文。
+ */
 export async function loadPostBody(number: number, signal?: AbortSignal): Promise<string> {
-  const cached = bodyCache.get(number);
-  if (cached !== undefined) return cached;
+  const preferSnapshot = !snapshotLoaded || translatedNumbers.has(number);
+
+  if (!preferSnapshot) {
+    const cached = bodyCache.get(number);
+    if (cached !== undefined) return cached;
+  }
 
   const res = await fetch(assetUrl(`data/blog/${number}.json`), { signal });
   if (!res.ok) {
+    // 构建之后才开的 issue 不在快照里，退回实时同步收下的那份
+    const cached = bodyCache.get(number);
+    if (cached !== undefined) return cached;
     throw new Error(`This post is not in the snapshot yet (#${number})`);
   }
 
