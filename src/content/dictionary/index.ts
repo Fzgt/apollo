@@ -22,7 +22,10 @@ export const dictionaryTags = [...new Set(dictionary.flatMap((entry) => entry.ta
       dictionary.filter((e) => e.tags?.includes(a)).length || a.localeCompare(b)
 );
 
-const known = new Set(dictionary.map((entry) => entry.term.toLowerCase()));
+/** 词条本身和它的变体都算「已收录」：队列里敲的是 relaying，词条挂的是 relay */
+const known = new Set(
+  dictionary.flatMap((entry) => [entry.term, ...(entry.also ?? [])].map((w) => w.toLowerCase()))
+);
 
 /** 队列里这个词是不是已经收进单词本了 */
 export function isDefined(term: string): boolean {

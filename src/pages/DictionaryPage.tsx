@@ -1,6 +1,6 @@
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Copy, Github, Search, SearchX, Trash2, X } from 'lucide-react';
+import { Check, Copy, Search, SearchX, Trash2, X } from 'lucide-react';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { WordRow } from '@/components/dictionary/WordRow';
 import { dictionary, dictionaryCount, dictionaryTags, type WordEntry } from '@/content/dictionary';
@@ -12,7 +12,6 @@ import {
   removeWord,
   subscribeQueue,
 } from '@/lib/word-queue';
-import { DICTIONARY_ISSUE_URL } from '@/content/site';
 import { fuzzyMatch } from '@/lib/fuzzy';
 import { cn } from '@/lib/utils';
 
@@ -57,8 +56,6 @@ export default function DictionaryPage() {
     }
   };
 
-  const issueHref = `${DICTIONARY_ISSUE_URL}&body=${encodeURIComponent(queueAsText(queue))}`;
-
   return (
     <div className="min-h-screen bg-background">
       <div className="pt-20 md:pt-24">
@@ -89,15 +86,6 @@ export default function DictionaryPage() {
                     {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
                     {copied ? 'Copied' : 'Copy list'}
                   </button>
-                  <a
-                    href={issueHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
-                  >
-                    <Github className="size-3.5" />
-                    Open issue
-                  </a>
                   <button
                     type="button"
                     onClick={clearQueue}
@@ -110,8 +98,8 @@ export default function DictionaryPage() {
               </div>
 
               <p className="mt-1 text-xs text-muted-foreground">
-                These live in this browser only. Hand the list over and they come back below, in both
-                languages.
+                These live in this browser only. Copy the list, hand it over, and the words come
+                back below in the table — in both languages.
               </p>
 
               <div className="mt-3 flex flex-wrap gap-1.5">
