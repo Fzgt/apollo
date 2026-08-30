@@ -76,7 +76,7 @@ Concept names only, no explanations. Go through it once yourself: cross off what
 
 ### 1.5 Rendering performance
 
-- ★ LCP (you wrote detail-page LCP < 500ms) [BioMap]
+- ○ LCP (an old BioMap line claimed `< 500ms`; it was removed from the resume because it had no measurement evidence)
 - ○ the whole Core Web Vitals family: LCP / CLS / INP (formerly FID) / TTFB, field data vs lab data
 - ★ virtualized lists: computing the visible window, fixed vs variable height, overscan, keeping the DOM node count down [Baidu]
 - ★ `IntersectionObserver` vs scroll events, scroll anchoring

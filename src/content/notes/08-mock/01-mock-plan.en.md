@@ -44,7 +44,7 @@ Practise three things out loud:
 | Baidu ② ⑤ | The top of [①③ The virtualized feed and the production white screen](/docs?section=baidu&item=virtual-list) (two paragraphs) |
 | Periplus ① ② ③ ⑤ | The top of each must-read page |
 | WinterFell ① ② ③ ④ | The top of [①④ The render pipeline and that freeze](/docs?section=winterfell&item=fog-freeze) (four paragraphs) |
-| BioMap | The "establish this first" paragraph in [① TanStack Query](/docs?section=biomap&item=tanstack-query)) |
+| BioMap | The "30-second answer" in each of the four notes, starting with [① Architectural boundaries](/docs?section=biomap&item=architecture-boundaries) |
 
 > **Write the drafts for the ones that have none** — if you cannot produce a 30-second version, you have not really thought that one through.
 

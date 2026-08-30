@@ -101,7 +101,7 @@ status: doing
 
 ## 3. ~~LCP under 500 ms~~（已从简历删除）
 
-**出处**：BioMap TanStack Query · ✅ 已完成，详解见 [#3 · LCP under 500 ms](/docs?section=biomap&item=tanstack-query)
+**出处**：BioMap TanStack Query · ✅ 已完成，旧指标为何删除及当前缓存口径见 [③ TanStack Query](/docs?section=biomap&item=tanstack-query)
 
 什么工具测的（Lighthouse / WebPageTest / RUM）？lab 还是 field 数据？哪个页面、什么网络条件？优化前的基线是多少？
 

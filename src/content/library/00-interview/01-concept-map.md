@@ -77,7 +77,7 @@ icon: mic-2
 
 ### 1.5 渲染性能
 
-- ★ LCP（你写了 detail-page LCP < 500ms）[BioMap]
+- ○ LCP（BioMap 旧版写过 `< 500ms`，已因无测量证据从简历删除）
 - ○ Core Web Vitals 全家：LCP / CLS / INP（原 FID）/ TTFB，字段数据 vs 实验室数据
 - ★ 虚拟列表：可视区计算、定高 vs 不定高、overscan、DOM 节点数控制 [百度]
 - ★ `IntersectionObserver` 与滚动事件的取舍、滚动锚定

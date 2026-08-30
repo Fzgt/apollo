@@ -6,7 +6,7 @@ icon: microscope
 
 # BioMap —— 简历 v40 四条 bullet
 
-> ⚠️ **本文按 v40 的顺序排（LIMS 在前）。v66 的 BioMap 四条文字一字未改，只是换了顺序：① TanStack Query ② 架构边界 ③ 设计系统与 MSW ④ LIMS。**下面的「Bullet 1–4」是 v40 编号，别照着报序号。
+> ⚠️ **这是按 v40 顺序保存的历史资料。现版简历顺序是：① 架构边界 ② 设计系统 ③ TanStack Query ④ LIMS。**当前面试口径以「计划」里的四篇重写版为准；下面的「Bullet 1–4」只表示旧版编号。
 >
 > 结构对齐 **简历的 BioMap 四条**，一条不多一条不少。每条分四段：**原文** / **在哪看** / **怎么讲** / **可能的追问**。
 > 上一版里那条「工具链 + Docker/Nginx/Jenkins」v40 已经不写了，整节删除。
@@ -113,7 +113,7 @@ icon: microscope
 ---
 
 
-## Bullet 3:TanStack Query 三层架构 + 缓存失效 + 路由预加载 + Hover Prefetch(LCP<500ms) ⭐
+## Bullet 3（历史版）: TanStack Query 三层 + 缓存失效 + Hover Prefetch ⭐
 
 > v40 原文：Layered TanStack Query in three tiers — API functions, queryOptions factories, typed hooks — single-source cache keys, mutation-driven invalidation, route preloading and hover prefetch: detail-page LCP under 500 ms.
 
@@ -153,11 +153,11 @@ onSuccess: () => {
 - 原理详见 `post-card.tsx` 顶部注释(30-60 行):
   1. 鼠标悬停(通常 200–500ms 才点击)
   2. `queryClient.prefetchQuery(getPostQueryOptions(slug))` 拉数据写入缓存
-  3. 用户真正点击 → 路由跳转 → 详情页 `usePost(slug)` 命中缓存 → 一次网络请求都不发 → LCP<500ms
+  3. 用户真正点击 → 路由跳转 → 详情页 `usePost(slug)` 命中同一份 fresh 缓存 → 挂载时不再发第二个请求
 
 ### 怎么讲(高级问法)
 - **为什么用 prefetchQuery 而不是自己 fetch?** → 结果自动写入 React Query 缓存,详情页的 useQuery 用同一个 queryKey 直接命中,不用自己搭桥。
-- **prefetchQuery 和 ensureQueryData 的区别?** → prefetch 总是发请求;ensureQueryData 只在缓存缺失/stale 时发。**实际项目 ensureQueryData 更合适**,Prometheus 为了简单用 prefetch(见 post-card.tsx 顶部注释)。
+- **prefetchQuery 会不会总是发请求?** → 不会；它会按 `staleTime` 判断缓存是否仍然 fresh。用户点击过快、预取失败或数据已 stale 时，详情页仍可能需要网络，不能把“零请求”说成每次点击的保证。
 
 ### 可能的追问
 - **staleTime 和 gcTime 的区别?** → staleTime = 数据多久后变 stale(默认 0,任何 mount 都会 refetch);gcTime = 缓存多久后被垃圾回收(默认 5min)。Prometheus `react-query.ts:50` 把 staleTime 设成 1 分钟。

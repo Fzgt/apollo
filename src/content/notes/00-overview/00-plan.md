@@ -45,7 +45,7 @@ status: done
 
 **S 级**：Periplus 全部三条 · Beyz 实时 pipeline（含凭证与状态机，v66 已并成一条） · 百度虚拟列表 · 百度白屏
 
-**A 级**：Stripe entitlement · NestJS 服务与 CI/部署 · TanStack Query 与 LCP · React 架构边界 · Webpack 迁移 · 提现幂等 · 技能栏 Angular/Go/Django
+**A 级**：Stripe entitlement · NestJS 服务与 CI/部署 · TanStack Query 三层与悬停预取 · React 架构边界 · Webpack 迁移 · 提现幂等 · 技能栏 Angular/Go/Django
 
 **B 级**：LIMS/Luckysheet/脚手架 · 设计系统/Storybook/MSW · H5/JSBridge · WinterFell 五条
 

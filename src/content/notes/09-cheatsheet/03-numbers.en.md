@@ -97,7 +97,7 @@ Which six events? Can I name them on the spot? Which bit of entitlement does eac
 
 ## 3. ~~LCP under 500 ms~~ (removed from the resume)
 
-**From**: BioMap TanStack Query · ✅ done, full write-up in [#3 · LCP under 500 ms](/docs?section=biomap&item=tanstack-query)
+**From**: BioMap TanStack Query · ✅ done; see [③ TanStack Query](/docs?section=biomap&item=tanstack-query) for why the old metric was removed and the current cache wording
 
 Which tool measured it (Lighthouse / WebPageTest / RUM)? Lab or field data? Which page, on what network? What was the baseline before the work?
 

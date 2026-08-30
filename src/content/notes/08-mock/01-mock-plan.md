@@ -49,7 +49,7 @@ status: done
 | 百度 ② ⑤ | [①③ 虚拟列表与生产白屏](/docs?section=baidu&item=virtual-list) 顶部（两段） |
 | Periplus ① ② ③ ⑤ | 各自必看篇顶部 |
 | WinterFell ① ② ③ ④ | [①④ 渲染管线与那次冻结](/docs?section=winterfell&item=fog-freeze) 顶部（四段） |
-| BioMap | [① TanStack Query](/docs?section=biomap&item=tanstack-query)) 的「先立住」那段 |
+| BioMap | 四篇各自的「30 秒回答」；从 [① 架构边界](/docs?section=biomap&item=architecture-boundaries) 开始 |
 
 > **没有草稿的几条自己写**——写不出 30 秒版，说明那条你还没真的想清楚。
 

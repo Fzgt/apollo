@@ -5,7 +5,7 @@ section: BioMap
 
 # BioMap — the four resume bullets (v40)
 
-> ⚠️ **This note is ordered by v40 (LIMS first). The four BioMap bullets in v66 are word-for-word identical, only reordered: ① TanStack Query ② architecture boundaries ③ design system and MSW ④ LIMS.** "Bullet 1–4" below are the v40 numbers, so don't quote the numbering back in an interview.
+> ⚠️ **This is historical material preserved in v40 order. The current resume order is: ① architecture boundaries ② design system ③ TanStack Query ④ LIMS.** Use the four rewritten notes under Plan for current interview wording; "Bullet 1–4" below only denotes the old numbering.
 >
 > The structure matches **the four BioMap bullets on the resume**, no more and no less. Each one has four parts: **the text** / **where to look** / **how to tell it** / **likely follow-ups**.
 > The old "toolchain + Docker/Nginx/Jenkins" bullet is no longer on v40, so that whole section is deleted.
@@ -112,7 +112,7 @@ The code is in `~/Desktop/BioMap/biomap-cli`, and here is what it actually is (n
 ---
 
 
-## Bullet 3: three TanStack Query layers + cache invalidation + route preloading + hover prefetch (LCP<500ms) ⭐
+## Bullet 3 (historical): three TanStack Query layers + cache invalidation + hover prefetch ⭐
 
 > v40 text: Layered TanStack Query in three tiers — API functions, queryOptions factories, typed hooks — single-source cache keys, mutation-driven invalidation, route preloading and hover prefetch: detail-page LCP under 500 ms.
 
@@ -152,11 +152,11 @@ onSuccess: () => {
 - The reasoning is in the comment at the top of `post-card.tsx` (lines 30-60):
   1. The pointer hovers (usually 200–500ms before the click)
   2. `queryClient.prefetchQuery(getPostQueryOptions(slug))` fetches and writes into the cache
-  3. The user actually clicks → the route changes → the detail page's `usePost(slug)` hits the cache → not a single network request → LCP<500ms
+  3. The user actually clicks → the route changes → the detail page's `usePost(slug)` hits the same fresh cache → mounting sends no second request
 
 ### How to tell it (for the deeper version of the question)
 - **Why prefetchQuery instead of fetching it yourself?** → The result goes straight into the React Query cache, and the detail page's useQuery hits it through the same queryKey. No bridge to build.
-- **prefetchQuery vs ensureQueryData?** → prefetch always makes the request; ensureQueryData only requests when the cache is missing or stale. **ensureQueryData is the better fit in a real project**; Prometheus uses prefetch for simplicity (see the comment at the top of post-card.tsx).
+- **Does prefetchQuery always send a request?** → No; it consults `staleTime` and reuses a fresh cache entry. A fast click, failed prefetch, or stale entry can still require network access, so "zero requests" is not a guarantee for every click.
 
 ### Likely follow-ups
 - **staleTime vs gcTime?** → staleTime is how long before data is considered stale (default 0, so any mount refetches); gcTime is how long the cache survives before collection (default 5min). Prometheus sets staleTime to 1 minute at `react-query.ts:50`.

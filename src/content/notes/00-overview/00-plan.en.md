@@ -41,7 +41,7 @@ The first column is the **order of work**, and it matches the Day tag on each no
 
 **S**: all three Periplus lines · the Beyz real-time pipeline (credentials and state machine included, merged into one line in v66) · Baidu virtual list · Baidu white screen
 
-**A**: Stripe entitlement · NestJS service, CI and deploy · TanStack Query and LCP · React architecture boundaries · Webpack migration · withdrawal idempotency · skills row Angular/Go/Django
+**A**: Stripe entitlement · NestJS service, CI and deploy · TanStack Query tiers and hover prefetch · React architecture boundaries · Webpack migration · withdrawal idempotency · skills row Angular/Go/Django
 
 **B**: LIMS/Luckysheet/scaffolding · design system/Storybook/MSW · H5/JSBridge · the five WinterFell lines
 
