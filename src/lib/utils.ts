@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { Lang } from "@/lib/i18n";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,16 +31,22 @@ export function displayDomain(url: string): string {
 }
 
 /** 相对时间。列表里只给个量级，精确日期留给详情页 */
-export function timeAgo(iso: string): string {
+export function timeAgo(iso: string, lang: Lang = 'en'): string {
   const time = new Date(iso).getTime();
   if (Number.isNaN(time)) return '';
 
+  const zh = lang === 'zh';
   const minutes = Math.floor((Date.now() - time) / 60000);
-  if (minutes < 60) return `${Math.max(1, minutes)} min ago`;
+  if (minutes < 60) {
+    const value = Math.max(1, minutes);
+    return zh ? `${value} 分钟前` : `${value} min ago`;
+  }
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} h ago`;
+  if (hours < 24) return zh ? `${hours} 小时前` : `${hours} h ago`;
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days} d ago`;
+  if (days < 30) return zh ? `${days} 天前` : `${days} d ago`;
   const months = Math.floor(days / 30);
-  return months < 12 ? `${months} mo ago` : `${Math.floor(months / 12)} y ago`;
+  if (months < 12) return zh ? `${months} 个月前` : `${months} mo ago`;
+  const years = Math.floor(months / 12);
+  return zh ? `${years} 年前` : `${years} y ago`;
 }

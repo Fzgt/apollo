@@ -2,6 +2,9 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, FileText, ArrowRight, Hash } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLang } from '@/lib/i18n';
+import { noteView } from '@/content/navigation';
+import { UI } from '@/content/ui';
 import type { Note } from '@/content/collection';
 
 interface SearchResult {
@@ -37,18 +40,15 @@ export function DocsSearch({ notes, isOpen, onClose, onNavigate }: DocsSearchPro
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { lang, t } = useLang();
 
   const results = useMemo<SearchResult[]>(() => {
     const q = query.trim().toLowerCase();
-    /** 搜的就是屏幕上那一版：翻过的搜英文，没翻的仍按中文原文搜，不然它彻底搜不到 */
-    const view = (note: Note) =>
-      note.contentEn
-        ? {
-            title: note.titleEn ?? note.title,
-            sectionTitle: note.sectionEn ?? note.section,
-            content: note.contentEn,
-          }
-        : { title: note.title, sectionTitle: note.section, content: note.content };
+    /** 搜的就是屏幕上那一版：英文模式下没翻的那篇仍按中文原文搜，不然它彻底搜不到 */
+    const view = (note: Note) => {
+      const shown = noteView(note, lang);
+      return { title: shown.title, sectionTitle: shown.section, content: shown.content };
+    };
 
     if (!q) {
       return notes.slice(0, MAX_RESULTS).map((note) => ({
@@ -91,7 +91,7 @@ export function DocsSearch({ notes, isOpen, onClose, onNavigate }: DocsSearchPro
     }
 
     return found;
-  }, [notes, query]);
+  }, [notes, query, lang]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -157,7 +157,7 @@ export function DocsSearch({ notes, isOpen, onClose, onNavigate }: DocsSearchPro
             transition={{ duration: 0.15 }}
             role="dialog"
             aria-modal="true"
-            aria-label="Search notes"
+            aria-label={t(UI.notes.searchNotes)}
             className="fixed left-1/2 top-[15vh] z-50 w-[92vw] max-w-2xl -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
           >
             <div className="flex items-center gap-3 border-b border-border px-4">
@@ -166,7 +166,7 @@ export function DocsSearch({ notes, isOpen, onClose, onNavigate }: DocsSearchPro
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search titles and body text…"
+                placeholder={t(UI.notes.searchPlaceholder)}
                 className="h-14 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
               />
               <kbd className="hidden shrink-0 rounded border border-border px-1.5 py-0.5 text-xs text-muted-foreground sm:block">
@@ -177,7 +177,7 @@ export function DocsSearch({ notes, isOpen, onClose, onNavigate }: DocsSearchPro
             <div className="max-h-[55vh] overflow-y-auto p-2">
               {results.length === 0 ? (
                 <p className="px-3 py-8 text-center text-sm text-muted-foreground">
-                  No matches
+                  {t(UI.notes.noMatches)}
                 </p>
               ) : (
                 results.map((hit, index) => (

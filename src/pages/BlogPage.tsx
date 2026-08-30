@@ -14,6 +14,7 @@ import { PostRow } from '@/components/blog/PostRow';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { BLOG_ISSUES_URL, BLOG_REPO } from '@/content/site';
 import { useReadPosts } from '@/hooks/use-read-posts';
+import type { Lang } from '@/lib/i18n';
 import {
   fetchLiveIndex,
   formatDate,
@@ -24,7 +25,9 @@ import {
   type BlogPostMeta,
 } from '@/lib/blog';
 import { cn } from '@/lib/utils';
+import { useLang } from '@/lib/i18n';
 import { labelText } from '@/content/blog-en';
+import { UI } from '@/content/ui';
 
 // 正文渲染（react-markdown + prism）和目录只在点开文章时才需要，
 // 静态引入会让列表页白白多下 150kB+，所以拆成按需加载。
@@ -65,7 +68,7 @@ function Chip({
   );
 }
 
-function matchesQuery(post: BlogPostMeta, query: string): boolean {
+function matchesQuery(post: BlogPostMeta, query: string, lang: Lang): boolean {
   const needle = query.trim().toLowerCase();
   if (!needle) return true;
   const haystack = [
@@ -73,7 +76,7 @@ function matchesQuery(post: BlogPostMeta, query: string): boolean {
     post.excerpt,
     ...(post.headings ?? []),
     `#${post.number}`,
-    ...post.labels.map((l) => `${l.name} ${labelText(l.name)}`),
+    ...post.labels.map((l) => `${l.name} ${labelText(l.name, lang)}`),
   ]
     .join(' ')
     .toLowerCase();
@@ -82,9 +85,10 @@ function matchesQuery(post: BlogPostMeta, query: string): boolean {
 
 export default function BlogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { lang, t } = useLang();
   const activeNumber = Number(searchParams.get('post')) || null;
 
-  const [index, setIndex] = useState<BlogIndex | null>(() => getCachedLiveIndex());
+  const [index, setIndex] = useState<BlogIndex | null>(() => getCachedLiveIndex(lang));
   const [indexError, setIndexError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   /** 实时同步失败的原因；快照仍然在用，所以只是提示，不是错误页 */
@@ -110,34 +114,38 @@ export default function BlogPage() {
     setIsSyncing(true);
     setSyncNote(null);
     try {
-      const live = await fetchLiveIndex(controller.signal);
+      const live = await fetchLiveIndex(lang, controller.signal);
       if (!controller.signal.aborted) {
         setIndex(live);
         setIndexError(null);
       }
     } catch (error) {
       if (!controller.signal.aborted) {
-        setSyncNote(error instanceof Error ? error.message : 'Sync failed');
+        setSyncNote(error instanceof Error ? error.message : t(UI.blog.sync));
       }
     } finally {
       if (!controller.signal.aborted) setIsSyncing(false);
     }
-  }, []);
+  }, [lang, t]);
 
-  // 先上快照（随站点发布，秒开），再后台向 GitHub 要最新的
+  // 先上快照（随站点发布，秒开），再后台向 GitHub 要最新的。换语言＝换一整套数据，重走一遍
   useEffect(() => {
     const controller = new AbortController();
 
     (async () => {
-      if (!getCachedLiveIndex()) {
+      const cached = getCachedLiveIndex(lang);
+      setIndex(cached);
+      setIndexError(null);
+
+      if (!cached) {
         try {
-          const snapshot = await loadSnapshotIndex(controller.signal);
+          const snapshot = await loadSnapshotIndex(lang, controller.signal);
           if (!controller.signal.aborted) {
             setIndex((prev) => prev ?? snapshot);
           }
         } catch (error) {
           if (!controller.signal.aborted) {
-            setIndexError(error instanceof Error ? error.message : 'Could not read the snapshot');
+            setIndexError(error instanceof Error ? error.message : 'snapshot');
           }
         }
       }
@@ -148,7 +156,7 @@ export default function BlogPage() {
       controller.abort();
       syncControllerRef.current?.abort();
     };
-  }, [syncLive]);
+  }, [syncLive, lang]);
 
   useEffect(() => {
     entranceSettled.current = true;
@@ -172,11 +180,11 @@ export default function BlogPage() {
     () =>
       posts.filter(
         (post) =>
-          matchesQuery(post, query) &&
+          matchesQuery(post, query, lang) &&
           (!activeLabel || post.labels.some((label) => label.name === activeLabel)) &&
           (!unreadOnly || !readPosts.has(post.number))
       ),
-    [posts, query, activeLabel, unreadOnly, readPosts]
+    [posts, query, activeLabel, unreadOnly, readPosts, lang]
   );
 
   const activePost = useMemo(
@@ -221,13 +229,13 @@ export default function BlogPage() {
     setIsBodyLoading(true);
     setBodyError(null);
 
-    loadPostBody(activeNumber, controller.signal)
+    loadPostBody(activeNumber, lang, controller.signal)
       .then((content) => {
         if (!controller.signal.aborted) setBody(content);
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
-          setBodyError(error instanceof Error ? error.message : 'Could not read the post body');
+          setBodyError(error instanceof Error ? error.message : '#' + activeNumber);
         }
       })
       .finally(() => {
@@ -235,12 +243,12 @@ export default function BlogPage() {
       });
 
     return () => controller.abort();
-  }, [activeNumber, markRead]);
+  }, [activeNumber, markRead, lang]);
 
   const isFiltered = visiblePosts.length !== posts.length;
   const syncedLabel = index
-    ? `${index.source === 'live' ? 'Just synced from GitHub' : 'Snapshot'} · ${formatDate(index.syncedAt)}`
-    : 'Loading…';
+    ? `${t(index.source === 'live' ? UI.blog.syncedLive : UI.blog.syncedSnapshot)} · ${formatDate(index.syncedAt)}`
+    : t(UI.common.loading);
 
   return (
     <div className="min-h-screen bg-background">
@@ -254,9 +262,9 @@ export default function BlogPage() {
           {/* 页头 */}
           <div className="flex flex-col gap-3 border-b border-border py-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground md:text-3xl">Blog</h1>
+              <h1 className="text-2xl font-bold text-foreground md:text-3xl">{t(UI.blog.title)}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Posts live in the issues of{' '}
+                {t(UI.blog.sourceA)}{' '}
                 <a
                   href={BLOG_ISSUES_URL}
                   target="_blank"
@@ -264,8 +272,8 @@ export default function BlogPage() {
                   className="text-primary underline underline-offset-4 hover:text-primary/80"
                 >
                   {BLOG_REPO}
-                </a>{' '}
-                , synced automatically · {posts.length} posts
+                </a>
+                {t(UI.blog.sourceB(posts.length))}
               </p>
             </div>
 
@@ -277,26 +285,28 @@ export default function BlogPage() {
                 className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/50 px-2.5 py-1.5 transition-colors hover:bg-muted hover:text-foreground disabled:opacity-60"
               >
                 <RefreshCw className={cn('h-3.5 w-3.5', isSyncing && 'animate-spin')} />
-                {isSyncing ? 'Syncing' : 'Sync'}
+                {t(isSyncing ? UI.blog.syncing : UI.blog.sync)}
               </button>
             </div>
           </div>
 
           {syncNote && (
             <p className="mt-3 text-xs text-muted-foreground">
-              Live sync failed ({syncNote}); showing the build-time snapshot.
+              {t(UI.blog.syncFailed(syncNote))}
             </p>
           )}
 
           <div className="py-6">
             {indexError && !index && (
               <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-                Could not read the post list: {indexError}
+                {t(UI.blog.indexError(indexError))}
               </p>
             )}
 
             {!index && !indexError && (
-              <p className="py-12 text-center text-sm text-muted-foreground">Loading…</p>
+              <p className="py-12 text-center text-sm text-muted-foreground">
+                {t(UI.common.loading)}
+              </p>
             )}
 
             {/* 列表 */}
@@ -307,20 +317,22 @@ export default function BlogPage() {
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Search titles, summaries, tags…"
-                    aria-label="Search posts"
+                    placeholder={t(UI.blog.searchPlaceholder)}
+                    aria-label={t(UI.blog.searchLabel)}
                     className="w-full rounded-lg border border-border bg-card py-2 pl-9 pr-28 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
                   />
                   {posts.length > 0 && (
                     <div
                       title={
                         isFiltered
-                          ? `${visiblePosts.length} of ${posts.length} posts`
+                          ? t(UI.blog.shownOf(visiblePosts.length, posts.length))
                           : undefined
                       }
                       className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-baseline gap-1 text-xs tabular-nums"
                     >
-                      {isFiltered && <span className="text-muted-foreground">showing</span>}
+                      {isFiltered && (
+                        <span className="text-muted-foreground">{t(UI.blog.showing)}</span>
+                      )}
                       <motion.span
                         key={visiblePosts.length}
                         initial={{ opacity: 0, y: -3 }}
@@ -333,7 +345,7 @@ export default function BlogPage() {
                         {visiblePosts.length}
                       </motion.span>
                       <span className="text-muted-foreground">
-                        {isFiltered ? `/ ${posts.length}` : 'posts'}
+                        {isFiltered ? `/ ${posts.length}` : t(UI.blog.unit)}
                       </span>
                     </div>
                   )}
@@ -354,7 +366,7 @@ export default function BlogPage() {
                             style={{ backgroundColor: `#${label.color}` }}
                           />
                         )}
-                        {labelText(label.name)}
+                        {labelText(label.name, lang)}
                         <span className="tabular-nums opacity-60">{label.count}</span>
                       </Chip>
                     );
@@ -363,9 +375,9 @@ export default function BlogPage() {
                   <Chip
                     active={unreadOnly}
                     onClick={() => setUnreadOnly((prev) => !prev)}
-                    title="Show unread only"
+                    title={t(UI.blog.showUnreadOnly)}
                   >
-                    Unread only
+                    {t(UI.blog.unreadOnly)}
                   </Chip>
                 </div>
 
@@ -373,13 +385,13 @@ export default function BlogPage() {
                   <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
                     <SearchX className="size-8" />
                     <p className="text-sm">
-                      {posts.length} posts in total, but none match the current filters
+                      {t(UI.blog.noneMatch(posts.length))}
                     </p>
                     <button
                       onClick={resetFilters}
                       className="rounded-lg border border-border px-3 py-1.5 text-xs transition-colors hover:bg-muted hover:text-foreground"
                     >
-                      Reset filters
+                      {t(UI.blog.resetFilters)}
                     </button>
                   </div>
                 ) : (
@@ -419,7 +431,7 @@ export default function BlogPage() {
                       className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       <ArrowLeft className="h-4 w-4" />
-                      All posts
+                      {t(UI.blog.allPosts)}
                     </button>
 
                     {activePost && (
@@ -429,9 +441,13 @@ export default function BlogPage() {
                         </h1>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                           <span>#{activePost.number}</span>
-                          <span>Written {formatDate(activePost.createdAt)}</span>
+                          <span>
+                            {t(UI.blog.written)} {formatDate(activePost.createdAt)}
+                          </span>
                           {activePost.updatedAt !== activePost.createdAt && (
-                            <span>Updated {formatDate(activePost.updatedAt)}</span>
+                            <span>
+                              {t(UI.common.updated)} {formatDate(activePost.updatedAt)}
+                            </span>
                           )}
                           {activePost.labels.map((label) => (
                             <span
@@ -444,7 +460,7 @@ export default function BlogPage() {
                                   style={{ backgroundColor: `#${label.color}` }}
                                 />
                               )}
-                              {labelText(label.name)}
+                              {labelText(label.name, lang)}
                             </span>
                           ))}
                         </div>
@@ -452,19 +468,21 @@ export default function BlogPage() {
                     )}
 
                     {isBodyLoading && (
-                      <p className="py-12 text-center text-sm text-muted-foreground">Loading…</p>
+                      <p className="py-12 text-center text-sm text-muted-foreground">
+                        {t(UI.common.loading)}
+                      </p>
                     )}
 
                     {bodyError && (
                       <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-                        {bodyError}. You can open it{' '}
+                        {t(UI.blog.bodyError(bodyError))}{' '}
                         <a
                           href={`${BLOG_ISSUES_URL}/${activeNumber}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-primary underline underline-offset-4"
                         >
-                          on GitHub
+                          {t(UI.common.onGitHub)}
                         </a>
                         .
                       </p>
@@ -473,7 +491,9 @@ export default function BlogPage() {
                     {!isBodyLoading && !bodyError && body !== null && (
                       <div className="pb-8">
                         <Suspense
-                          fallback={<p className="text-sm text-muted-foreground">Rendering…</p>}
+                          fallback={
+                            <p className="text-sm text-muted-foreground">{t(UI.common.rendering)}</p>
+                          }
                         >
                           <MarkdownRenderer content={body} />
                         </Suspense>
@@ -489,7 +509,7 @@ export default function BlogPage() {
                           className="mb-8 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                         >
                           <ExternalLink className="h-4 w-4" />
-                          on GitHub
+                          {t(UI.common.onGitHub)}
                         </a>
                       )}
 
@@ -501,7 +521,7 @@ export default function BlogPage() {
                           >
                             <span className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
                               <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                              Previous
+                              {t(UI.common.previous)}
                             </span>
                             <span className="break-words font-medium text-foreground">
                               {prevPost.title}
@@ -517,7 +537,7 @@ export default function BlogPage() {
                             className="group flex flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50 sm:items-end sm:text-right"
                           >
                             <span className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
-                              Next
+                              {t(UI.common.next)}
                               <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                             </span>
                             <span className="break-words font-medium text-foreground">

@@ -7,9 +7,15 @@
  *
  * 快照永远是兜底。GitHub 限流（未登录 60 次/小时）或断网时，第 2 步静默失败，
  * 页面照旧显示快照，只是在顶部标一句数据截止时间。
+ *
+ * 语言：issues 里的原文是中文，`src/content/blog/<号>.en.md` 是译文，构建期合成
+ * 两套快照（`index.json` / `index.zh.json`）。所以取数的方向按语言正好相反——
+ * 英文以快照为准（GitHub 那边只有中文），中文以 GitHub 为准（那才是原文），
+ * 拉不到再退回中文快照。
  */
 
 import { BLOG_REPO } from '@/content/site';
+import type { Lang } from '@/lib/i18n';
 
 export interface BlogLabel {
   name: string;
@@ -46,9 +52,9 @@ const MAX_HEADINGS = 8;
 const PER_PAGE = 100;
 const MAX_PAGES = 10;
 
-/** 同一次会话里翻来翻去不重复请求 */
+/** 同一次会话里翻来翻去不重复请求。存的一律是 GitHub 上的中文原文 */
 const bodyCache = new Map<number, string>();
-let liveIndexCache: BlogIndex | null = null;
+const liveIndexCache: Partial<Record<Lang, BlogIndex>> = {};
 
 function assetUrl(relativePath: string): string {
   return `${import.meta.env.BASE_URL}${relativePath}`;
@@ -101,14 +107,16 @@ const snapshotPosts = new Map<number, BlogPostMeta>();
 const translatedNumbers = new Set<number>();
 let snapshotLoaded = false;
 
-function rememberSnapshot(index: BlogIndex): void {
-  snapshotPosts.clear();
-  for (const post of index.posts) snapshotPosts.set(post.number, post);
-
+/** 只记英文快照的正文元信息：中文那边不需要覆盖，GitHub 给的就是原文 */
+function rememberSnapshot(index: BlogIndex, lang: Lang): void {
   translatedNumbers.clear();
   for (const number of index.translated ?? []) translatedNumbers.add(number);
 
-  snapshotLoaded = true;
+  if (lang === 'en') {
+    snapshotPosts.clear();
+    for (const post of index.posts) snapshotPosts.set(post.number, post);
+    snapshotLoaded = true;
+  }
 }
 
 function preferSnapshotMeta(post: BlogPostMeta): BlogPostMeta {
@@ -146,14 +154,21 @@ function normalizeLabels(labels: GitHubIssue['labels']): BlogLabel[] {
 }
 
 /** 构建期快照：随站点一起发布，离线也在 */
-export async function loadSnapshotIndex(signal?: AbortSignal): Promise<BlogIndex> {
-  const res = await fetch(assetUrl('data/blog/index.json'), { signal });
+export async function loadSnapshotIndex(lang: Lang, signal?: AbortSignal): Promise<BlogIndex> {
+  // 一篇译文都没有时构建不出中文索引，那时中文快照就是 index.json 本身
+  const file = lang === 'zh' ? 'data/blog/index.zh.json' : 'data/blog/index.json';
+  let res = await fetch(assetUrl(file), { signal });
+  if (!res.ok && lang === 'zh') {
+    res = await fetch(assetUrl('data/blog/index.json'), { signal });
+  }
   if (!res.ok) {
-    throw new Error(`Could not read the snapshot (${res.status})`);
+    throw new Error(
+      lang === 'zh' ? `读不到构建期快照（${res.status}）` : `Could not read the snapshot (${res.status})`
+    );
   }
   const data = (await res.json()) as Omit<BlogIndex, 'source'>;
   const index: BlogIndex = { ...data, source: 'snapshot' };
-  rememberSnapshot(index);
+  rememberSnapshot(index, lang);
   return index;
 }
 
@@ -161,7 +176,7 @@ export async function loadSnapshotIndex(signal?: AbortSignal): Promise<BlogIndex
  * 直接问 GitHub 要最新的。Blog 是公开仓库，不需要 token；
  * 未登录额度是每小时 60 次，这里一次请求就能拿满 100 篇，够用。
  */
-export async function fetchLiveIndex(signal?: AbortSignal): Promise<BlogIndex> {
+export async function fetchLiveIndex(lang: Lang, signal?: AbortSignal): Promise<BlogIndex> {
   const issues: GitHubIssue[] = [];
 
   for (let page = 1; page <= MAX_PAGES; page += 1) {
@@ -171,6 +186,11 @@ export async function fetchLiveIndex(signal?: AbortSignal): Promise<BlogIndex> {
     );
 
     if (!res.ok) {
+      if (lang === 'zh') {
+        throw new Error(
+          res.status === 403 ? 'GitHub 限流了，先看快照' : `GitHub 返回 ${res.status}`
+        );
+      }
       throw new Error(
         res.status === 403
           ? 'GitHub rate-limited us — showing the snapshot'
@@ -194,8 +214,8 @@ export async function fetchLiveIndex(signal?: AbortSignal): Promise<BlogIndex> {
     repo: BLOG_REPO,
     syncedAt: new Date().toISOString(),
     source: 'live',
-    posts: issues.map((issue) =>
-      preferSnapshotMeta({
+    posts: issues.map((issue) => {
+      const live: BlogPostMeta = {
         number: issue.number,
         title: issue.title,
         labels: normalizeLabels(issue.labels),
@@ -204,25 +224,51 @@ export async function fetchLiveIndex(signal?: AbortSignal): Promise<BlogIndex> {
         url: issue.html_url,
         excerpt: toExcerpt(issue.body ?? ''),
         headings: toHeadings(issue.body ?? ''),
-      })
-    ),
+      };
+      // 中文模式下 GitHub 拿到的就是要显示的原文，不能让英文快照顶掉
+      return lang === 'en' ? preferSnapshotMeta(live) : live;
+    }),
   };
 
-  liveIndexCache = index;
+  liveIndexCache[lang] = index;
   return index;
 }
 
-export function getCachedLiveIndex(): BlogIndex | null {
-  return liveIndexCache;
+export function getCachedLiveIndex(lang: Lang): BlogIndex | null {
+  return liveIndexCache[lang] ?? null;
 }
 
 /**
- * 正文：内存缓存 → 构建期快照文件。
+ * 正文。两种语言的取数方向相反：
  *
- * 有译文的那几篇要跳过内存缓存 —— 缓存里是实时同步顺手收下的中文原文，
+ * 英文 —— 有译文的那几篇要跳过内存缓存：缓存里是实时同步顺手收下的中文原文，
  * 英文正文只在快照文件里。快照还没读到时一律先信快照，免得竞态下闪一下中文。
+ *
+ * 中文 —— 缓存里那份就是原文，直接用；没有就读快照。被译文顶掉的篇另有一份
+ * `<号>.zh.json`，其余篇的 `<号>.json` 本来就是中文。
  */
-export async function loadPostBody(number: number, signal?: AbortSignal): Promise<string> {
+export async function loadPostBody(
+  number: number,
+  lang: Lang,
+  signal?: AbortSignal
+): Promise<string> {
+  if (lang === 'zh') {
+    const cached = bodyCache.get(number);
+    if (cached !== undefined) return cached;
+
+    const file = translatedNumbers.has(number)
+      ? `data/blog/${number}.zh.json`
+      : `data/blog/${number}.json`;
+    const res = await fetch(assetUrl(file), { signal });
+    if (!res.ok) {
+      throw new Error(`这一篇还没进快照（#${number}）`);
+    }
+    const post = (await res.json()) as { body?: string };
+    const body = post.body ?? '';
+    bodyCache.set(number, body);
+    return body;
+  }
+
   const preferSnapshot = !snapshotLoaded || translatedNumbers.has(number);
 
   if (!preferSnapshot) {

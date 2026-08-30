@@ -7,6 +7,8 @@ import { SiteFooter } from '@/components/layout/SiteFooter';
 import { questionCount, questionSources, type Question } from '@/content/questions';
 import { fuzzyMatch } from '@/lib/fuzzy';
 import { cn } from '@/lib/utils';
+import { useLang } from '@/lib/i18n';
+import { UI } from '@/content/ui';
 
 interface Scored {
   question: Question;
@@ -57,6 +59,7 @@ function scoreQuestion(question: Question, query: string): Scored | null {
 
 export default function QuestionsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useLang();
   const [query, setQuery] = useState('');
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set());
 
@@ -278,8 +281,8 @@ export default function QuestionsPage() {
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search questions — across bullets, either language"
-                  aria-label="Search questions"
+                  placeholder={t(UI.questions.searchPlaceholder)}
+                  aria-label={t(UI.questions.searchLabel)}
                   className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-24 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
                 />
                 <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
@@ -287,7 +290,7 @@ export default function QuestionsPage() {
                     <button
                       type="button"
                       onClick={() => setQuery('')}
-                      aria-label="Clear search"
+                      aria-label={t(UI.common.clearSearch)}
                       className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                       <X className="size-4" />
@@ -306,7 +309,7 @@ export default function QuestionsPage() {
                       {isFiltered ? hitCount : questionCount}
                     </motion.span>
                     <span className="text-muted-foreground">
-                      {isFiltered ? `/ ${questionCount}` : 'questions'}
+                      {isFiltered ? `/ ${questionCount}` : t(UI.questions.unit)}
                     </span>
                   </span>
                 </div>
@@ -314,9 +317,7 @@ export default function QuestionsPage() {
 
               <div className="mx-auto mt-2 flex max-w-2xl items-center justify-between gap-3 text-xs text-muted-foreground">
                 <span className="min-w-0 truncate">
-                  {isFiltered
-                    ? 'Search spans every bullet; click any item on the left to leave the search'
-                    : 'Questions that were asked, and how to answer them. The code lives under Notes; this page is only about the sentence you say.'}
+                  {t(isFiltered ? UI.questions.hintFiltered : UI.questions.hint)}
                 </span>
                 {openIds.size > 0 && (
                   <button
@@ -325,7 +326,7 @@ export default function QuestionsPage() {
                     className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted hover:text-foreground"
                   >
                     <ChevronsDownUp className="size-3.5" />
-                    Collapse all
+                    {t(UI.common.collapseAll)}
                   </button>
                 )}
               </div>
@@ -352,7 +353,7 @@ export default function QuestionsPage() {
                               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/60 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
                             >
                               <Shuffle className="size-3.5" />
-                              Random question
+                              {t(UI.questions.random)}
                             </button>
                             <button
                               type="button"
@@ -360,7 +361,7 @@ export default function QuestionsPage() {
                               className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             >
                               <ChevronsUpDown className="size-3.5" />
-                              Expand this group
+                              {t(UI.questions.expandGroup)}
                             </button>
                           </div>
                         )}
@@ -374,7 +375,7 @@ export default function QuestionsPage() {
 
                     {slot.rows.length === 0 ? (
                       <p className="px-4 py-8 text-center text-xs text-muted-foreground">
-                        No questions here yet
+                        {t(UI.questions.empty)}
                       </p>
                     ) : (
                       slot.rows.map((row) => (
@@ -394,7 +395,7 @@ export default function QuestionsPage() {
                 {isFiltered && hitCount === 0 && (
                   <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
                     <SearchX className="size-6" />
-                    <p className="text-sm">No matching questions</p>
+                    <p className="text-sm">{t(UI.questions.noMatches)}</p>
                   </div>
                 )}
               </div>

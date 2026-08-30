@@ -1,3 +1,5 @@
+import type { Lang } from '@/lib/i18n';
+
 /**
  * 博客的英文层。
  *
@@ -21,6 +23,7 @@ const LABEL_EN: Record<string, string> = {
   前端工程化: 'Tooling',
 };
 
-export function labelText(name: string): string {
-  return LABEL_EN[name] ?? name;
+/** 中文模式下原样显示 GitHub 上的标签——那本来就是中文 */
+export function labelText(name: string, lang: Lang): string {
+  return lang === 'zh' ? name : (LABEL_EN[name] ?? name);
 }

@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
 import { History } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLang, type Lang } from '@/lib/i18n';
 import { REPO_URL } from '@/content/site';
+import { UI } from '@/content/ui';
 
 const BUILD_DATE = new Date(__BUILD_TIME__);
 
+/** 数字日期在两种语言下长得一样，只有月日顺序跟着语言走 */
+const DATE_LOCALE: Record<Lang, string> = { en: 'en-GB', zh: 'zh-CN' };
+
 /** 「08-27 15:42」——同年不写年份，年份换了才写全 */
-function formatStamp(date: Date) {
+function formatStamp(date: Date, lang: Lang) {
   const sameYear = date.getFullYear() === new Date().getFullYear();
-  return new Intl.DateTimeFormat('zh-CN', {
+  return new Intl.DateTimeFormat(DATE_LOCALE[lang], {
     year: sameYear ? undefined : 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -19,9 +24,9 @@ function formatStamp(date: Date) {
 }
 
 /** 「3 分钟前」——判断新旧靠这个比绝对时间快 */
-function formatRelative(date: Date) {
+function formatRelative(date: Date, lang: Lang) {
   const minutes = Math.round((date.getTime() - Date.now()) / 60000);
-  const rtf = new Intl.RelativeTimeFormat('zh-CN', { numeric: 'auto' });
+  const rtf = new Intl.RelativeTimeFormat(DATE_LOCALE[lang], { numeric: 'auto' });
   if (Math.abs(minutes) < 60) return rtf.format(minutes, 'minute');
   if (Math.abs(minutes) < 60 * 24) return rtf.format(Math.round(minutes / 60), 'hour');
   return rtf.format(Math.round(minutes / (60 * 24)), 'day');
@@ -33,14 +38,17 @@ function formatRelative(date: Date) {
  * 时间戳在构建时钉进 bundle（vite.config.ts 的 define），时区换算交给浏览器。
  */
 export function BuildStamp({ className }: { className?: string }) {
-  // 相对时间会随页面开着变旧，每分钟自己走一格
-  const [relative, setRelative] = useState(() => formatRelative(BUILD_DATE));
-  useEffect(() => {
-    const timer = setInterval(() => setRelative(formatRelative(BUILD_DATE)), 60_000);
-    return () => clearInterval(timer);
-  }, []);
+  const { lang, t } = useLang();
 
-  const absolute = formatStamp(BUILD_DATE);
+  // 相对时间会随页面开着变旧，每分钟自己走一格
+  const [relative, setRelative] = useState(() => formatRelative(BUILD_DATE, lang));
+  useEffect(() => {
+    setRelative(formatRelative(BUILD_DATE, lang));
+    const timer = setInterval(() => setRelative(formatRelative(BUILD_DATE, lang)), 60_000);
+    return () => clearInterval(timer);
+  }, [lang]);
+
+  const absolute = formatStamp(BUILD_DATE, lang);
   const title = [
     `Built ${absolute} (${relative})`,
     __COMMIT_SHA__ ? `commit ${__COMMIT_SHA__}` : null,
@@ -51,7 +59,9 @@ export function BuildStamp({ className }: { className?: string }) {
   const content = (
     <>
       <History className="size-3.5 shrink-0" />
-      <span className="whitespace-nowrap tabular-nums">Updated {absolute}</span>
+      <span className="whitespace-nowrap tabular-nums">
+        {t(UI.common.updated)} {absolute}
+      </span>
     </>
   );
 

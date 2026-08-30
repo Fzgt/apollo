@@ -1,9 +1,11 @@
 import { cn } from '@/lib/utils';
+import { useLang } from '@/lib/i18n';
 import type { NoteStatus } from '@/content/notes';
 import { STATUS_META } from './status';
 
 export function StatusBadge({ status, className }: { status: NoteStatus; className?: string }) {
   const { label, className: tone, Icon } = STATUS_META[status];
+  const { t } = useLang();
   return (
     <span
       className={cn(
@@ -13,7 +15,7 @@ export function StatusBadge({ status, className }: { status: NoteStatus; classNa
       )}
     >
       <Icon className="h-3.5 w-3.5" />
-      {label}
+      {t(label)}
     </span>
   );
 }

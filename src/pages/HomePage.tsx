@@ -19,18 +19,22 @@ import type { Note } from '@/content/collection';
 import { allNotes } from '@/content/notes';
 import { questionCount } from '@/content/questions';
 import { REPO_DEV_URL, REPO_URL, SITE_NAME, SITE_TAGLINE } from '@/content/site';
+import { UI } from '@/content/ui';
+import { noteView } from '@/content/navigation';
+import { useLang, type Lang } from '@/lib/i18n';
 
 function noteHref(sectionId: string, itemId: string) {
   return `/docs?section=${encodeURIComponent(sectionId)}&item=${encodeURIComponent(itemId)}`;
 }
 
+/** 中英两版的标题都可能带「第几天」的前缀，首页这两张表不需要它 */
 function stripDayPrefix(title: string) {
-  return title.replace(/^Day \d+ · /, '');
+  return title.replace(/^Day \d+ · /, '').replace(/^第 ?\d+ ?天 ?· ?/, '');
 }
 
-/** 首页读英文标题，那一篇还没翻就落回中文原标题，不留空——和侧边栏一个规矩 */
-function noteTitle(note: Note) {
-  return stripDayPrefix(note.titleEn ?? note.title);
+/** 首页读当前语言那一版标题；英文还没翻的落回中文原标题，不留空——和侧边栏一个规矩 */
+function noteTitle(note: Note, lang: Lang) {
+  return stripDayPrefix(noteView(note, lang).title);
 }
 
 /** 一行式条目：左侧竖线 + 向右淡出的底色 + 跟着指针推 3px，和题库/投递一套手法 */
@@ -72,6 +76,8 @@ function RowLink({
 }
 
 export default function HomePage() {
+  const { lang, t } = useLang();
+
   /** 十四天已经跑完，这里要的是「还欠什么」，不是进度条 */
   const open = useMemo(() => allNotes.filter((note) => note.status !== 'done'), []);
 
@@ -79,10 +85,10 @@ export default function HomePage() {
   const critical = useMemo(() => allNotes.filter((note) => note.level === 'S'), []);
 
   const stats = [
-    { label: 'Form answers', value: answerCount, href: '/apply' },
-    { label: 'Real questions', value: questionCount, href: '/questions' },
-    { label: 'Project notes', value: allLibraryNotes.length, href: '/library' },
-    { label: 'Revision notes', value: allNotes.length, href: '/docs' },
+    { label: UI.home.statAnswers, value: answerCount, href: '/apply' },
+    { label: UI.home.statQuestions, value: questionCount, href: '/questions' },
+    { label: UI.home.statLibrary, value: allLibraryNotes.length, href: '/library' },
+    { label: UI.home.statNotes, value: allNotes.length, href: '/docs' },
   ];
 
   return (
@@ -99,19 +105,15 @@ export default function HomePage() {
             <h1 className="mt-2 text-4xl font-bold tracking-tight text-foreground md:text-5xl">
               {SITE_NAME}
             </h1>
-            <p className="mt-4 max-w-2xl text-muted-foreground">
-              Everything the applications and interviews run on: form answers to search and paste,
-              questions that were really asked, how each of the six roles is told, and a resume ready
-              to send. Written locally in Markdown, live on push.
-            </p>
+            <p className="mt-4 max-w-2xl text-muted-foreground">{t(UI.home.intro)}</p>
 
             {/* 常用：给别人的那几行字。整行即复制按钮 */}
             <div className="mt-8 grid gap-3 md:grid-cols-2">
               {quickLinkGroups.map((group) => (
-                <div key={group.title} className="overflow-hidden rounded-xl border border-border bg-card">
+                <div key={group.title.en} className="overflow-hidden rounded-xl border border-border bg-card">
                   <div className="flex items-baseline justify-between gap-2 border-b border-border px-4 py-2.5">
-                    <span className="text-sm font-medium text-foreground">{group.title}</span>
-                    <span className="text-xs text-muted-foreground">{group.hint}</span>
+                    <span className="text-sm font-medium text-foreground">{t(group.title)}</span>
+                    <span className="text-xs text-muted-foreground">{t(group.hint)}</span>
                   </div>
                   {group.links.map((link) => (
                     <QuickLinkRow key={link.value} link={link} />
@@ -124,14 +126,14 @@ export default function HomePage() {
             <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {stats.map((stat) => (
                 <Link
-                  key={stat.label}
+                  key={stat.label.en}
                   to={stat.href}
                   className="rounded-xl border border-border bg-card px-4 py-3 transition-colors hover:bg-muted/50"
                 >
                   <div className="text-2xl font-semibold tabular-nums text-foreground">
                     {stat.value}
                   </div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">{stat.label}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">{t(stat.label)}</div>
                 </Link>
               ))}
             </div>
@@ -145,11 +147,11 @@ export default function HomePage() {
             >
               <Send className="h-5 w-5 text-muted-foreground" />
               <h3 className="mt-3 flex items-center gap-1 font-medium text-foreground">
-                Filling a form
+                {t(UI.home.cardApplyTitle)}
                 <ArrowRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Search a keyword and copy from the icon on the right — no need to expand.
+                {t(UI.home.cardApplyBody)}
               </p>
             </Link>
             <Link
@@ -158,11 +160,11 @@ export default function HomePage() {
             >
               <MessageCircleQuestion className="h-5 w-5 text-muted-foreground" />
               <h3 className="mt-3 flex items-center gap-1 font-medium text-foreground">
-                Before an interview
+                {t(UI.home.cardQuestionsTitle)}
                 <ArrowRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Only questions that were really asked, in both languages, follow-ups included.
+                {t(UI.home.cardQuestionsBody)}
               </p>
             </Link>
             <Link
@@ -171,11 +173,11 @@ export default function HomePage() {
             >
               <FileText className="h-5 w-5 text-muted-foreground" />
               <h3 className="mt-3 flex items-center gap-1 font-medium text-foreground">
-                Sending the resume
+                {t(UI.home.cardResumeTitle)}
                 <ArrowRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                The web version is laid out against the PDF; the original is on the page.
+                {t(UI.home.cardResumeBody)}
               </p>
             </Link>
           </section>
@@ -184,16 +186,16 @@ export default function HomePage() {
           {open.length > 0 && (
             <section className="mt-12">
               <div className="mb-4 flex items-baseline justify-between gap-2">
-                <h2 className="text-lg font-semibold text-foreground">Still open</h2>
-                <span className="text-sm text-muted-foreground">{open.length} pages</span>
+                <h2 className="text-lg font-semibold text-foreground">{t(UI.home.stillOpen)}</h2>
+                <span className="text-sm text-muted-foreground">{t(UI.home.openPages(open.length))}</span>
               </div>
               <div className="overflow-hidden rounded-xl border border-border bg-card">
                 {open.map((note) => (
                   <RowLink
                     key={`${note.sectionId}-${note.itemId}`}
                     to={noteHref(note.sectionId, note.itemId)}
-                    title={noteTitle(note)}
-                    meta={note.sectionEn ?? note.section}
+                    title={noteTitle(note, lang)}
+                    meta={noteView(note, lang).section}
                     right={
                       <StatusBadge status={note.status} className="relative shrink-0 border-0 bg-transparent px-0" />
                     }
@@ -206,16 +208,18 @@ export default function HomePage() {
           {/* S 级 */}
           <section className="mt-12">
             <div className="mb-4 flex items-baseline justify-between gap-2">
-              <h2 className="text-lg font-semibold text-foreground">Where they will dig in</h2>
-              <span className="text-sm text-muted-foreground">{critical.length} level-S pages</span>
+              <h2 className="text-lg font-semibold text-foreground">{t(UI.home.critical)}</h2>
+              <span className="text-sm text-muted-foreground">
+                {t(UI.home.criticalPages(critical.length))}
+              </span>
             </div>
             <div className="overflow-hidden rounded-xl border border-border bg-card">
               {critical.map((note) => (
                 <RowLink
                   key={`${note.sectionId}-${note.itemId}`}
                   to={noteHref(note.sectionId, note.itemId)}
-                  title={noteTitle(note)}
-                  meta={note.sectionEn ?? note.section}
+                  title={noteTitle(note, lang)}
+                  meta={noteView(note, lang).section}
                 />
               ))}
             </div>
@@ -229,10 +233,9 @@ export default function HomePage() {
             >
               <CalendarCheck className="h-5 w-5 shrink-0 text-muted-foreground" />
               <div className="min-w-0 flex-1">
-                <h3 className="font-medium text-foreground">The fourteen-day revision plan</h3>
+                <h3 className="font-medium text-foreground">{t(UI.home.planTitle)}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  The fourteen days are done; {allNotes.length} pages remain under Plan, and both
-                  lists above are drawn from them.
+                  {t(UI.home.planBody(allNotes.length))}
                 </p>
               </div>
               <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
@@ -241,29 +244,27 @@ export default function HomePage() {
 
           {/* 怎么维护 */}
           <section className="mb-20 mt-12 rounded-xl border border-border bg-card p-6">
-            <h2 className="font-semibold text-foreground">How to maintain this site</h2>
+            <h2 className="font-semibold text-foreground">{t(UI.home.maintainTitle)}</h2>
             <ol className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li>
-                <span className="text-foreground">1.</span> Notes live at{' '}
+                <span className="text-foreground">1.</span> {t(UI.home.maintain1a)}{' '}
                 <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
                   src/content/&lt;collection&gt;/&lt;section&gt;/&lt;note&gt;.md
                 </code>
-                . Drop a .md in and it appears in the navigation; the numeric filename prefix
-                sets the order.
+                {t(UI.home.maintain1b)}
               </li>
               <li>
-                <span className="text-foreground">2.</span> Questions and form answers are TS data ——{' '}
-                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">content/questions</code> and{' '}
+                <span className="text-foreground">2.</span> {t(UI.home.maintain2a)}{' '}
+                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">content/questions</code>{' '}
+                {t(UI.home.maintain2b)}{' '}
                 <code className="rounded bg-muted px-1.5 py-0.5 text-xs">content/applications</code>
-                . Add a group by writing one file and hanging it off the array.
+                {t(UI.home.maintain2c)}
               </li>
               <li>
-                <span className="text-foreground">3.</span> Vercel deploys on push; the four numbers
-                above and the "Still open" list are all computed, never edited by hand.
+                <span className="text-foreground">3.</span> {t(UI.home.maintain3)}
               </li>
               <li>
-                <span className="text-foreground">4.</span> Away from the computer, edit in the
-                browser with{' '}
+                <span className="text-foreground">4.</span> {t(UI.home.maintain4a)}{' '}
                 <a
                   href={REPO_DEV_URL}
                   target="_blank"
@@ -272,9 +273,9 @@ export default function HomePage() {
                 >
                   github.dev
                 </a>{' '}
-                (or press{' '}
-                <kbd className="rounded border border-border px-1 text-xs">.</kbd> on the repository
-                page).
+                {t(UI.home.maintain4b)}{' '}
+                <kbd className="rounded border border-border px-1 text-xs">.</kbd>
+                {t(UI.home.maintain4c)}
               </li>
             </ol>
             <a

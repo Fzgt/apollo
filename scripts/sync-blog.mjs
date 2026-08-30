@@ -16,6 +16,11 @@
  * 放构建期是为了不让译文进 JS bundle —— 五十篇正文十几万字，
  * 塞进列表页的首屏包就白费了上面拆文件的功夫。
  *
+ * 中文那一份另存一套：`index.zh.json` 和有译文那些篇的 `<号>.zh.json`。
+ * 站点切到中文时才去读它，英文模式下一个字节都不多下。没有这一套的话，
+ * 中文模式就只能指望运行期的 GitHub 请求 —— 未登录额度每小时 60 次，
+ * 一限流整页中文就没了。
+ *
  * 用法：node scripts/sync-blog.mjs
  * 可选环境变量：GITHUB_TOKEN（提高限流额度）、BLOG_REPO（默认 Fzgt/Blog）
  */
@@ -27,6 +32,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = path.join(ROOT, 'public', 'data', 'blog');
 const INDEX_FILE = path.join(OUT_DIR, 'index.json');
+const INDEX_ZH_FILE = path.join(OUT_DIR, 'index.zh.json');
 const EN_DIR = path.join(ROOT, 'src', 'content', 'blog');
 const REPO = process.env.BLOG_REPO ?? 'Fzgt/Blog';
 const PER_PAGE = 100;
@@ -160,14 +166,26 @@ async function main() {
   await fs.rm(OUT_DIR, { recursive: true, force: true });
   await fs.mkdir(OUT_DIR, { recursive: true });
 
+  const syncedAt = new Date().toISOString();
+  // 运行期从 GitHub 拉到的是中文原文，靠这份号码单知道哪些该让快照说了算
+  const translated = issues.map((i) => i.number).filter((n) => translations.has(n));
+
   const index = {
     repo: REPO,
-    syncedAt: new Date().toISOString(),
-    // 运行期从 GitHub 拉到的是中文原文，靠这份号码单知道哪些该让快照说了算
-    translated: issues.map((i) => i.number).filter((n) => translations.has(n)),
+    syncedAt,
+    translated,
     posts: issues.map((issue) => toIndexEntry(issue, translations.get(issue.number))),
   };
   await fs.writeFile(INDEX_FILE, `${JSON.stringify(index, null, 2)}\n`, 'utf8');
+
+  // 中文索引：一律按 issue 原文算，不掺译文
+  const indexZh = {
+    repo: REPO,
+    syncedAt,
+    translated,
+    posts: issues.map((issue) => toIndexEntry(issue, undefined)),
+  };
+  await fs.writeFile(INDEX_ZH_FILE, `${JSON.stringify(indexZh, null, 2)}\n`, 'utf8');
 
   for (const issue of issues) {
     const translation = translations.get(issue.number);
@@ -182,12 +200,24 @@ async function main() {
       `${JSON.stringify(post, null, 2)}\n`,
       'utf8'
     );
+
+    // 只有被译文顶掉的那些篇需要另存中文正文；没译文的 `<号>.json` 本来就是中文
+    if (!translation) continue;
+    await fs.writeFile(
+      path.join(OUT_DIR, `${issue.number}.zh.json`),
+      `${JSON.stringify(
+        { number: issue.number, title: issue.title, body: issue.body ?? '', updatedAt: issue.updated_at },
+        null,
+        2
+      )}\n`,
+      'utf8'
+    );
   }
 
   const indexKb = (Buffer.byteLength(JSON.stringify(index)) / 1024).toFixed(1);
   console.log(
     `synced ${issues.length} posts from ${REPO} -> public/data/blog/ ` +
-      `(index ${indexKb} KB, ${index.translated.length} translated)`
+      `(index ${indexKb} KB, ${translated.length} translated, zh snapshot alongside)`
   );
 }
 

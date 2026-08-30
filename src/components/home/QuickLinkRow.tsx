@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { ArrowUpRight, Check, Copy } from 'lucide-react';
 import type { QuickLink } from '@/content/links';
 import { cn } from '@/lib/utils';
+import { useLang } from '@/lib/i18n';
+import { UI } from '@/content/ui';
 
 /**
  * 整行就是复制按钮——常用链接的唯一用途是进剪贴板，不该先让人瞄准一个小图标。
@@ -11,6 +13,8 @@ import { cn } from '@/lib/utils';
 export function QuickLinkRow({ link }: { link: QuickLink }) {
   const [copied, setCopied] = useState(false);
   const valueRef = useRef<HTMLSpanElement>(null);
+  const { t } = useLang();
+  const label = t(link.label);
 
   useEffect(() => {
     if (!copied) return;
@@ -42,7 +46,7 @@ export function QuickLinkRow({ link }: { link: QuickLink }) {
         whileHover={{ x: 3 }}
         whileTap={{ scale: 0.995 }}
         transition={{ x: { type: 'spring', stiffness: 420, damping: 34 }, scale: { duration: 0.12 } }}
-        aria-label={copied ? 'Copied' : `Copy ${link.label}`}
+        aria-label={copied ? t(UI.links.copied) : t(UI.links.copy(label))}
         className={cn(
           'relative flex min-w-0 flex-1 items-center gap-2.5 overflow-hidden py-2 pl-4 pr-1.5 text-left outline-none',
           'transition-[box-shadow] duration-200 hover:z-10 hover:shadow-[0_8px_24px_-22px_hsl(var(--foreground))]',
@@ -53,7 +57,7 @@ export function QuickLinkRow({ link }: { link: QuickLink }) {
         <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
         <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/[0.055] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-        <span className="relative w-16 shrink-0 text-xs text-muted-foreground">{link.label}</span>
+        <span className="relative w-16 shrink-0 text-xs text-muted-foreground">{label}</span>
         <span
           ref={valueRef}
           className="relative min-w-0 flex-1 truncate font-mono text-[11px] leading-6 text-foreground transition-colors group-hover:text-primary"
@@ -74,7 +78,7 @@ export function QuickLinkRow({ link }: { link: QuickLink }) {
         href={link.href}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={`Open ${link.label}`}
+        aria-label={`${label} →`}
         className="relative mr-2 rounded-md p-1.5 text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
       >
         <ArrowUpRight className="size-3.5" />

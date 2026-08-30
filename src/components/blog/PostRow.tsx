@@ -3,6 +3,8 @@ import { ArrowRight, Check, Clock, ExternalLink } from 'lucide-react';
 import { cn, timeAgo } from '@/lib/utils';
 import type { BlogPostMeta } from '@/lib/blog';
 import { labelText } from '@/content/blog-en';
+import { UI } from '@/content/ui';
+import { useLang } from '@/lib/i18n';
 
 const MAX_SHOWN_LABELS = 2;
 
@@ -24,6 +26,7 @@ export function PostRow({
   onOpen,
   onToggleRead,
 }: PostRowProps) {
+  const { lang, t } = useLang();
   const shownLabels = post.labels.slice(0, MAX_SHOWN_LABELS);
   const extraLabels = post.labels.length - shownLabels.length;
   const accent = post.labels[0]?.color;
@@ -35,7 +38,7 @@ export function PostRow({
       layout="position"
       role="link"
       tabIndex={0}
-      aria-label={`Read ${post.title}`}
+      aria-label={t(UI.blog.openPost(post.title))}
       onClick={() => onOpen(post.number)}
       onKeyDown={(event) => {
         if (event.currentTarget === event.target && event.key === 'Enter') onOpen(post.number);
@@ -90,7 +93,7 @@ export function PostRow({
                 <span
                   key={label.name}
                   className="inline-flex max-w-24 items-center gap-1 truncate rounded border border-border bg-muted/60 px-1.5 py-0.5 text-[11px] text-muted-foreground"
-                  title={labelText(label.name)}
+                  title={labelText(label.name, lang)}
                 >
                   {label.color && (
                     <span
@@ -98,7 +101,7 @@ export function PostRow({
                       style={{ backgroundColor: `#${label.color}` }}
                     />
                   )}
-                  {labelText(label.name)}
+                  {labelText(label.name, lang)}
                 </span>
               ))}
               {extraLabels > 0 && (
@@ -113,10 +116,10 @@ export function PostRow({
 
       <span
         className="relative z-10 hidden w-20 shrink-0 items-center justify-end gap-1 text-[11px] text-muted-foreground sm:inline-flex"
-        title={`Written ${post.createdAt.slice(0, 10)}`}
+        title={t(UI.blog.writtenOn(post.createdAt.slice(0, 10)))}
       >
         <Clock className="size-3" />
-        {timeAgo(post.createdAt)}
+        {timeAgo(post.createdAt, lang)}
       </span>
 
       {/* 平时显示读没读，悬停换成操作 —— 小屏没有悬停，直接把按钮亮着 */}
@@ -130,7 +133,7 @@ export function PostRow({
               : 'text-muted-foreground'
           )}
         >
-          {isRead ? 'Read' : 'Unread'}
+          {t(isRead ? UI.blog.read : UI.blog.unread)}
         </span>
 
         <div className="absolute inset-y-0 right-0 flex items-center gap-1 sm:pointer-events-none sm:opacity-0 sm:transition-opacity sm:duration-150 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100">
@@ -148,10 +151,10 @@ export function PostRow({
                 ? 'bg-success/15 text-success'
                 : 'hover:bg-muted'
             )}
-            title={isRead ? 'Mark as unread' : 'Mark as read'}
+            title={t(isRead ? UI.blog.markAsUnread : UI.blog.markAsRead)}
           >
             <Check className="size-3.5" />
-            <span className="hidden xl:inline">{isRead ? 'Read' : 'Mark read'}</span>
+            <span className="hidden xl:inline">{t(isRead ? UI.blog.read : UI.blog.markRead)}</span>
           </motion.button>
           <motion.button
             type="button"
@@ -162,8 +165,8 @@ export function PostRow({
               window.open(post.url, '_blank', 'noopener,noreferrer');
             }}
             className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            title="View on GitHub"
-            aria-label="View on GitHub"
+            title={t(UI.blog.viewOnGitHub)}
+            aria-label={t(UI.blog.viewOnGitHub)}
           >
             <ExternalLink className="size-3.5" />
           </motion.button>

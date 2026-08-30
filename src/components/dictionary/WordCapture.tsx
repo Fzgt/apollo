@@ -4,6 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { BookMarked, Check, Plus, X } from 'lucide-react';
 import { captureWord, queueSnapshot, queueServerSnapshot, subscribeQueue } from '@/lib/word-queue';
 import { isDefined } from '@/content/dictionary';
+import { UI } from '@/content/ui';
+import { useLang } from '@/lib/i18n';
 
 /** 在输入框里敲 `w` 是打字，不是快捷键 */
 function isTyping(target: EventTarget | null): boolean {
@@ -30,6 +32,7 @@ export function WordCapture() {
   );
   const inputRef = useRef<HTMLInputElement>(null);
   const { pathname, search } = useLocation();
+  const { t } = useLang();
 
   const queue = useSyncExternalStore(subscribeQueue, queueSnapshot, queueServerSnapshot);
 
@@ -91,7 +94,7 @@ export function WordCapture() {
       <button
         type="button"
         onClick={() => open()}
-        aria-label="Add a word to the dictionary (press w)"
+        aria-label={t(UI.capture.open)}
         className="fixed bottom-5 right-5 z-40 hidden size-11 items-center justify-center rounded-full border border-border bg-card/90 text-muted-foreground shadow-lg backdrop-blur transition-colors hover:border-foreground/30 hover:text-foreground md:flex"
       >
         <Plus className="size-5" />
@@ -120,7 +123,7 @@ export function WordCapture() {
               transition={{ duration: 0.15 }}
               role="dialog"
               aria-modal="true"
-              aria-label="Add a word"
+              aria-label={t(UI.capture.dialog)}
               className="w-full max-w-lg overflow-hidden rounded-xl border border-border bg-card shadow-2xl"
             >
               <div className="flex items-center gap-3 border-b border-border px-4">
@@ -135,14 +138,14 @@ export function WordCapture() {
                       submit();
                     }
                   }}
-                  placeholder="A word you did not know — type it, press Enter"
-                  aria-label="Word"
+                  placeholder={t(UI.capture.placeholder)}
+                  aria-label={t(UI.capture.field)}
                   className="h-14 min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
                 />
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  aria-label="Close"
+                  aria-label={t(UI.capture.close)}
                   className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   <X className="size-4" />
@@ -154,19 +157,21 @@ export function WordCapture() {
                   {flash?.kind === 'added' && (
                     <span className="flex items-center gap-1.5 text-foreground">
                       <Check className="size-3.5" />
-                      Queued “{flash.term}” — keep typing to add another
+                      {t(UI.capture.added(flash.term))}
                     </span>
                   )}
-                  {flash?.kind === 'duplicate' && `“${flash.term}” was already in the queue`}
-                  {flash?.kind === 'known' && `“${flash.term}” is already in the dictionary`}
-                  {!flash && 'Definitions get written later. This step only catches the word.'}
+                  {flash?.kind === 'duplicate' && t(UI.capture.duplicate(flash.term))}
+                  {flash?.kind === 'known' && t(UI.capture.known(flash.term))}
+                  {!flash && t(UI.capture.idle)}
                 </span>
                 <Link
                   to="/words"
                   onClick={() => setIsOpen(false)}
                   className="shrink-0 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted hover:text-foreground"
                 >
-                  {queue.length > 0 ? `${queue.length} waiting →` : 'Dictionary →'}
+                  {queue.length > 0
+                    ? t(UI.capture.waiting(queue.length))
+                    : t(UI.capture.goToDictionary)}
                 </Link>
               </div>
             </motion.div>

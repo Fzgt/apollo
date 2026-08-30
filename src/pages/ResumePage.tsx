@@ -3,7 +3,9 @@ import { Download, FileText, Languages } from 'lucide-react';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { ResumeSheet } from '@/components/resume/ResumeSheet';
 import { RESUME_PDF } from '@/content/resume';
+import { UI } from '@/content/ui';
 import { cn } from '@/lib/utils';
+import { useLang } from '@/lib/i18n';
 
 /**
  * Resume页。正文是 HTML 重排的，版式对着 PDF 抄：Times 衬线、章节标题下一条细线、
@@ -12,18 +14,28 @@ import { cn } from '@/lib/utils';
  *
  * 中英对照是预先写好的静态文本，不调翻译接口：这是个纯静态站，没有服务端，
  * 而机翻在这些句子上会出硬伤（"drops overlapping generations" 会被译反）。
+ *
+ * 纸面本身永远以英文为主：这张纸是要发给澳洲雇主的原件，不该跟着站点语言变成中文。
+ * 站点切到中文时默认把对照打开——那正是这时候想看的东西——但 URL 里写了什么以 URL 为准。
  */
 
 export default function ResumePage() {
   // 对照开关放进 URL 而不是组件 state：刷新不丢、能直接把链接发出去，
   // 也和站里其他页「URL 就是当前视图」的做法一致。
   const [searchParams, setSearchParams] = useSearchParams();
-  const bilingual = searchParams.get('zh') === '1';
+  const { lang, t } = useLang();
+  const param = searchParams.get('zh');
+  const bilingual = param === null ? lang === 'zh' : param === '1';
 
   const toggleBilingual = () => {
     const next = new URLSearchParams(searchParams);
-    if (bilingual) next.delete('zh');
-    else next.set('zh', '1');
+    // 中文模式下「关掉对照」也要写进 URL：删掉参数只会让它再按语言默认打开
+    if (bilingual) {
+      if (lang === 'zh') next.set('zh', '0');
+      else next.delete('zh');
+    } else {
+      next.set('zh', '1');
+    }
     setSearchParams(next, { replace: true });
   };
 
@@ -54,11 +66,9 @@ export default function ResumePage() {
           >
             <div>
               <h1 className="text-2xl font-bold text-foreground md:text-3xl">
-                Resume
+                {t(UI.resume.title)}
               </h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Laid out against the PDF · the original is in the download
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground">{t(UI.resume.subtitle)}</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -74,7 +84,7 @@ export default function ResumePage() {
                 )}
               >
                 <Languages className="h-4 w-4" />
-                {bilingual ? 'English only' : 'Side by side'}
+                {t(bilingual ? UI.resume.englishOnly : UI.resume.sideBySide)}
               </button>
               <a
                 href={RESUME_PDF}
@@ -83,7 +93,7 @@ export default function ResumePage() {
                 className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 <FileText className="h-4 w-4" />
-                Open PDF
+                {t(UI.resume.openPdf)}
               </a>
               <a
                 href={RESUME_PDF}
@@ -91,7 +101,7 @@ export default function ResumePage() {
                 className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
               >
                 <Download className="h-4 w-4" />
-                Download PDF
+                {t(UI.resume.downloadPdf)}
               </a>
             </div>
           </div>

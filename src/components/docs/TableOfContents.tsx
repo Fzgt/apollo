@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { cn, scrollToAnchor } from '@/lib/utils';
 import { plainHeadingText, scanHeadings } from '@/lib/headings';
+import { useLang } from '@/lib/i18n';
+import { UI } from '@/content/ui';
 
 interface TableOfContentsProps {
   content: string;
@@ -9,6 +11,7 @@ interface TableOfContentsProps {
 
 export function TableOfContents({ content, className }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>('');
+  const { t } = useLang();
 
   // 标题与 id 都由 scanHeadings 算，和 MarkdownRenderer 用的是同一个纯函数——
   // 两边必须逐字一致，否则 getElementById 找不到元素，高亮和跳转都失效。
@@ -74,7 +77,7 @@ export function TableOfContents({ content, className }: TableOfContentsProps) {
 
   return (
     <nav className={cn('text-sm', className)}>
-      <h4 className="mb-4 font-semibold text-foreground">{'On this page'}</h4>
+      <h4 className="mb-4 font-semibold text-foreground">{t(UI.common.onThisPage)}</h4>
       {/* 长文的目录会比视口还高。不给它自己的滚动条的话，sticky 容器整个被撑出
           屏幕，后半截永远够不着——那正是「目录坏了」的样子。 */}
       <ul className="max-h-[calc(100vh-13rem)] space-y-2 overflow-y-auto overscroll-contain pr-2">

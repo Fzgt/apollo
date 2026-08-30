@@ -8,8 +8,11 @@ import { DocsSearch } from '@/components/docs/DocsSearch';
 import { TableOfContents } from '@/components/docs/TableOfContents';
 import { StatusBadge } from '@/components/notes/StatusBadge';
 import type { Note, NoteSection } from '@/content/collection';
-import { toDocSections } from '@/content/navigation';
+import type { Text } from '@/lib/i18n';
+import { noteView, toDocSections } from '@/content/navigation';
 import { REPO_EDIT_BASE } from '@/content/site';
+import { UI } from '@/content/ui';
+import { useLang } from '@/lib/i18n';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { ChevronLeft, ChevronRight, Edit, Languages, Search } from 'lucide-react';
 
@@ -18,7 +21,7 @@ interface NotesBrowserProps {
   notes: Note[];
   getNote: (sectionId?: string, itemId?: string) => Note | undefined;
   /** 移动端抽屉标题 */
-  navTitle: string;
+  navTitle: Text;
   /** 复习计划才有进度/日程标签，资料那套没有 */
   showProgress?: boolean;
   /** 这套内容的身份（docs / library），侧边栏展开状态按它分开存 */
@@ -38,15 +41,16 @@ export function NotesBrowser({
   storageKey,
 }: NotesBrowserProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const docSections = useMemo(() => toDocSections(sections), [sections]);
+  const { lang, t } = useLang();
+  const docSections = useMemo(() => toDocSections(sections, lang), [sections, lang]);
   const flattenedNav = useMemo(
     () =>
       notes.map((note) => ({
         sectionId: note.sectionId,
         itemId: note.itemId,
-        title: note.titleEn ?? note.title,
+        title: noteView(note, lang).title,
       })),
-    [notes]
+    [notes, lang]
   );
 
   const [activeSection, setActiveSection] = useState(
@@ -72,9 +76,10 @@ export function NotesBrowser({
     // 滚动位置交给 RouteMemory：新的一篇从头看，看过的回到上次停的地方
   }, [activeSection, activeItem, note, setSearchParams]);
 
-  // 站点只讲英文。还没翻的那一篇给中文原文兜底 —— 空页面比一页中文糟得多
-  const hasEnglish = Boolean(note?.contentEn);
-  const body = note?.contentEn ?? note?.content;
+  // 英文模式下还没翻的那一篇给中文原文兜底 —— 空页面比一页中文糟得多。
+  // 中文模式不存在这个问题：原文就是中文那一份。
+  const missingTranslation = lang === 'en' && Boolean(note) && !note?.contentEn;
+  const body = note ? noteView(note, lang).content : undefined;
 
   // Cmd+K / Ctrl+K 打开搜索
   useEffect(() => {
@@ -121,7 +126,7 @@ export function NotesBrowser({
                 className="w-full mb-4 shrink-0 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-sm"
               >
                 <Search className="w-4 h-4" />
-                <span className="flex-1 text-left">Search notes</span>
+                <span className="flex-1 text-left">{t(UI.notes.searchNotes)}</span>
                 <kbd className="text-xs px-1.5 py-0.5 rounded bg-background border border-border">⌘K</kbd>
               </button>
               <DocsSidebar
@@ -148,26 +153,26 @@ export function NotesBrowser({
                     <StatusBadge status={note.status} />
                     {note.day >= 1 && note.day <= 14 && (
                       <span className="rounded-md border border-border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground">
-                        Day {note.day}
+                        {t(UI.notes.day(note.day))}
                       </span>
                     )}
                     {note.level && note.level !== '—' && (
                       <span className="rounded-md border border-border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground">
-                        Level {note.level}
+                        {t(UI.notes.level(note.level))}
                       </span>
                     )}
                   </div>
                 )}
 
-                {note && !hasEnglish && (
+                {missingTranslation && (
                   <div className="mb-6 flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
                     <Languages className="h-3.5 w-3.5 shrink-0" />
-                    Not translated yet — showing the original Chinese draft.
+                    {t(UI.notes.untranslated)}
                   </div>
                 )}
 
                 <div className="pb-8">
-                  <MarkdownRenderer content={body ?? '# Page not found\n\nThat note does not exist.'} />
+                  <MarkdownRenderer content={body ?? t(UI.notes.missing)} />
                 </div>
 
                 <div className="mt-8 border-t border-border pt-6 pb-24 lg:pb-0">
@@ -180,7 +185,7 @@ export function NotesBrowser({
                         className="flex items-center gap-1.5 hover:text-foreground transition-colors"
                       >
                         <Edit className="w-4 h-4" />
-                        Edit this page on GitHub
+                        {t(UI.notes.editOnGitHub)}
                       </a>
                     )}
                   </div>
@@ -193,7 +198,7 @@ export function NotesBrowser({
                       >
                         <span className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
                           <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                          Previous
+                          {t(UI.common.previous)}
                         </span>
                         <span className="font-medium text-foreground break-words">{prevNav.title}</span>
                       </button>
@@ -207,7 +212,7 @@ export function NotesBrowser({
                         className="group flex flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50 sm:items-end sm:text-right"
                       >
                         <span className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                          Next
+                          {t(UI.common.next)}
                           <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </span>
                         <span className="font-medium text-foreground break-words">{nextNav.title}</span>

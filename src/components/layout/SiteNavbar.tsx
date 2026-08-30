@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Menu,
   MessageCircleQuestion,
+  Languages,
   Moon,
   PenLine,
   Send,
@@ -18,7 +19,9 @@ import {
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
+import { useLang } from '@/lib/i18n';
 import { REPO_URL, SITE_NAME } from '@/content/site';
+import { UI } from '@/content/ui';
 import { lastTabUrl } from '@/lib/session-state';
 import { BuildStamp } from './BuildStamp';
 
@@ -31,14 +34,14 @@ import { BuildStamp } from './BuildStamp';
  * 图标是第二条线索，扫一眼靠形状就能定位，不必逐字读。
  */
 const NAV_LINKS = [
-  { label: 'Overview', href: '/', Icon: LayoutDashboard },
-  { label: 'Plan', href: '/docs', Icon: CalendarCheck },
-  { label: 'Notes', href: '/library', Icon: BookOpen },
-  { label: 'Questions', href: '/questions', Icon: MessageCircleQuestion },
-  { label: 'Applications', href: '/apply', Icon: Send },
-  { label: 'Blog', href: '/blog', Icon: PenLine },
-  { label: 'Words', href: '/words', Icon: BookMarked },
-  { label: 'Resume', href: '/resume', Icon: FileText },
+  { label: UI.nav.overview, href: '/', Icon: LayoutDashboard },
+  { label: UI.nav.plan, href: '/docs', Icon: CalendarCheck },
+  { label: UI.nav.notes, href: '/library', Icon: BookOpen },
+  { label: UI.nav.questions, href: '/questions', Icon: MessageCircleQuestion },
+  { label: UI.nav.applications, href: '/apply', Icon: Send },
+  { label: UI.nav.blog, href: '/blog', Icon: PenLine },
+  { label: UI.nav.words, href: '/words', Icon: BookMarked },
+  { label: UI.nav.resume, href: '/resume', Icon: FileText },
 ];
 
 export function SiteNavbar() {
@@ -46,6 +49,7 @@ export function SiteNavbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { lang, toggleLang, t } = useLang();
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -60,13 +64,33 @@ export function SiteNavbar() {
 
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
 
+  /*
+   * 语言开关。按钮上写的是**切过去**的那一边，不是当前语言——写当前语言的话，
+   * 中文界面上会出现一个写着「中文」的按钮，看着像标签不像开关。
+   */
+  const langButton = (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={toggleLang}
+      aria-label={t(UI.lang.switchTo)}
+      title={t(UI.lang.switchTo)}
+      className="flex items-center gap-1.5 rounded-lg bg-muted/80 px-2.5 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+    >
+      <Languages className="h-4 w-4" />
+      <span className="whitespace-nowrap">
+        {lang === 'en' ? t(UI.lang.toChinese) : t(UI.lang.toEnglish)}
+      </span>
+    </motion.button>
+  );
+
   const themeButton = mounted && (
     <motion.button
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
       onClick={toggleTheme}
       className="rounded-lg bg-muted/80 p-2 transition-colors hover:bg-muted"
-      aria-label="Toggle theme"
+      aria-label={t(UI.nav.toggleTheme)}
     >
       {theme === 'dark' ? (
         <Sun className="h-5 w-5 text-foreground" />
@@ -123,7 +147,7 @@ export function SiteNavbar() {
                       />
                     )}
                     <Icon className="relative size-4 shrink-0" />
-                    <span className="relative whitespace-nowrap">{label}</span>
+                    <span className="relative whitespace-nowrap">{t(label)}</span>
                   </Link>
                 );
               })}
@@ -134,12 +158,13 @@ export function SiteNavbar() {
             <div className="hidden items-center gap-3 md:flex">
               {/* 导航挤到 lg 以下就先让位，移动端菜单里还有一份 */}
               <BuildStamp className="hidden lg:flex" />
+              {langButton}
               {themeButton}
               <a
                 href={REPO_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="GitHub repository (opens in a new tab)"
+                aria-label={t(UI.nav.repo)}
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
                 <Github className="h-5 w-5" />
@@ -147,12 +172,13 @@ export function SiteNavbar() {
             </div>
 
             <div className="flex items-center gap-2 md:hidden">
+              {langButton}
               {themeButton}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 aria-expanded={isMobileMenuOpen}
                 aria-controls="site-mobile-menu"
-                aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-label={t(isMobileMenuOpen ? UI.nav.closeMenu : UI.nav.openMenu)}
                 className="p-2 text-muted-foreground transition-colors hover:text-foreground"
               >
                 {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -168,7 +194,7 @@ export function SiteNavbar() {
             id="site-mobile-menu"
             role="dialog"
             aria-modal="true"
-            aria-label="Navigation menu"
+            aria-label={t(UI.nav.menu)}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -193,7 +219,7 @@ export function SiteNavbar() {
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Icon className="size-5 shrink-0" />
-                    {label}
+                    {t(label)}
                   </Link>
                 </motion.div>
               ))}

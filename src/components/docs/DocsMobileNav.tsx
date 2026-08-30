@@ -5,6 +5,8 @@ import { DocsSidebar } from './DocsSidebar';
 import type { DocSection } from '@/content/navigation';
 import { plainHeadingText, scanHeadings } from '@/lib/headings';
 import { cn, scrollToAnchor } from '@/lib/utils';
+import { useLang, type Text } from '@/lib/i18n';
+import { UI } from '@/content/ui';
 
 interface DocsMobileNavProps {
   sections: DocSection[];
@@ -12,7 +14,7 @@ interface DocsMobileNavProps {
   activeItem?: string;
   onNavigate: (sectionId: string, itemId?: string) => void;
   /** 抽屉头部的标题，缺省是「笔记」 */
-  title?: string;
+  title?: Text;
   /** 和桌面侧栏共用一份展开状态 */
   storageKey: string;
   /** 当前这一篇的原文，用来在手机上给出「本页目录」 */
@@ -28,13 +30,14 @@ export function DocsMobileNav({
   activeSection,
   activeItem,
   onNavigate,
-  title = 'Notes',
+  title = UI.nav.notes,
   storageKey,
   content,
   onOpenSearch,
 }: DocsMobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('toc');
+  const { t } = useLang();
 
   // 和正文、桌面目录同一个纯函数，算出来的 id 必须逐字一致
   const headings = useMemo(
@@ -67,7 +70,7 @@ export function DocsMobileNav({
         onClick={() => setIsOpen(true)}
         style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
         className="lg:hidden fixed right-4 z-40 p-4 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 transition-colors"
-        aria-label="Open note navigation"
+        aria-label={t(UI.notes.openNav)}
       >
         <Menu className="w-6 h-6" />
       </button>
@@ -91,11 +94,11 @@ export function DocsMobileNav({
               className="lg:hidden fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] flex-col bg-background border-r border-border shadow-xl"
             >
               <div className="flex shrink-0 items-center justify-between border-b border-border p-4">
-                <span className="font-semibold text-foreground">{title}</span>
+                <span className="font-semibold text-foreground">{t(title)}</span>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-2 rounded-lg hover:bg-muted transition-colors"
-                  aria-label="Close note navigation"
+                  aria-label={t(UI.notes.closeNav)}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -111,7 +114,7 @@ export function DocsMobileNav({
                     className="flex w-full items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
                     <Search className="h-4 w-4" />
-                    <span className="flex-1 text-left">Search notes</span>
+                    <span className="flex-1 text-left">{t(UI.notes.searchNotes)}</span>
                   </button>
                 </div>
               )}
@@ -120,8 +123,8 @@ export function DocsMobileNav({
                 <div className="mx-4 mt-4 flex shrink-0 rounded-lg bg-muted/50 p-1 text-sm">
                   {(
                     [
-                      { id: 'toc', label: 'On this page' },
-                      { id: 'notes', label: 'All notes' },
+                      { id: 'toc', label: UI.common.onThisPage },
+                      { id: 'notes', label: UI.notes.allNotes },
                     ] as const
                   ).map((option) => (
                     <button
@@ -134,7 +137,7 @@ export function DocsMobileNav({
                           : 'text-muted-foreground'
                       )}
                     >
-                      {option.label}
+                      {t(option.label)}
                     </button>
                   ))}
                 </div>

@@ -1,0 +1,6 @@
+{
+  "number": 41,
+  "title": "Promise零碎知识点",
+  "body": "### async 一定返回 Promise,所以这两种写法几乎等价:\n```js\n// 写法一\nasync function f() { return 5; }\n\n// 写法二(手动包,不用 async)\nfunction f() { return Promise.resolve(5); }\n```\n### .catch(() => {})会把rejected状态的Promise洗成resolved\n\n### .then 回调里抛出的错误(或返回的 rejected promise),会【下沉】到链条后面的下一个 rejection 处理器(.catch)\n\n### .then(onOk, onErr) 的第二个参数,接不住第一个参数自己抛的错:\n原因:onErr 只负责处理它上游传来的 rejection,而 onOk 和 onErr 是同一个 .then 的并列两个参数,onOk 抛的错要找的是下一环的 handler,不是自己的邻居。所以社区的\"说法\"就是:优先用 .then().catch(),少用 .then(onOk, onErr) 两参形式,后者容易漏掉成功回调里的错误。\n\n还有一条:错误在 .catch 里抛,会继续下沉到下一个 .catch\n```js\nPromise.reject(new Error(\"a\"))\n  .catch(() => { throw new Error(\"b\"); })   // 处理 a 时又抛了 b\n  .catch(err => console.log(err.message));  // b\n```\n而如果 .catch 正常返回(不再抛),链条就\"恢复\"成 fulfilled 了——这正是 Bug 1 里 .catch(() => {}) 把 rejected 洗成 resolved 的机制。",
+  "updatedAt": "2026-08-05T04:12:00Z"
+}

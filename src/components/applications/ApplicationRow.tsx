@@ -4,6 +4,8 @@ import { Check, ChevronRight, Copy } from 'lucide-react';
 import type { ApplicationAnswer } from '@/content/applications';
 import { splitByIndices } from '@/lib/fuzzy';
 import { cn } from '@/lib/utils';
+import { useLang } from '@/lib/i18n';
+import { UI } from '@/content/ui';
 
 interface ApplicationRowProps {
   answer: ApplicationAnswer;
@@ -41,6 +43,7 @@ function Highlighted({ text, indices }: { text: string; indices?: number[] }) {
  */
 export function ApplicationRow({ answer, number, isOpen, onToggle, hits }: ApplicationRowProps) {
   const [copied, setCopied] = useState(false);
+  const { t } = useLang();
 
   useEffect(() => {
     if (!copied) return;
@@ -125,7 +128,7 @@ export function ApplicationRow({ answer, number, isOpen, onToggle, hits }: Appli
         <button
           type="button"
           onClick={copy}
-          aria-label={copied ? 'Copied' : 'Copy answer'}
+          aria-label={t(copied ? UI.links.copied : UI.applications.copyAnswer)}
           className={cn(
             'relative z-10 mr-2 shrink-0 rounded-md p-1.5 transition-colors',
             copied

@@ -14,6 +14,8 @@ import {
 } from '@/lib/word-queue';
 import { fuzzyMatch } from '@/lib/fuzzy';
 import { cn } from '@/lib/utils';
+import { useLang } from '@/lib/i18n';
+import { UI } from '@/content/ui';
 
 /** 词条命中：词条本身、英文释义、中文释义、例句各算一次，取最高分 */
 function scoreEntry(entry: WordEntry, query: string): number {
@@ -29,6 +31,7 @@ function scoreEntry(entry: WordEntry, query: string): number {
 }
 
 export default function DictionaryPage() {
+  const { t } = useLang();
   const [query, setQuery] = useState('');
   const [tag, setTag] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -61,10 +64,11 @@ export default function DictionaryPage() {
       <div className="pt-20 md:pt-24">
         <div className="container mx-auto max-w-3xl px-4 sm:px-6">
           <header className="py-4">
-            <h1 className="text-2xl font-bold text-foreground">Technical Dictionary</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t(UI.dictionary.title)}</h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              Words this site made me look up. English first — press <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-[11px]">w</kbd> anywhere to add one, click a
-              row for the Chinese.
+              {t(UI.dictionary.introA)}{' '}
+              <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-[11px]">w</kbd>{' '}
+              {t(UI.dictionary.introB)}
             </p>
           </header>
 
@@ -72,7 +76,7 @@ export default function DictionaryPage() {
             <section className="mt-4 rounded-xl border border-dashed border-border bg-muted/30 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">
-                  Waiting for definitions
+                  {t(UI.dictionary.queueTitle)}
                   <span className="ml-2 text-xs font-normal text-muted-foreground tabular-nums">
                     {queue.length}
                   </span>
@@ -84,12 +88,12 @@ export default function DictionaryPage() {
                     className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
                   >
                     {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-                    {copied ? 'Copied' : 'Copy list'}
+                    {t(copied ? UI.links.copied : UI.dictionary.copyList)}
                   </button>
                   <button
                     type="button"
                     onClick={clearQueue}
-                    aria-label="Clear the queue"
+                    aria-label={t(UI.dictionary.clearQueue)}
                     className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
                     <Trash2 className="size-3.5" />
@@ -97,10 +101,7 @@ export default function DictionaryPage() {
                 </div>
               </div>
 
-              <p className="mt-1 text-xs text-muted-foreground">
-                These live in this browser only. Copy the list, hand it over, and the words come
-                back below in the table — in both languages.
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{t(UI.dictionary.queueBody)}</p>
 
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {queue.map((word) => (
@@ -112,7 +113,7 @@ export default function DictionaryPage() {
                     <button
                       type="button"
                       onClick={() => removeWord(word.term)}
-                      aria-label={`Remove ${word.term}`}
+                      aria-label={t(UI.dictionary.remove(word.term))}
                       className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                       <X className="size-3" />
@@ -128,8 +129,8 @@ export default function DictionaryPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search the dictionary"
-              aria-label="Search the dictionary"
+              placeholder={t(UI.dictionary.searchPlaceholder)}
+              aria-label={t(UI.dictionary.searchPlaceholder)}
               className="h-11 w-full rounded-xl border border-border bg-card pl-11 pr-24 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
             />
             <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
@@ -137,7 +138,7 @@ export default function DictionaryPage() {
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  aria-label="Clear search"
+                  aria-label={t(UI.common.clearSearch)}
                   className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   <X className="size-4" />
@@ -156,7 +157,7 @@ export default function DictionaryPage() {
                   {shown.length}
                 </motion.span>
                 <span className="text-muted-foreground">
-                  {trimmed || tag ? `/ ${dictionaryCount}` : 'words'}
+                  {trimmed || tag ? `/ ${dictionaryCount}` : t(UI.dictionary.unit)}
                 </span>
               </span>
             </div>
@@ -191,9 +192,7 @@ export default function DictionaryPage() {
               <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
                 <SearchX className="size-6" />
                 <p className="text-sm">
-                  {dictionaryCount === 0
-                    ? 'No words yet — press w while reading to start'
-                    : 'Nothing matches that'}
+                  {t(dictionaryCount === 0 ? UI.dictionary.emptyDictionary : UI.dictionary.emptyMatch)}
                 </p>
               </div>
             )}

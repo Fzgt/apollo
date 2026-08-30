@@ -4,6 +4,8 @@ import { SiteNavbar } from '@/components/layout/SiteNavbar';
 import { RouteMemory } from '@/components/layout/RouteMemory';
 import { WordCapture } from '@/components/dictionary/WordCapture';
 import { SITE_NAME, SITE_TAGLINE } from '@/content/site';
+import { UI } from '@/content/ui';
+import { useLang } from '@/lib/i18n';
 import NotFound from './pages/NotFound';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -34,9 +36,10 @@ function PageMeta() {
 }
 
 function RouteFallback() {
+  const { t } = useLang();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
-      Loading…
+      {t(UI.common.loading)}
     </div>
   );
 }

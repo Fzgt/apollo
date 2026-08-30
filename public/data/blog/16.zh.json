@@ -1,0 +1,6 @@
+{
+  "number": 16,
+  "title": "性能监控 SDK：打包工具选型",
+  "body": "### 前置准备\n- 使用webpack就没有那么多优势了，因为作为SDK就是个JS或TS文件，而webpack的优势在于他的loader和插件。\n- 所以首选Rollup专门用于JS打包的，还有 esbuild(golang) 和 swc (rust、对标babel、构建速度对标esbuild)。\n- 目标支持 umd cmd amd esmodule commonjs2  (rollup擅长做多模块的兼容) -> 使用microbundle\n  - <img width=\"286\" height=\"120\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/05d1778e-ee2a-4baa-a58b-b9b646e01ac7\" />",
+  "updatedAt": "2026-08-23T11:48:43Z"
+}

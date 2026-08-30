@@ -4,6 +4,8 @@ import { AlertTriangle, ChevronRight, Languages, Quote } from 'lucide-react';
 import type { Question } from '@/content/questions';
 import { splitByIndices } from '@/lib/fuzzy';
 import { cn } from '@/lib/utils';
+import { useLang } from '@/lib/i18n';
+import { UI } from '@/content/ui';
 
 const MarkdownRenderer = lazy(() =>
   import('@/components/docs/MarkdownRenderer').then((m) => ({ default: m.MarkdownRenderer }))
@@ -38,9 +40,17 @@ function Highlighted({ text, indices }: { text: string; indices?: number[] }) {
 
 export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: QuestionRowProps) {
   const { q, a, phrases, kind, unresolved, asked } = question;
+  const { lang, t } = useLang();
 
-  // 站上讲英文，中文收在按钮后面。没有英文那一份时（还没翻），中文直接顶上来，不留空
-  const [showZh, setShowZh] = useState(false);
+  /*
+   * 当前语言那一份在上，另一份收在按钮后面。英文模式下某题还没翻，中文直接顶上来，
+   * 不留空——这时也就没有「另一份」可收，按钮不出现。
+   */
+  const en = lang === 'en';
+  const primaryBody = en ? (a.en ?? a.zh) : a.zh;
+  // 英文模式下这题没译文时，上面显示的已经是中文，别再给一个「中文」按钮重复一遍
+  const otherBody = en ? (a.en ? a.zh : undefined) : a.en;
+  const [showOther, setShowOther] = useState(false);
 
   return (
     <motion.div
@@ -96,12 +106,12 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
                   : 'bg-muted text-muted-foreground'
               )}
             >
-              {kind === 'main' ? 'Main' : 'Follow-up'}
+              {t(kind === 'main' ? UI.questions.main : UI.questions.followup)}
             </span>
             {unresolved && (
               <span className="inline-flex shrink-0 items-center gap-1 rounded bg-warning/15 px-1.5 py-0.5 text-[11px] font-medium text-warning">
                 <AlertTriangle className="size-3" />
-                To write
+                {t(UI.questions.toWrite)}
               </span>
             )}
             {asked && (
@@ -117,7 +127,7 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
               !isOpen && 'group-hover:text-primary'
             )}
           >
-            {q.en ? (
+            {en && q.en ? (
               <Highlighted text={q.en} indices={hitEn} />
             ) : (
               <Highlighted text={q.zh} indices={hitZh} />
@@ -126,7 +136,11 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
 
           {q.en && (
             <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
-              <Highlighted text={q.zh} indices={hitZh} />
+              {en ? (
+                <Highlighted text={q.zh} indices={hitZh} />
+              ) : (
+                <Highlighted text={q.en} indices={hitEn} />
+              )}
             </span>
           )}
         </span>
@@ -143,27 +157,27 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
           >
             <div className="border-t border-border/60 px-4 pb-5 pl-11 pt-4">
               <Suspense
-                fallback={<p className="text-sm text-muted-foreground">Rendering…</p>}
+                fallback={<p className="text-sm text-muted-foreground">{t(UI.common.rendering)}</p>}
               >
-                <MarkdownRenderer content={a.en ?? a.zh} className="max-w-none" />
+                <MarkdownRenderer content={primaryBody} className="max-w-none" />
               </Suspense>
 
-              {a.en && (
+              {otherBody && (
                 <>
                   <button
                     type="button"
-                    onClick={() => setShowZh((shown) => !shown)}
-                    aria-expanded={showZh}
+                    onClick={() => setShowOther((shown) => !shown)}
+                    aria-expanded={showOther}
                     className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
                   >
                     <Languages className="size-3.5" />
-                    {showZh ? 'Hide Chinese' : '中文'}
+                    {t(showOther ? UI.questions.hideOther : UI.questions.showOther)}
                   </button>
 
-                  {showZh && (
+                  {showOther && (
                     <Suspense fallback={null}>
                       <div className="mt-4 border-t border-dashed border-border pt-4">
-                        <MarkdownRenderer content={a.zh} className="max-w-none" />
+                        <MarkdownRenderer content={otherBody} className="max-w-none" />
                       </div>
                     </Suspense>
                   )}
@@ -174,7 +188,7 @@ export function QuestionRow({ question, isOpen, onToggle, hitZh, hitEn }: Questi
                 <div className="mt-4 rounded-lg border border-border bg-card/60 p-3">
                   <p className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                     <Quote className="size-3" />
-                    English you can say out loud
+                    {t(UI.questions.phrases)}
                   </p>
                   <ul className="space-y-1.5">
                     {phrases.map((phrase) => (

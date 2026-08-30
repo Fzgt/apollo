@@ -6,9 +6,12 @@
  * `href` 只管点开，跟复制的内容是两回事。
  */
 
+import { UI } from './ui';
+import type { Text } from '@/lib/i18n';
+
 export interface QuickLink {
   /** 左侧标签，扫一眼定位用 */
-  label: string;
+  label: Text;
   /** 复制进剪贴板的原文 */
   value: string;
   /** 点击右侧图标打开的地址；邮箱走 mailto */
@@ -16,41 +19,41 @@ export interface QuickLink {
 }
 
 export interface QuickLinkGroup {
-  title: string;
-  hint: string;
+  title: Text;
+  hint: Text;
   links: QuickLink[];
 }
 
 export const quickLinkGroups: QuickLinkGroup[] = [
   {
-    title: 'Identity',
-    hint: 'The fields every application form asks for',
+    title: UI.links.identity,
+    hint: UI.links.identityHint,
     links: [
-      { label: 'Email', value: 'fzgt320@gmail.com', href: 'mailto:fzgt320@gmail.com' },
-      { label: 'GitHub', value: 'https://github.com/Fzgt', href: 'https://github.com/Fzgt' },
+      { label: UI.links.email, value: 'fzgt320@gmail.com', href: 'mailto:fzgt320@gmail.com' },
+      { label: { en: 'GitHub' }, value: 'https://github.com/Fzgt', href: 'https://github.com/Fzgt' },
       {
-        label: 'LinkedIn',
+        label: { en: 'LinkedIn' },
         value: 'https://www.linkedin.com/in/fzgt/',
         href: 'https://www.linkedin.com/in/fzgt/',
       },
       {
-        label: 'Resume link',
+        label: UI.links.resumeLink,
         value: 'https://data-api.fzgt320.workers.dev/resume',
         href: 'https://data-api.fzgt320.workers.dev/resume',
       },
     ],
   },
   {
-    title: 'Work',
-    hint: 'For when someone asks to see the code',
+    title: UI.links.work,
+    hint: UI.links.workHint,
     links: [
       {
-        label: 'WinterFell',
+        label: { en: 'WinterFell' },
         value: 'https://github.com/Fzgt/CG-WinterFell',
         href: 'https://github.com/Fzgt/CG-WinterFell',
       },
       {
-        label: 'Periplus',
+        label: { en: 'Periplus' },
         value: 'https://github.com/parthenon-labs/periplus',
         href: 'https://github.com/parthenon-labs/periplus',
       },

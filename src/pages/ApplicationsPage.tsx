@@ -11,6 +11,8 @@ import {
 } from '@/content/applications';
 import { fuzzyMatch } from '@/lib/fuzzy';
 import { cn } from '@/lib/utils';
+import { useLang } from '@/lib/i18n';
+import { UI } from '@/content/ui';
 
 interface Scored {
   answer: ApplicationAnswer;
@@ -42,6 +44,7 @@ function scoreAnswer(answer: ApplicationAnswer, query: string): Scored | null {
 }
 
 export default function ApplicationsPage() {
+  const { lang, t } = useLang();
   const [query, setQuery] = useState('');
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set());
 
@@ -100,8 +103,8 @@ export default function ApplicationsPage() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search — company, question or keyword"
-              aria-label="Search form answers"
+              placeholder={t(UI.applications.searchPlaceholder)}
+              aria-label={t(UI.applications.searchLabel)}
               className="h-12 w-full rounded-xl border border-border bg-card pl-11 pr-24 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
             />
             <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
@@ -109,7 +112,7 @@ export default function ApplicationsPage() {
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  aria-label="Clear search"
+                  aria-label={t(UI.common.clearSearch)}
                   className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   <X className="size-4" />
@@ -128,7 +131,7 @@ export default function ApplicationsPage() {
                   {isFiltered ? hitCount : answerCount}
                 </motion.span>
                 <span className="text-muted-foreground">
-                  {isFiltered ? `/ ${answerCount}` : 'answers'}
+                  {isFiltered ? `/ ${answerCount}` : t(UI.applications.unit)}
                 </span>
               </span>
             </div>
@@ -136,7 +139,8 @@ export default function ApplicationsPage() {
 
           <div className="mt-2 flex items-center justify-between gap-3 text-xs text-muted-foreground">
             <span className="min-w-0 truncate">
-              Answers already pasted into application forms. Copy from the icon on the right; expand a row only to check it.
+              {t(UI.applications.hint)}
+              {lang === 'zh' && ` ${t(UI.applications.englishOnly)}`}
             </span>
             {openIds.size > 0 && (
               <button
@@ -145,7 +149,7 @@ export default function ApplicationsPage() {
                 className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-muted hover:text-foreground"
               >
                 <ChevronsDownUp className="size-3.5" />
-                Collapse all
+                {t(UI.common.collapseAll)}
               </button>
             )}
           </div>
@@ -162,7 +166,7 @@ export default function ApplicationsPage() {
                   )}
                   {group.companySpecific && (
                     <span className="ml-auto shrink-0 rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
-                      This company only
+                      {t(UI.applications.companyOnly)}
                     </span>
                   )}
                 </div>
@@ -183,7 +187,7 @@ export default function ApplicationsPage() {
             {isFiltered && hitCount === 0 && (
               <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
                 <SearchX className="size-6" />
-                <p className="text-sm">No matching answers</p>
+                <p className="text-sm">{t(UI.applications.noMatches)}</p>
               </div>
             )}
           </div>
