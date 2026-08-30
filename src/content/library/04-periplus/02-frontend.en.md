@@ -7,7 +7,7 @@ section: Periplus
 
 > Why this exists: Periplus isn't where the resume's frontend weight sits (that's WinterFell / WebGPU), but if an interviewer asks in passing "how is the frontend of this built", you need to be able to describe **the basic structure** without going deep into how each library works. This note stays at that level.
 >
-> **v27 revision (2026-08-17):** one part is now heavier — **v27's bullet 1 explicitly says "the typed stage contract carries all the way to the React client, whose types are generated from the OpenAPI schema"**. So section 2 (the `openapi-typescript` chain) is now something the resume promises, not something you mention only when asked. **You must be able to explain it unprompted: where the contract is defined, how the types are generated, how the generated file is consumed, and what happens when the schema changes and nobody regenerates.** The rest (TanStack Query, MSW) stays at the basics level.
+> **One part carries more weight than the rest:** an earlier resume promised in the body that "the typed stage contract carries all the way to the React client, whose types are generated from the OpenAPI schema". So section 2 (the `openapi-typescript` chain) is now something the resume promises, not something you mention only when asked. **You must be able to explain it unprompted: where the contract is defined, how the types are generated, how the generated file is consumed, and what happens when the schema changes and nobody regenerates.** The rest (TanStack Query, MSW) stays at the basics level.
 
 ---
 

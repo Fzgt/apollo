@@ -4,16 +4,16 @@ section: BioMap
 icon: microscope
 ---
 
-# BioMap —— 简历 v40 四条 bullet
+# BioMap —— 简历四条 bullet
 
-> ⚠️ **这是按 v40 顺序保存的历史资料。现版简历顺序是：① 架构边界 ② 设计系统 ③ TanStack Query ④ LIMS。**当前面试口径以「计划」里的四篇重写版为准；下面的「Bullet 1–4」只表示旧版编号。
+> ⚠️ **这是按旧顺序保存的历史资料。现版简历顺序是：① 架构边界 ② 设计系统 ③ TanStack Query ④ LIMS。**当前面试口径以「计划」里的四篇重写版为准；下面的「Bullet 1–4」只表示旧版编号。
 >
 > 结构对齐 **简历的 BioMap 四条**，一条不多一条不少。每条分四段：**原文** / **在哪看** / **怎么讲** / **可能的追问**。
-> 上一版里那条「工具链 + Docker/Nginx/Jenkins」v40 已经不写了，整节删除。
+> 那条「工具链 + Docker/Nginx/Jenkins」已经不在简历上，整节删除。
 
 ## 读哪个仓库 —— 别搞错
 
-| v40 bullet | 代码在哪 |
+| 旧版 bullet | 代码在哪 |
 |---|---|
 | ① LIMS + Luckysheet + CLI | `~/Desktop/BioMap/biomap-web-lims`、`~/Desktop/BioMap/biomap-cli` —— **BioMap 真代码** |
 | ② Digital OS 架构 + ESLint 模块边界 | `~/Desktop/projects/github/Prometheus` |
@@ -25,7 +25,7 @@ icon: microscope
 ---
 ## Bullet 1:LIMS 平台 + Luckysheet SDK + CLI
 
-> v40 原文：Developed the LIMS platform in Vue 3 and TypeScript for sample management and SOP workflows, integrating the Luckysheet SDK and a CLI for one-command project scaffolding.
+> 旧版原文：Developed the LIMS platform in Vue 3 and TypeScript for sample management and SOP workflows, integrating the Luckysheet SDK and a CLI for one-command project scaffolding.
 
 ### 在哪看 ⭐(2026-08-18 更新：代码找到了，不再靠回忆)
 
@@ -65,7 +65,7 @@ icon: microscope
 ---
 
 
-### CLI（v40 Bullet 1 后半句）
+### CLI（旧版 Bullet 1 后半句）
 
 代码在 `~/Desktop/BioMap/biomap-cli`，实际长这样（不是上一版猜的那样）：
 
@@ -82,7 +82,7 @@ icon: microscope
 
 ## Bullet 2:Feature-Driven 架构 + 自定义 ESLint 规则约束模块边界 ⭐
 
-> v40 原文：Led the React 18 and TypeScript architecture for Digital OS, the team's core consumer-facing product, enforcing feature boundaries with custom ESLint rules.
+> 旧版原文：Led the React 18 and TypeScript architecture for Digital OS, the team's core consumer-facing product, enforcing feature boundaries with custom ESLint rules.
 
 ### 在哪看 ⭐(Prometheus 全部覆盖)
 - **目录结构**:`src/` 下有 `app/`、`features/`、`components/`、`hooks/`、`lib/`、`types/`、`utils/`、`testing/`。每个 `features/*` 内部再分 `api/`、`components/`。
@@ -115,7 +115,7 @@ icon: microscope
 
 ## Bullet 3（历史版）: TanStack Query 三层 + 缓存失效 + Hover Prefetch ⭐
 
-> v40 原文：Layered TanStack Query in three tiers — API functions, queryOptions factories, typed hooks — single-source cache keys, mutation-driven invalidation, route preloading and hover prefetch: detail-page LCP under 500 ms.
+> 旧版原文：Layered TanStack Query in three tiers — API functions, queryOptions factories, typed hooks — single-source cache keys, mutation-driven invalidation, route preloading and hover prefetch: detail-page LCP under 500 ms.
 
 ### 在哪看 ⭐(Prometheus 是最全的一条)
 
@@ -171,7 +171,7 @@ onSuccess: () => {
 
 ## Bullet 4:Radix UI 组件库 + Storybook + CVA + MSW Mock 层 ⭐
 
-> v40 原文：Built a design system on Radix UI, Storybook and CVA, plus an MSW mock layer that let frontend delivery run independent of backend progress.
+> 旧版原文：Built a design system on Radix UI, Storybook and CVA, plus an MSW mock layer that let frontend delivery run independent of backend progress.
 
 ### 在哪看 ⭐(Prometheus 全部覆盖)
 

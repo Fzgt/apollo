@@ -13,8 +13,12 @@ status: done
 > **简历原句**
 >
 > Built the real-time interview copilot end to end: tab and system audio through **getDisplayMedia**, streamed over a **WebSocket** to Deepgram and answered by **GPT-4o token by token as each utterance ends**.
+>
+> ---
+>
+> 端到端做了实时面试 copilot：用 getDisplayMedia 采集标签页与系统音频，经 WebSocket 流给 Deepgram，每句话说完由 GPT-4o 逐 token 作答。
 
-> ℹ️ **这是简历上的第一条。**（v66 曾把 bullet 1 和 2 并成一句，v72 又拆回两条。）本篇只讲链路本身：捕获 → 转写 → 判断说完 → 流式作答。凭证、用量与状态机在 [② 凭证、配额与四态机](/docs?section=beyz&item=credential-quota)。
+> ℹ️ **本篇只讲链路本身**：捕获 → 转写 → 判断说完 → 流式作答。凭证、用量与状态机是另一条 bullet，在 [② 凭证、配额与四态机](/docs?section=beyz&item=credential-quota)。
 
 ## 先看懂产品，再看 API
 

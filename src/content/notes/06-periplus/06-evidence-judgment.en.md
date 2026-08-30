@@ -9,7 +9,7 @@ section: Periplus
 >
 > **Split evidence from judgment**: the research stage emits **claims bound to exact source quotes**, a separate verification stage rules on them, and **application code — not prompts — enforces citation membership and freshness windows**. **A claim with no supporting quote never advances.**
 
-> ⚠️ **v66 removed this bullet from the resume** (Periplus went from five lines to three then; v72 has four, and this one is still not among them). The line quoted above is v40's, kept for reference. **The note stays**: "how do you stop the model inventing sources" is a guaranteed question for an LLM role, and the answer is all here.
+> ⚠️ **This page is not on the resume.** Periplus has four bullets and this is not one of them; the line quoted above is what it said when it was on the resume, kept for reference. **The note stays**: "how do you stop the model inventing sources" is a guaranteed question for an LLM role, and the answer is all here.
 
 ## What this bullet is about
 

@@ -4,20 +4,20 @@ section: WinterFell
 icon: gamepad-2
 ---
 
-# WinterFell 项目学习笔记(对齐简历 v66 五条 bullet)
+# WinterFell 项目学习笔记(对齐简历五条 bullet)
 
 > 仓库:`~/Desktop/projects/github/CG-WinterFell`,remote `git@github.com:Fzgt/CG-WinterFell.git`,线上 https://cg-winter-fell.vercel.app
 > 栈:React 19 + @react-three/fiber v9 + three r0.174(`three/webgpu` 入口) + WebGPU + cannon-es + Zustand + TypeScript + Vite
-> 简历版本对齐:**v66**(2026-08-27)。**WinterFell 在 v66 提到了 Periplus 前面,并多了一条开场 bullet**(「这是个什么游戏」——二十个场景、按飞行距离实时生成、每局换种子),对应本文第 0 节。原来的四条仍在,但全部改写成了大白话。
-> **v66 撤下的三处**:三角形涨 2.6×、「不低于 15 单位」、随机散布对照组,以及 TSL / WebGPURenderer / program key 这些术语。**数字和术语都仍要会答**,下面各节原样保留。
-> 历史:v28 修正过 draw call 129→76 与 15 单位;v27 印的 175→32 与 14 units 都是错的,详见第 2、3 节。
+> **简历上 WinterFell 是五条 bullet**,第一条是开场(「这是个什么游戏」——二十个场景、按飞行距离实时生成、每局换种子),对应本文第 0 节;其余四条写成了大白话。
+> **不在简历上、但仍要会答的三处**:三角形涨 2.6×、「不低于 15 单位」、随机散布对照组,以及 TSL / WebGPURenderer / program key 这些术语。下面各节原样保留。
+> 数字口径:draw call 是 129→76、阈值是 15 单位,都是实测值;更早流传过的 175→32 与 14 units 都是错的,详见第 2、3 节。
 > 本文是"项目走查":文件路径 + 具体机制 + 预期追问。通用图形学概念在 `../concepts/LEARNING_NOTES_WINTERFELL_GRAPHICS_CONCEPTS.md`。
 
 ---
 
 ## 0. 三十秒讲清这个项目是什么
 
-**简历原文(v66 新增的开场条):** *Built a browser racing game: steer a craft through fields of neon obstacles across twenty scenes, with the terrain, skyline and obstacles all generated on the fly from how far you have traveled, on a fresh seed each run.*
+**简历原文(开场条):** *Built a browser racing game: steer a craft through fields of neon obstacles across twenty scenes, with the terrain, skyline and obstacles all generated on the fly from how far you have traveled, on a fresh seed each run.*
 
 浏览器里的第三人称竞速/闪避游戏。**一条线性路线,不是循环**:20 个场景,每段 1800 单位,全程约 3.5 公里,速度只随关卡爬升一次,终点是 UTS 前庭,飞行器停下。分数是存活距离(米)。
 
@@ -29,9 +29,9 @@ icon: gamepad-2
 
 ## 1. Bullet 1 — 一个渲染器,两个后端
 
-**简历原文(v66):** *Made the neon glow work on machines without WebGPU: it is built on the newer three.js node pipeline, so one renderer drives WebGPU where the browser has it and falls back to WebGL2 where it does not.*
+**简历原文:** *Made the neon glow work on machines without WebGPU: it is built on the newer three.js node pipeline, so one renderer drives WebGPU where the browser has it and falls back to WebGL2 where it does not.*
 
-> v28 原文（术语版，被追问时按这个深度讲）：*Built the bloom pass on three.js’s TSL node pipeline, which a classic WebGLRenderer cannot execute…*
+> 旧版原文（术语版，被追问时按这个深度讲）：*Built the bloom pass on three.js’s TSL node pipeline, which a classic WebGLRenderer cannot execute…*
 
 ### 代码出处
 
@@ -70,9 +70,9 @@ icon: gamepad-2
 
 ## 2. Bullet 2 — 实例化障碍,以及它的代价
 
-**简历原文(v66):** *Cut draw calls from 129 to 76 by collapsing each obstacle field into two instanced meshes, measured frame by frame in a headless Chromium harness: the cost is that off-screen obstacles can no longer be skipped one by one.*
+**简历原文:** *Cut draw calls from 129 to 76 by collapsing each obstacle field into two instanced meshes, measured frame by frame in a headless Chromium harness: the cost is that off-screen obstacles can no longer be skipped one by one.*
 
-> ⚠️ **v66 把「triangles submitted up 2.6×」撤下了**，代价那半句改成了大白话。**2.6 倍仍要会答**——一说 draw call 降了，「那代价呢」必然跟着来。
+> ⚠️ **「triangles submitted up 2.6×」不在简历上**，代价那半句写成了大白话。**2.6 倍仍要会答**——一说 draw call 降了，「那代价呢」必然跟着来。
 
 ### 代码出处
 
@@ -80,9 +80,9 @@ icon: gamepad-2
 - `src/components/ObstacleField.tsx` — 三段 live section 的调度。
 - `bench/run.mjs` — 无头 Chromium 逐帧采样 `renderer.info`(draw call / 三角形数),四组场景对照。
 
-### ⚠️ 数字已订正(2026-08-17 实测,v28 已改)
+### ⚠️ 数字已订正(2026-08-17 实测)
 
-**v27 印的 "175 to 32" 是错的,v28 已换成实测值。** 当天 `npm run dev` + `node bench/run.mjs` 实跑,四组对照的结果是:
+**早先流传的 "175 to 32" 是错的,已换成实测值。** 当天 `npm run dev` + `node bench/run.mjs` 实跑,四组对照的结果是:
 
 | 场景 | 后端 | draw call | 三角形 |
 |---|---|---|---|
@@ -117,9 +117,9 @@ README 第 75 行原话也是这个意思。**这句话不要等面试官挖出�
 
 ## 3. Bullet 3 — 公平性是量出来的,不是玩出来的
 
-**简历原文(v66):** *Checked the level generator by machine rather than by playing it: across 1,020 generated layouts, every step tested against how far the craft can move sideways at that stage’s speed, every layout had a way through.*
+**简历原文:** *Checked the level generator by machine rather than by playing it: across 1,020 generated layouts, every step tested against how far the craft can move sideways at that stage’s speed, every layout had a way through.*
 
-> ⚠️ **v66 把「no gap narrower than 15 units」和随机散布对照组一起撤下了**。两处仍要会答：「走得通」凭什么判定，答案就是那个阈值；对照组是「这个扫描有没有区分力」的答案。
+> ⚠️ **「no gap narrower than 15 units」和随机散布对照组都不在简历上**。两处仍要会答：「走得通」凭什么判定，答案就是那个阈值；对照组是「这个扫描有没有区分力」的答案。
 
 ### 代码出处
 
@@ -127,7 +127,7 @@ README 第 75 行原话也是这个意思。**这句话不要等面试官挖出�
 - `src/utils/generateObstacles.ts` — 生成器本体(`generateSectionObstacles`、`laneAt`、`reseedRoute`)。
 - `src/config/levels.ts`、`src/config/obstacles.ts` — 速度与密度参数。
 
-### ⚠️ 数字已订正(2026-08-17 实测,跑了两遍,v28 已改)
+### ⚠️ 数字已订正(2026-08-17 实测,跑了两遍)
 
 - **"零个无路可走"—— 成立。** 每一段每一次抽样的 "Layouts with no way through" 都是 **0%**,报告末尾原话:*"Every layout sampled had a continuous path through it."* 这条放心说。
 - **"最窄缝隙 14 units" 是错的,而且是看错了列。** 实测每段的 **Tightest gap 在 15–20 units 之间**(两轮的全局最小值分别是 15 和 16)。14 出现在**另一列** "Things in view / how wide" —— 那是"视野内障碍多宽",不是缝隙。
@@ -160,9 +160,9 @@ README 第 75 行原话也是这个意思。**这句话不要等面试官挖出�
 
 ## 4. Bullet 4 — 雾与 program key:一次整帧卡死
 
-**简历原文(v66):** *Traced a freeze on every color change to the fog: rebuilding it as a new object made every material in the scene recompile its shader in one frame. Reusing one fog object and setting its color removed it.*
+**简历原文:** *Traced a freeze on every color change to the fog: rebuilding it as a new object made every material in the scene recompile its shader in one frame. Reusing one fog object and setting its color removed it.*
 
-> ⚠️ **v66 撤下了「fog 属于材质的 program key」和那个统计每帧新建管线数的探针**。探针是这条唯一的证据来源，被追问「你怎么确认是重编译」时必须拿它出来。
+> ⚠️ **「fog 属于材质的 program key」和那个统计每帧新建管线数的探针都不在简历上**。探针是这条唯一的证据来源，被追问「你怎么确认是重编译」时必须拿它出来。
 
 **这是全篇最好的一条 debug 故事,而且是多数前端不知道的知识点。面试前把它讲顺。**
 
@@ -204,7 +204,7 @@ const LevelFog = ({ color }: { color: string }) => {
 
 ## 5. 被换下去的那条(仍在 README,别当它不存在)
 
-`bench/leak.mjs` 包住 GPU device 统计存活 buffer/texture,抓到**重开残留约 800 个、冷启动 463 个**。根因是 **r3f v9 不再在卸载时自动 dispose**,而这个项目的几何体大多是手搓的。处理方式是**重开改成重载文档,而不是重挂场景——那是绕过,不是修复**,结尾太弱,v27 从简历上换下来了。
+`bench/leak.mjs` 包住 GPU device 统计存活 buffer/texture,抓到**重开残留约 800 个、冷启动 463 个**。根因是 **r3f v9 不再在卸载时自动 dispose**,而这个项目的几何体大多是手搓的。处理方式是**重开改成重载文档,而不是重挂场景——那是绕过,不是修复**,结尾太弱,所以不在简历上。
 
 **但 README 里还写着。** 如果面试官读了 README 问起来,如实说:定位到了、量化了、当时选了成本最低的规避方案,真正的修复是给自建几何体补 dispose 生命周期。承认这一点比硬圆强。
 

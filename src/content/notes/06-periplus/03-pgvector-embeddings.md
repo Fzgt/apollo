@@ -13,6 +13,10 @@ status: done
 > **简历原句**
 >
 > **Cached evidence embeddings in pgvector** on an **ivfflat cosine index**, generated **locally by MiniLM**.
+>
+> ---
+>
+> 证据向量缓存在 pgvector 里，走 ivfflat 余弦索引，向量由本地的 MiniLM 生成。
 
 ## 这条要讲清什么
 

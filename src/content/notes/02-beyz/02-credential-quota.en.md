@@ -8,7 +8,7 @@ title: "② Credentials, quota and the four-state machine"
 >
 > Minted **60-second usage-scoped Deepgram keys** per session **behind a plan gate**, socket alive across pauses.
 
-> ℹ️ **v72 split this back into its own bullet** (in v66 it shared one sentence with [① Real-time interview copilot](/docs?section=beyz&item=realtime-copilot)). The ephemeral key, the plan gate and keeping the socket alive are all in that sentence; **the four-state machine has been off the resume since v66**, but the note stays — "what happens when two paths trigger generation at once" still gets asked.
+> ℹ️ **The ephemeral key, the plan gate and keeping the socket alive are all in this resume line; the four-state machine is not.** The note keeps it anyway — "what happens when two paths trigger generation at once" still gets asked. The pipeline itself is in [① Real-time interview copilot](/docs?section=beyz&item=realtime-copilot).
 
 ## First understand this: it puts production edges on a real-time demo
 

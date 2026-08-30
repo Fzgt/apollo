@@ -3,14 +3,14 @@ title: General behavioural interview
 section: General interview
 ---
 
-# Behavioural interview prep (matches resume v40)
+# Behavioural interview prep
 
 > Written 2026-08-18. This is a **reference draft, not a final script** — everywhere it says
 > `[only you can fill this in]`, I don't know the facts and I won't invent them for you.
-> Everything else uses only facts already on the v40 resume and things that are in your own code.
+> Everything else uses only facts already on the resume and things that are in your own code.
 >
 > The existing `Coreflow self-intro` note was for the 8/4 phone screen: tied to that company, and
-> written before v40. This one is the general base; layer the company-specific part on top of it
+> written long before the current resume. This one is the general base; layer the company-specific part on top of it
 > before each interview.
 
 ---

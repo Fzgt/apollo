@@ -9,7 +9,7 @@ section: Periplus
 >
 > **Six-stage LLM pipeline behind typed Pydantic stage contracts** filled by **schema-constrained JSON output**, with **run state and stage artifacts in PostgreSQL**: **a run that dies mid-pipeline resumes from the last completed stage**.
 
-> ℹ️ **v66 merged the old bullets 1 and 3 into this one.** This page covers the contracts and the orchestration; persistence and resuming live in [② Persistence and resuming](/docs?section=periplus&item=persistence-resume). The phrases "agentic workflow" and "frontend types generated from OpenAPI" came off the resume, replaced by Pydantic and MiniLM.
+> ℹ️ **This page covers the contracts and the orchestration**; the persistence and resuming half of the same bullet is in [② Persistence and resuming](/docs?section=periplus&item=persistence-resume). **The phrases "agentic workflow" and "frontend types generated from OpenAPI" are not on the resume** — do not quote them as if they were. What is on paper is Pydantic and schema-constrained JSON.
 
 ## What this bullet is about
 

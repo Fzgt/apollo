@@ -8,7 +8,7 @@ title: "① Real-time interview copilot"
 >
 > Built the real-time interview copilot end to end: tab and system audio through **getDisplayMedia**, streamed over a **WebSocket** to Deepgram and answered by **GPT-4o token by token as each utterance ends**.
 
-> ℹ️ **This is the first line on the resume.** (v66 had merged the old bullets 1 and 2 into one sentence; v72 split them back apart.) This page covers the pipeline itself: capture → transcribe → detect the end of a turn → stream the answer. Credentials, quota and the state machine live in [② Credentials, quota and the four-state machine](/docs?section=beyz&item=credential-quota).
+> ℹ️ **This page covers the pipeline itself**: capture → transcribe → detect the end of a turn → stream the answer. Credentials, quota and the state machine are a separate bullet, in [② Credentials, quota and the four-state machine](/docs?section=beyz&item=credential-quota).
 
 ## Understand the product before you look at the APIs
 

@@ -4,15 +4,15 @@ section: 百度
 icon: landmark
 ---
 
-# 百度 —— 简历 v40 五条 bullet
+# 百度 —— 简历五条 bullet
 
 > 目的:百度那段技术密度最高(虚拟列表、Webpack 迁移、P2 事故复盘都是硬货),但当时做完就忘。这篇按 bullet 拆开,**把每条背后的底层机制彻底讲清楚**,让你面试时能一层一层往下答。
 >
 > 每条 bullet 分五段:**原文** / **核心技术点** / **实现原理** / **你当时大概是怎么做的** / **面试预期追问**。
 >
-> **2026-08-18 重排：编号已经和 v40 简历对齐**（原来笔记里虚拟列表排第 3、提现排第 2，和简历反着，已互换）。每条开头引的都是 **v40 原文**。
+> **编号和简历对齐**（原来笔记里虚拟列表排第 3、提现排第 2，和简历反着，已互换）。每条开头引的是**该条更早的措辞**，和现简历有出入处以站内笔记为准。
 >
-> **已处理（2026-08-19）**：提现那条原本带着 `without a single dollar of financial loss`。零资损是财务对账的结论，不是前端能测出来的东西——已经从简历上删掉，换成请求锁、幂等 key、不确定按失败处理这三个可证的动作。下面正文里的 v40 原句已同步更新。
+> **已处理（2026-08-19）**：提现那条原本带着 `without a single dollar of financial loss`。零资损是财务对账的结论，不是前端能测出来的东西——已经不在简历上，换成请求锁、幂等 key、不确定按失败处理这三个可证的动作。下面正文里引的原句已同步更新。
 >
 > 另：百度的代码不在本机，这段全靠这份笔记 + 回忆，所以它的分量比另外两份重。
 
@@ -20,7 +20,7 @@ icon: landmark
 
 ## Bullet 1:小度 App H5 智能家居模块 —— jsBridge + 混合应用
 
-> v40 原文：Delivered the Xiaodu App’s H5 smart-home module in Vue 2, adding native iOS/Android sharing via jsBridge, device detail pages and analytics tracking.
+> 旧版原文：Delivered the Xiaodu App’s H5 smart-home module in Vue 2, adding native iOS/Android sharing via jsBridge, device detail pages and analytics tracking.
 
 ### 核心技术点
 
@@ -138,9 +138,9 @@ class JSBridge {
 
 ## Bullet 2 ⭐ 虚拟列表 —— DOM 节点恒定 ~100,30 FPS → 60 FPS
 
-> v40 原文：Built a virtualized React feed serving 5M+ daily page views on a custom useVirtualList hook over IntersectionObserver: live DOM nodes stay near 100 at any scroll depth, scroll from 30 to a stable 60 FPS.
+> 旧版原文：Built a virtualized React feed serving 5M+ daily page views on a custom useVirtualList hook over IntersectionObserver: live DOM nodes stay near 100 at any scroll depth, scroll from 30 to a stable 60 FPS.
 >
-> （v40 删掉了 React 16.8 / Webpack 4 / 好看视频这些背景，讲的时候仍然可以补，但简历上不再承诺。）
+> （React 16.8 / Webpack 4 / 好看视频这些背景不在简历上，讲的时候仍然可以补，但纸上不承诺。）
 
 **这是你简历上技术密度最高的一条,面试官会往死里问。这一节我讲最深。**
 
@@ -401,7 +401,7 @@ TanStack Virtual 就是这么做的(`measureElement` 就是方案 1 + 2 的结�
 
 ## Bullet 3:提现功能 QPS 2000+ —— 高并发场景下的前端防御
 
-> v40 原文：Built the withdrawal client on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures, never successes.
+> 旧版原文：Built the withdrawal client on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures, never successes.
 
 ### 核心技术点
 
@@ -549,7 +549,7 @@ async function tryClick() {
 
 ## Bullet 4 ⭐ Webpack 3 → 5 迁移 —— 包体积 -15%,构建 -70%
 
-> v40 原文：Led a Webpack 3-to-5 migration across 10+ incompatible packages, extracting shared runtime through SplitChunksPlugin and turning on persistent caching — bundle size down ~15%, local build times down 70%.
+> 旧版原文：Led a Webpack 3-to-5 migration across 10+ incompatible packages, extracting shared runtime through SplitChunksPlugin and turning on persistent caching — bundle size down ~15%, local build times down 70%.
 
 ### 核心技术点
 
@@ -709,7 +709,7 @@ Webpack 5 用**内容哈希 + 依赖哈希**判定 cache 是否有效:
 
 ## Bullet 5:P2 白屏事故复盘 —— 依赖锁定与预发布验证
 
-> v40 原文：First to diagnose a P2 white screen on Haokan Video’s search page (100M+ DAU): mismatched Node versions regenerated package-lock.json, pulling a breaking minor bump — version locks and release checks followed.
+> 旧版原文：First to diagnose a P2 white screen on Haokan Video’s search page (100M+ DAU): mismatched Node versions regenerated package-lock.json, pulling a breaking minor bump — version locks and release checks followed.
 
 ### 核心技术点
 

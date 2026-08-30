@@ -3,20 +3,20 @@ title: Project walkthrough
 section: WinterFell
 ---
 
-# WinterFell project notes (aligned to the five v66 resume bullets)
+# WinterFell project notes (aligned to the five resume bullets)
 
 > Repository: `~/Desktop/projects/github/CG-WinterFell`, remote `git@github.com:Fzgt/CG-WinterFell.git`, live at https://cg-winter-fell.vercel.app
 > Stack: React 19 + @react-three/fiber v9 + three r0.174 (the `three/webgpu` entry) + WebGPU + cannon-es + Zustand + TypeScript + Vite
-> Resume version: **v66** (2026-08-27). **In v66 WinterFell moved ahead of Periplus and gained an opening bullet** ("what kind of game is this" — twenty scenes, generated in real time from distance travelled, a fresh seed each run), which is section 0 below.
-> **Three things v66 took off**: triangles up 2.6×, "no gap narrower than 15 units", the randomly scattered control group, and the terms TSL / WebGPURenderer / program key. **You still have to be able to answer all the numbers and terms**, so the sections below keep them as they were.
-> History: v28 corrected the draw calls to 129→76 and the 15 units; the 175→32 and 14 units printed on v27 were both wrong — see sections 2 and 3.
+> **WinterFell is five bullets on the resume.** The first is the opener ("what kind of game is this" — twenty scenes, generated in real time from distance travelled, a fresh seed each run), which is section 0 below.
+> **Not on the resume, still answerable**: triangles up 2.6×, "no gap narrower than 15 units", the randomly scattered control group, and the terms TSL / WebGPURenderer / program key. The sections below keep them as they were.
+> On the numbers: draw calls are 129→76 and the threshold is 15 units, both measured; the 175→32 and 14 units that circulated earlier were both wrong — see sections 2 and 3.
 > This note is the "project walkthrough": file paths, the actual mechanism, and the follow-ups to expect. The general graphics concepts live in `../concepts/LEARNING_NOTES_WINTERFELL_GRAPHICS_CONCEPTS.md`.
 
 ---
 
 ## 0. What this project is, in thirty seconds
 
-**Resume text (the opening bullet added in v66):** *Built a browser racing game: steer a craft through fields of neon obstacles across twenty scenes, with the terrain, skyline and obstacles all generated on the fly from how far you have traveled, on a fresh seed each run.*
+**Resume text (the opening bullet):** *Built a browser racing game: steer a craft through fields of neon obstacles across twenty scenes, with the terrain, skyline and obstacles all generated on the fly from how far you have traveled, on a fresh seed each run.*
 
 A third-person racing/dodging game in the browser. **One linear route, not a loop**: 20 scenes, 1800 units each, about 3.5 kilometres in total, with speed stepping up once per level, ending in the UTS forecourt where the craft comes to a stop. The score is the distance survived, in metres.
 
@@ -28,9 +28,9 @@ A team of three; you owned the rendering pipeline, performance and level generat
 
 ## 1. Bullet 1 — one renderer, two backends
 
-**Resume text (v66):** *Made the neon glow work on machines without WebGPU: it is built on the newer three.js node pipeline, so one renderer drives WebGPU where the browser has it and falls back to WebGL2 where it does not.*
+**Resume text:** *Made the neon glow work on machines without WebGPU: it is built on the newer three.js node pipeline, so one renderer drives WebGPU where the browser has it and falls back to WebGL2 where it does not.*
 
-> The v28 text (the jargon version — go to this depth when pushed): *Built the bloom pass on three.js's TSL node pipeline, which a classic WebGLRenderer cannot execute…*
+> The older text (the jargon version — go to this depth when pushed): *Built the bloom pass on three.js's TSL node pipeline, which a classic WebGLRenderer cannot execute…*
 
 ### Where the code is
 
@@ -69,9 +69,9 @@ A team of three; you owned the rendering pipeline, performance and level generat
 
 ## 2. Bullet 2 — instanced obstacles, and what they cost
 
-**Resume text (v66):** *Cut draw calls from 129 to 76 by collapsing each obstacle field into two instanced meshes, measured frame by frame in a headless Chromium harness: the cost is that off-screen obstacles can no longer be skipped one by one.*
+**Resume text:** *Cut draw calls from 129 to 76 by collapsing each obstacle field into two instanced meshes, measured frame by frame in a headless Chromium harness: the cost is that off-screen obstacles can no longer be skipped one by one.*
 
-> ⚠️ **v66 took "triangles submitted up 2.6×" off**, and the cost clause was rewritten in plain language. **2.6× still has to be answerable** — the moment you say draw calls fell, "and what did that cost?" follows.
+> ⚠️ **"Triangles submitted up 2.6×" is not on the resume**, and the cost clause was rewritten in plain language. **2.6× still has to be answerable** — the moment you say draw calls fell, "and what did that cost?" follows.
 
 ### Where the code is
 
@@ -79,9 +79,9 @@ A team of three; you owned the rendering pipeline, performance and level generat
 - `src/components/ObstacleField.tsx` — scheduling the three live sections.
 - `bench/run.mjs` — headless Chromium sampling `renderer.info` frame by frame (draw calls / triangle count) across the four comparison groups.
 
-### ⚠️ The numbers were corrected (measured 2026-08-17, fixed in v28)
+### ⚠️ The numbers were corrected (measured 2026-08-17)
 
-**The "175 to 32" printed on v27 was wrong; v28 replaced it with measured values.** That day, with `npm run dev` plus `node bench/run.mjs` actually running, the four groups came out as:
+**The "175 to 32" that circulated earlier was wrong; it has been replaced with measured values.** That day, with `npm run dev` plus `node bench/run.mjs` actually running, the four groups came out as:
 
 | Group | Backend | Draw calls | Triangles |
 |---|---|---|---|
@@ -116,9 +116,9 @@ Line 75 of the README says the same thing. **Don't wait for the interviewer to d
 
 ## 3. Bullet 3 — fairness is measured, not played
 
-**Resume text (v66):** *Checked the level generator by machine rather than by playing it: across 1,020 generated layouts, every step tested against how far the craft can move sideways at that stage's speed, every layout had a way through.*
+**Resume text:** *Checked the level generator by machine rather than by playing it: across 1,020 generated layouts, every step tested against how far the craft can move sideways at that stage's speed, every layout had a way through.*
 
-> ⚠️ **v66 took "no gap narrower than 15 units" and the randomly scattered control group off together.** Both still have to be answerable: the threshold is what "has a way through" is judged against, and the control group is the answer to "does this sweep actually discriminate?".
+> ⚠️ **"No gap narrower than 15 units" and the randomly scattered control group are not on the resume.** Both still have to be answerable: the threshold is what "has a way through" is judged against, and the control group is the answer to "does this sweep actually discriminate?".
 
 ### Where the code is
 
@@ -126,7 +126,7 @@ Line 75 of the README says the same thing. **Don't wait for the interviewer to d
 - `src/utils/generateObstacles.ts` — the generator itself (`generateSectionObstacles`, `laneAt`, `reseedRoute`).
 - `src/config/levels.ts`, `src/config/obstacles.ts` — the speed and density parameters.
 
-### ⚠️ The numbers were corrected (measured 2026-08-17 over two runs, fixed in v28)
+### ⚠️ The numbers were corrected (measured 2026-08-17 over two runs)
 
 - **"Zero dead ends" — holds.** Every sample of every section reports "Layouts with no way through" at **0%**, and the report ends with: *"Every layout sampled had a continuous path through it."* Say this with confidence.
 - **"Tightest gap 14 units" is wrong, and it was read off the wrong column.** Measured, the **tightest gap per section sits between 15 and 20 units** (the global minimum over the two runs was 15 and 16). The 14 came from **another column**, "Things in view / how wide" — that's how wide the obstacles in view are, not the gap.
@@ -159,9 +159,9 @@ At every step, ask one question: at **that level's speed**, given how far the cr
 
 ## 4. Bullet 4 — fog and the program key: one frozen frame
 
-**Resume text (v66):** *Traced a freeze on every color change to the fog: rebuilding it as a new object made every material in the scene recompile its shader in one frame. Reusing one fog object and setting its color removed it.*
+**Resume text:** *Traced a freeze on every color change to the fog: rebuilding it as a new object made every material in the scene recompile its shader in one frame. Reusing one fog object and setting its color removed it.*
 
-> ⚠️ **v66 took out "fog is part of a material's program key" and the probe counting new pipelines per frame.** The probe is the only evidence behind this bullet; when asked "how do you know it was recompilation", it's what you produce.
+> ⚠️ **"Fog is part of a material's program key" and the probe counting new pipelines per frame are not on the resume.** The probe is the only evidence behind this bullet; when asked "how do you know it was recompilation", it's what you produce.
 
 **This is the best debugging story in the whole note, and it rests on something most frontend engineers don't know. Get it fluent before the interview.**
 
@@ -203,7 +203,7 @@ const LevelFog = ({ color }: { color: string }) => {
 
 ## 5. The one that got dropped (still in the README — don't pretend it isn't)
 
-`bench/leak.mjs` wraps the GPU device to count surviving buffers/textures, and caught **about 800 left over on a restart, 463 on a cold start**. The root cause is that **r3f v9 no longer disposes automatically on unmount**, and most of this project's geometry is hand-built. The handling was **to make "restart" reload the document rather than remount the scene — which is a workaround, not a fix**, and it ends too weakly, so v27 took it off the resume.
+`bench/leak.mjs` wraps the GPU device to count surviving buffers/textures, and caught **about 800 left over on a restart, 463 on a cold start**. The root cause is that **r3f v9 no longer disposes automatically on unmount**, and most of this project's geometry is hand-built. The handling was **to make "restart" reload the document rather than remount the scene — which is a workaround, not a fix**, and it ends too weakly, which is why it is not on the resume.
 
 **But it's still in the README.** If an interviewer has read it and asks, say it straight: it was located, it was quantified, and the cheapest workaround was chosen at the time; the real fix is adding a dispose lifecycle to the hand-built geometry. Admitting that beats trying to round it off.
 

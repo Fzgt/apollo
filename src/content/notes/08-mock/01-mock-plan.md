@@ -38,7 +38,7 @@ status: done
 
 **目标**：让**非技术的 recruiter** 也听得懂。**先讲用户问题和结果，别堆 API 名。**
 
-**22 条 = Beyz 4 + BioMap 4 + 百度 5 + WinterFell 5 + Periplus 4**（v72 口径）。笔记 24 篇：22 条 bullet 各一篇，另加 Periplus ②（与 ① 共用简历第一条）和 Periplus ⑥ 证据与裁决（自 v66 起不在简历上），两篇照样要会答。
+**22 条 = Beyz 4 + BioMap 4 + 百度 5 + WinterFell 5 + Periplus 4**。笔记 24 篇：22 条 bullet 各一篇，另加 Periplus ②（与 ① 共用简历第一条）和 Periplus ⑥ 证据与裁决（不在简历上），两篇照样要会答。
 
 **每条的 30 秒草稿在哪**：
 

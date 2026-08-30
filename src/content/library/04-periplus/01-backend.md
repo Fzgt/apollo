@@ -6,12 +6,12 @@ icon: workflow
 
 # Periplus 后端 学习笔记(对齐简历 bullet)
 
-> **简历版本对齐:v28(2026-08-17 校订)。** 旧版那句概括式的 *"Delivered a FastAPI/React app with generated OpenAPI types, PostgreSQL persistence and crash recovery"* 已经不在简历上了,v27 把它拆进了两条更具体的 bullet:
+> **简历上没有那句概括式的** *"Delivered a FastAPI/React app with generated OpenAPI types, PostgreSQL persistence and crash recovery"*,它早已被拆进两条更具体的 bullet:
 >
-> - **v27 第 1 条:** 六阶段流水线 —— research, verification, planning, writing, editing, illustration ——**编排器只认类型化的 stage 契约**,这份契约一路带到 React 客户端,客户端类型由 **OpenAPI schema 生成**。→ 本文第 3 节。
-> - **v27 第 3 条:** run 状态、stage artifact 与 pgvector 证据缓存落 PostgreSQL,受 **per-run token 与时间预算**约束,**死在半路的 run 从最后一个完成的 stage 续跑**。→ 本文第 4、5 节(预算部分在 AI 笔记第 4.3 节)。
+> - **契约那条:** 六阶段流水线 —— research, verification, planning, writing, editing, illustration ——**编排器只认类型化的 stage 契约**,这份契约一路带到 React 客户端,客户端类型由 **OpenAPI schema 生成**。→ 本文第 3 节。
+> - **持久化那条:** run 状态、stage artifact 与 pgvector 证据缓存落 PostgreSQL,受 **per-run token 与时间预算**约束,**死在半路的 run 从最后一个完成的 stage 续跑**。→ 本文第 4、5 节(预算部分在 AI 笔记第 4.3 节)。
 >
-> 措辞变化带来的实际差别有两处,复习时注意:一是 v27 强调的是**"编排器只知道类型化契约"这个架构性质**,不只是"用了生成的类型";二是 crash recovery 在 v27 里被绑到了"从最后完成的 stage 续跑"这个更强的具体承诺上,所以第 5 节要讲到"从哪续、怎么知道续到哪",不能停在"能恢复"。
+> 复习时注意两处:一是简历强调的是**"编排器只认类型化契约"这个架构性质**,不只是"用了生成的类型";二是 crash recovery 被绑在"从最后完成的 stage 续跑"这个更强的承诺上,所以第 5 节要讲到"从哪续、怎么知道续到哪",不能停在"能恢复"。
 >
 >
 > 这份文档只覆盖后端工程侧(API 层、存储层、类型生成、部署),不深入 AI 流水线本身的实现——Periplus 后端接了一条 **agentic workflow** 形态的 AI 流水线(Explorer→Auditor→Navigator→Chronicler→Editor→Illustrator,由 `Hermes` 编排器驱动;这六个是项目内部代号,真实类名依次是 `ResearchAgent` / `VerificationAgent` / `NavigationAgent` / `ContentAgent` / `EditorAgent` / `IllustrationAgent`,代号只出现在 docstring 与注释里),但那部分有另一份文档专门讲,这里只把它当一个"黑盒依赖"看待:API 层提交一个 `TripBrief`,拿到一个跑在后台 task 里的 `Run`,轮询状态。

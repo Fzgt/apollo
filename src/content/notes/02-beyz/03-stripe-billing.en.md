@@ -8,7 +8,7 @@ title: "③ The Stripe payment path"
 >
 > **Owned the paid conversion path** — Stripe Checkout, trials and lifetime purchases on **Next.js and Drizzle** — with **entitlements written only by signature-verified webhooks**: **no event can downgrade a lifetime purchase**.
 
-> ℹ️ **v66 shortened this bullet**: tRPC, the plan check inside the typed server action, and the "six subscription events" are all off the resume now. You still have to be able to answer all three, so the body below is unchanged.
+> ℹ️ **Three things are not in this resume line but still have to be answerable**: tRPC, the plan check inside the typed server action, and the "six subscription events". The body below covers all three.
 
 ## Don't memorise the API yet: this bullet is about one thing
 
@@ -412,7 +412,7 @@ Only once you can answer those five in your own words should you move on to the 
 
 > ⭐ **How to answer**: "We were one repository, one language, consuming our own endpoints — **exactly tRPC's sweet spot**. If I had to expose a public API, or support non-TypeScript clients, I would pick REST with OpenAPI-generated types — **which is what I did in Periplus**."
 >
-> ⚠️ **A wording reminder**: the v66 resume has removed tRPC from the payment sentence (**there is not one line of tRPC in the whole payment path**); what is on paper now is Next.js and Drizzle. tRPC is genuinely in the repository, just not on this path — keep the two apart when asked.
+> ⚠️ **A wording reminder**: **there is not one line of tRPC in the whole payment path**; what is on paper is Next.js and Drizzle. tRPC is genuinely in the repository, just not on this path — keep the two apart when asked.
 
 ## The three provable landing points of this bullet
 

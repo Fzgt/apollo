@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { readSession, writeSession } from '@/lib/session-state';
 import type { DocSection } from '@/content/navigation';
+import { useLang } from '@/lib/i18n';
 
 interface DocsSidebarProps {
   sections: DocSection[];
@@ -24,6 +25,7 @@ export function DocsSidebar({
   storageKey,
   persistScroll = false,
 }: DocsSidebarProps) {
+  const { lang } = useLang();
   const [expandedSections, setExpandedSections] = useState<string[]>(() => {
     const saved = readSession<unknown>(`sidebar:${storageKey}`, null);
     return Array.isArray(saved) ? (saved as string[]) : [activeSection];
@@ -132,7 +134,7 @@ export function DocsSidebar({
                                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                             )}
                           >
-                            {/* 必看用实心点，速查用空心点，日程页不带点 */}
+                            {/* 必看用实心点，速查和拓展用空心点，日程页不带点 */}
                             {item.tier && (
                               <span
                                 aria-hidden
@@ -145,6 +147,12 @@ export function DocsSidebar({
                               />
                             )}
                             <span className="flex-1">{item.title}</span>
+                            {/* 不在简历上的笔记单独标一下，别让它看起来像多出来的一条 bullet */}
+                            {item.tier === 'extend' && (
+                              <span className="mt-0.5 shrink-0 rounded border border-border px-1 text-[10px] leading-4 text-muted-foreground">
+                                {lang === 'en' ? 'Extra' : '拓展'}
+                              </span>
+                            )}
                           </button>
                         );
                       })}

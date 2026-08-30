@@ -13,8 +13,12 @@ status: done
 > **简历原句**
 >
 > **Owned the paid conversion path** — Stripe Checkout, trials and lifetime purchases on **Next.js and Drizzle** — with **entitlements written only by signature-verified webhooks**: **no event can downgrade a lifetime purchase**.
+>
+> ---
+>
+> 独立负责付费转化链路 —— Next.js 与 Drizzle 上的 Stripe Checkout、试用与买断 —— 权益只由验签过的 webhook 写入：没有任何事件能把买断降级。
 
-> ℹ️ **v66 收短了这一条**：tRPC、typed server action 里的套餐校验、以及「六个订阅事件」都已从简历删除。三处仍要会答，正文没动。
+> ℹ️ **这三处不在简历这句里，但都要会答**：tRPC、typed server action 里的套餐校验、以及「六个订阅事件」。正文照旧覆盖。
 
 ## 先别背 API：这条只讲一件事
 
@@ -418,7 +422,7 @@ Drizzle 让 SQL 条件以带类型的 TypeScript API 表达。Lifetime 的 `ne(u
 
 > ⭐ **答法**：「我们是同一个仓库、同一门语言、内部消费的接口——**这正好是 tRPC 的甜点区**。如果要对外开放接口，或者有非 TS 的客户端，我会选 REST 加 OpenAPI 生成类型，**那是我在 Periplus 里的做法**。」
 >
-> ⚠️ **口径提醒**：v66 简历已经把付费链路那句里的 tRPC 撤了（**整条付费链路一行 tRPC 都没有**，纸上现在写的是 Next.js and Drizzle）。tRPC 在这个仓库里是真的，只是不在这条链路上——被问到要分得清。
+> ⚠️ **口径提醒**：**整条付费链路一行 tRPC 都没有**，简历上写的是 Next.js and Drizzle。tRPC 在这个仓库里是真的，只是不在这条链路上——被问到要分得清。
 
 ## 这条 bullet 的三个可证明的落点
 

@@ -3,9 +3,9 @@ title: Interview concept checklist
 section: General interview
 ---
 
-# Interview concept checklist (matches resume v40)
+# Interview concept checklist
 
-> Checked against v40 on 2026-08-18; **aligned to v66 on 2026-08-27**: the resume went from 22 bullets down to **20** (Beyz 4→3, Periplus 5→3, WinterFell 4→5). No entries here need adding or removing — the bullets that came off the resume still get asked about as neighbouring topics. The Skills row dropped `Go` and `Evals`.
+> Checked against the resume. **Entries that are not on the resume stay** — a line not being on paper does not stop anyone asking about the topic next to it. `Go` and `Evals` are not in the Skills row.
 
 Concept names only, no explanations. Go through it once yourself: cross off what you know, leave what you don't — what's left is what to focus on.
 
@@ -324,7 +324,7 @@ Concept names only, no explanations. Go through it once yourself: cross off what
 - ★ the orchestrator only knows the typed stage contract (never what happens inside a stage)
 - ★ persisting run state and stage artefacts, resuming from the last completed stage after a crash
 - ★ a token budget and a time budget for every run
-- ★ **agentic workflow vs multi-agent system**: is the control flow written in code or decided by the model — in this project `STAGE_ORDER` is a hard-coded tuple with zero tool calls, so it's the former; v40's wording was chosen on that basis, and **v66 went further and replaced "agentic workflow" with the plainer "Six-stage LLM pipeline"**
+- ★ **agentic workflow vs multi-agent system**: is the control flow written in code or decided by the model — in this project `STAGE_ORDER` is a hard-coded tuple with zero tool calls, so it's the former; the resume's wording was chosen on that basis, and it goes further — **"agentic workflow" was replaced by the plainer "Six-stage LLM pipeline"**
 - ○ multi-agent vs one model over several turns: what you get and what it costs
 - ○ running stages concurrently, rate limiting, retrying failures and dead letters
 - ○ human-in-the-loop, approval points
@@ -363,7 +363,7 @@ Concept names only, no explanations. Go through it once yourself: cross off what
 
 ~~Go~~, ~~Angular~~, ~~Django~~, MongoDB, AWS, Cloudflare, Jenkins.
 
-(GraphQL has been removed from this list: it isn't in the v40 Skills row; it was carried over from v36 by mistake.)
+(GraphQL has been removed from this list: it isn't in the Skills row; it was carried over from an older version by mistake.)
 
 Go / Angular / Django now have code on this machine behind them (concept-tracker, job-tracker), so they're crossed off — how to talk about them, and the answers to follow-ups, are in `skills/LEARNING_NOTES_SKILLS_DAY13.md`.
 

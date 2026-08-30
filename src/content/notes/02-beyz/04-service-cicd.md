@@ -12,9 +12,13 @@ status: done
 
 > **简历原句**
 >
-> **Sole author of a NestJS service** for subscription emails and scheduled payment reminders, **Dockerized and deployed to EC2 through GitHub Actions**, and of the repo’s **first CI gate on every push**.
+> **Sole author of a NestJS service** for subscription emails and scheduled payment reminders, **Dockerized and deployed to EC2 through GitHub Actions**, and of the repo's **first CI gate on every push**.
+>
+> ---
+>
+> 独立编写了一个 NestJS 服务，负责订阅邮件与定时催款提醒，用 Docker 打包、经 GitHub Actions 部署到 EC2；也是这个仓库第一道每次推送都跑的 CI 关卡。
 
-> ℹ️ **v66 收短了这一条**：Fastify、cron 触发、PM2，以及 CI 那三步（lint / typecheck / build）都已从简历删除。正文没动，被追问时照样按正文答。
+> ℹ️ **这几处不在简历这句里，但被追问就要答得出**：Fastify、cron 触发、PM2，以及 CI 那三步（lint / typecheck / build）。正文照旧覆盖。
 
 ## 先别拆技术名词：这条证明两件事
 

@@ -9,7 +9,7 @@ section: Periplus
 >
 > **Six-stage LLM pipeline behind typed Pydantic stage contracts** filled by **schema-constrained JSON output**, with **run state and stage artifacts in PostgreSQL**: **a run that dies mid-pipeline resumes from the last completed stage**.
 
-> ℹ️ **This page shares the resume's first bullet with [① Six stages behind typed contracts](/docs?section=periplus&item=typed-contract).** "Per-run token and time budgets" came off the resume, but the section on budgets across resumes is the most valuable part of this page and has been left intact.
+> ℹ️ **This page shares the resume's first bullet with [① Six stages behind typed contracts](/docs?section=periplus&item=typed-contract).** "Per-run token and time budgets" is not on the resume, but the section on budgets across resumes is still the most valuable part of this page.
 
 ## What this bullet is about
 
@@ -116,7 +116,7 @@ The file header of `budget.py`, verbatim:
 
 ## 5. The vector cache is not part of this bullet
 
-**pgvector, the ivfflat cosine index and the local MiniLM embeddings are their own bullet in v72.**
+**pgvector, the ivfflat cosine index and the local MiniLM embeddings are their own bullet.**
 All the detail moved to [③ The pgvector evidence cache and local embeddings](/docs?section=periplus&item=pgvector-embeddings).
 
 What this bullet needs is only the relationship: **run state and stage artifacts go through

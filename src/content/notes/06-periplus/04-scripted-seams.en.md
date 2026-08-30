@@ -202,18 +202,17 @@ cd server && uv run pytest --collect-only -q
 
 **Total = 464 collected**, and running it gives `461 passed, 3 skipped in 1.52s`.
 
-### ⚠️ The definition changed, which is the easiest thing here to get caught on
+### ⚠️ Volunteer the definition, because this is the easiest thing here to get caught on
 
-**The 406 printed on v40 was the collected count; the 461 on v66 is the passed count. The two versions changed the definition, not just the number.**
+**The 461 on the resume is the passed count, not the collected count. Collection is 464, and the 3 in between are skipped.**
 
-| Version | Number on the resume | What it is | The other number in that version |
-|---|---|---|---|
-| v40 | 406 | collected | 403 passed |
-| **v66** | **461** | **passed** | **464 collected** |
+| Number on the resume | What it is | The other number in the suite |
+|---|---|---|
+| **461** | **passed** | **464 collected** |
 
 The 3 skips have always been the same batch: the database reconnection tests, skipped on the condition "**requires a reachable PostgreSQL**".
 
-> **The v66 definition is actually easier to defend**: 461 is exactly "what really ran and went green", with no gap for "collected but not executed".
+> **The passed count is the easier one to defend**: 461 is exactly "what really ran and went green", with no gap for "collected but not executed".
 > **But you still have to volunteer the rest**: the suite has 464 in total, and the other 3 are **conditionally skipped** database reconnection tests, **not failures**.
 >
 > **Not being clear about this makes the number look invented.**

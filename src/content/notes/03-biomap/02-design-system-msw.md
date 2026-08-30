@@ -12,6 +12,10 @@ status: done
 
 > **简历原句**
 >
+> Built the design system on **Radix UI, Storybook and CVA** over **MSW mocks**, variants typed off the styles.
+>
+> ---
+>
 > 基于 **Radix UI、Storybook 和 CVA** 构建设计系统，以 **MSW mocks** 为底层支撑，组件 variant 类型直接从样式定义推导。
 
 ## 这条要讲清什么

@@ -6,13 +6,13 @@ icon: workflow
 
 # AI Engineering 面试知识点笔记(概念版)
 
-> 简历锚点(**v66 实际措辞**):`AI: LLM Integration, Streaming Responses, Structured Outputs, Embeddings, Vector Search, RAG`
+> 简历锚点(**技能栏实际措辞**):`AI: LLM Integration, Streaming Responses, Structured Outputs, Embeddings, Vector Search, RAG`
 >
-> ⚠️ **v66 把 `Evals` 从技能栏拿掉了**,`Streaming` 也改成了更具体的 `Streaming Responses`,`RAG` 挪到了行尾。**Evals 因此从"技能栏承诺"降回"项目细节"**——它仍写在 Periplus 第 3 条 bullet 里,第 9 节照旧要会讲,但被问到的概率比 v40 时低一档。
+> ⚠️ **`Evals` 不在技能栏里**,技能栏写的是更具体的 `Streaming Responses`,`RAG` 在行尾。**Evals 因此只是"项目细节"不是"技能栏承诺"**——它仍写在 Periplus 最后一条 bullet 里,第 9 节照旧要会讲,只是被问到的概率低一档。
 >
-> 历史:v40 时技能栏比 v27 多了 **Streaming** 和 **Evals** 两项,Evals 因此一度升格为技能栏承诺;**v66 又把 Evals 撤了**(见上)。本文第 9 节仍要能脱离 Periplus 讲通用原理。**Streaming 本文没有对应章节,Periplus 里也没有任何 streaming 实现**(既无 SSE 也无 WebSocket)。这条技能的出处全在 **Beyz**,两条链路:音频上行与转写下行走 Deepgram 的 **WebSocket**(`hooks/useDeepgram.ts`、`useAudioToText.ts`),LLM 建议下行走 **Next.js RSC 流**(`ai/rsc` 的 `createStreamableValue` / `readStreamableValue`,`server/actions/copilot.ts:101`、`CopilotSection.tsx:257`)——**不是 SSE**,这点被问到别答错。详见 `LEARNING_NOTES_BEYZ_V40.md`。
+> **Evals 一度进过技能栏,现在不在了**(见上)。本文第 9 节仍要能脱离 Periplus 讲通用原理。**Streaming 本文没有对应章节,Periplus 里也没有任何 streaming 实现**(既无 SSE 也无 WebSocket)。这条技能的出处全在 **Beyz**,两条链路:音频上行与转写下行走 Deepgram 的 **WebSocket**(`hooks/useDeepgram.ts`、`useAudioToText.ts`),LLM 建议下行走 **Next.js RSC 流**(`ai/rsc` 的 `createStreamableValue` / `readStreamableValue`,`server/actions/copilot.ts:101`、`CopilotSection.tsx:257`)——**不是 SSE**,这点被问到别答错。详见 `LEARNING_NOTES_BEYZ_V40.md`。
 >
-> v27 校订(仍然成立):技能栏写的是 **LLM Integration**,不是 "LLM Agents";**"Agent Orchestration" 不在技能栏**。本文第 1 节(Agents)和第 6 节(Orchestration)因此**不再有技能栏背书**——但它们仍是 Periplus 项目 bullet 的正文内容(第 1、2 条 bullet 讲的就是多 agent 流水线与 stage 契约),照样会被问,继续读。区别只在于:**别指着技能栏说"我写了 agent orchestration",要指着项目 bullet 说。**
+> 注意:技能栏写的是 **LLM Integration**,不是 "LLM Agents";**"Agent Orchestration" 不在技能栏**。本文第 1 节(Agents)和第 6 节(Orchestration)因此**不再有技能栏背书**——但它们仍是 Periplus 项目 bullet 的正文内容(第 1、2 条 bullet 讲的就是多 agent 流水线与 stage 契约),照样会被问,继续读。区别只在于:**别指着技能栏说"我写了 agent orchestration",要指着项目 bullet 说。**
 > 定位:这篇不是 Periplus 的项目走读(那篇是 `LEARNING_NOTES_PERIPLUS_AI.md`)。这篇按**知识模块**组织,讲的是任何一个合格面试官都可能追问的、跟具体项目无关的通用 CS/AI 概念——定义、为什么存在、设计取舍与替代方案。每节末尾给一个 Periplus 里的一两句话具体例子(不展开讲实现),再加几道可以脱离 Periplus、直接问向任何系统的追问。
 
 ---
@@ -318,7 +318,7 @@ Periplus 每个 agent 的 system prompt 里都提醒"检索到的内容是不可
 
 ## 9. LLM 系统评测:offline eval、golden set、LLM-as-a-judge
 
-> **v40 新增章节。** 当时技能栏加了 `Evals`、项目 bullet 也多了一条讲评测集的,双重背书;**v66 撤掉了技能栏那一半**,现在只剩项目 bullet 撑着——仍要会答,优先级降一档。Periplus 里的具体落地在 `LEARNING_NOTES_PERIPLUS_EVALS.md`,这里只讲脱离项目也成立的原理。
+> **`Evals` 一度同时出现在技能栏和项目 bullet 里;现在只剩项目 bullet 撑着**——仍要会答,优先级降一档。Periplus 里的具体落地在 `LEARNING_NOTES_PERIPLUS_EVALS.md`,这里只讲脱离项目也成立的原理。
 
 ### 定义
 LLM 系统评测(evaluation,业内简称 eval)指用一组**固定输入 + 可度量的判据**,给一个含 LLM 的系统的输出质量打分,使得"改动前后哪个更好"成为一个可比较的数字而不是一句主观感受。它和传统单元测试的关系值得先分清:

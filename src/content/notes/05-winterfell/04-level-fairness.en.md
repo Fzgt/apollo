@@ -9,7 +9,7 @@ section: WinterFell
 >
 > **Checked the level generator by machine rather than by playing it**: across **1,020 generated layouts**, every step tested against **how far the craft can move sideways at that stage's speed**, **every layout had a way through**.
 
-> ℹ️ **v66 removed "no gap narrower than 15 units" and the random-scatter control.** You still need both: 15 units is the measured threshold, and the control is the answer to "does this scan discriminate at all".
+> ℹ️ **"No gap narrower than 15 units" and the random-scatter control are not on the resume.** You still need both: 15 units is the measured threshold, and the control is the answer to "does this scan discriminate at all".
 
 ## What this bullet is about
 

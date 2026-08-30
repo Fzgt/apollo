@@ -18,7 +18,7 @@ status: done
 >
 > 让霓虹辉光在没有 WebGPU 的机器上照样成立：它建在 three.js 较新的节点管线上，所以同一个渲染器在浏览器支持时走 WebGPU，不支持时回退到 WebGL2。
 
-> ℹ️ **v66 把这条改成了大白话**：TSL、WebGPURenderer、「classic WebGLRenderer cannot execute」这些词都从简历上撤了。技术事实没变，正文仍按原来的深度讲。
+> ℹ️ **简历这句是大白话，术语全收在正文里**：TSL、WebGPURenderer、「classic WebGLRenderer cannot execute」不出现在纸上，但被问到就从这里答。
 
 ## 这条 bullet 在讲什么
 

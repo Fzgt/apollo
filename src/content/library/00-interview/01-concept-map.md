@@ -4,9 +4,9 @@ section: 面试通用
 icon: mic-2
 ---
 
-# 面试概念清单（对应简历 v40）
+# 面试概念清单
 
-> 2026-08-18 校到 v40；**2026-08-27 对齐 v66**：简历从 22 条收到 **20 条**（Beyz 4→3、Periplus 5→3、WinterFell 4→5），条目本身无需增删——下简历的那几条仍会被问到相邻话题。Skills 行去掉了 `Go` 和 `Evals`。
+> 对着简历过一遍；**不在简历上的条目一样留着**——纸上没写不等于不会被问到相邻话题。Skills 行没有 `Go`，也没有 `Evals`。
 
 只列概念名，不解释。先自己过一遍，会的划掉，不会的留着——留下来的才是后面要 focus 的。
 
@@ -325,7 +325,7 @@ icon: mic-2
 - ★ 编排器只认类型化阶段契约（不认阶段内部实现）
 - ★ 运行状态与阶段产物持久化、崩溃后从最后完成阶段恢复
 - ★ 每次运行的 token 与时间预算
-- ★ **agentic workflow vs multi-agent system**：控制流由代码写死还是由模型决定——本项目 `STAGE_ORDER` 是硬编码 tuple、零 tool call，属前者；v40 的措辞按此选定，**v66 索性把 “agentic workflow” 换成了更朴素的 “Six-stage LLM pipeline”，同一个判断走得更远**
+- ★ **agentic workflow vs multi-agent system**：控制流由代码写死还是由模型决定——本项目 `STAGE_ORDER` 是硬编码 tuple、零 tool call，属前者；简历的措辞按此选定，**简历索性把 “agentic workflow” 换成了更朴素的 “Six-stage LLM pipeline”，同一个判断走得更远**
 - ○ 多智能体 vs 单模型多轮：收益与代价
 - ○ 阶段并发、限流、失败重试与死信
 - ○ 人类介入（human-in-the-loop）、审批点
@@ -364,7 +364,7 @@ icon: mic-2
 
 ~~Go~~、~~Angular~~、~~Django~~、MongoDB、AWS、Cloudflare、Jenkins。
 
-（GraphQL 已从这份名单删除：v40 的 Skills 行里没有这个词，此前是照 v36 抄下来的。）
+（GraphQL 已从这份名单删除：Skills 行里没有这个词，此前是照更早的版本抄下来的。）
 
 Go / Angular / Django 三个已经有本机代码撑着（concept-tracker、job-tracker），从这份名单里划掉——讲法和追问答案在 `skills/LEARNING_NOTES_SKILLS_DAY13.md`。
 

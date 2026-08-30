@@ -9,7 +9,7 @@ section: WinterFell
 >
 > **Made the neon glow work on machines without WebGPU**: it is built on the **newer three.js node pipeline**, so **one renderer drives WebGPU where the browser has it** and **falls back to WebGL2 where it does not**.
 
-> ℹ️ **v66 rewrote this line in plain language**: TSL, WebGPURenderer and "classic WebGLRenderer cannot execute" all came off the resume. The technical facts are unchanged, and this page still covers them at the original depth.
+> ℹ️ **The resume line is deliberately plain; the terms live here**: TSL, WebGPURenderer and "classic WebGLRenderer cannot execute" are not on paper, but this page is where the answers come from.
 
 ## What this bullet is about
 

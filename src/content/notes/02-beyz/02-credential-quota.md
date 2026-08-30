@@ -13,8 +13,12 @@ status: done
 > **简历原句**
 >
 > Minted **60-second usage-scoped Deepgram keys** per session **behind a plan gate**, socket alive across pauses.
+>
+> ---
+>
+> 每个会话在 plan gate 之后签发 60 秒、限定用量的 Deepgram 临时密钥，暂停期间 socket 保持不断。
 
-> ℹ️ **v72 把这条拆回了独立 bullet**（v66 时它和 [① 实时面试 copilot](/docs?section=beyz&item=realtime-copilot) 共用一句）。临时密钥、plan gate 和断线保活都在句子里；**四态状态机自 v66 起不在简历上**，笔记留着——「两条路径同时触发生成怎么办」照样会被问。
+> ℹ️ **临时密钥、plan gate 和断线保活都在简历这句里；四态状态机不在**，笔记留着——「两条路径同时触发生成怎么办」照样会被问。链路本身在 [① 实时面试 copilot](/docs?section=beyz&item=realtime-copilot)。
 
 ## 先看懂：这条是在给实时 demo 补生产边界
 

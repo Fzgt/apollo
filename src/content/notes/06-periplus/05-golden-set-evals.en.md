@@ -9,7 +9,7 @@ section: Periplus
 >
 > **Ran an offline eval harness against a frozen golden set**, **asserting ranges rather than literal output** on evidence-gap rate, citation integrity and token cost: **every prompt change lands as a before/after diff**.
 
-> ℹ️ **v66 shortened this line**: "frozen briefs, retrieved pages and clock" and "each metric marked better or worse" came off the resume. This page is unchanged — those details are exactly the answers to the follow-ups.
+> ℹ️ **Two details are not in this resume line, and they are exactly the answers to the follow-ups**: "frozen briefs, retrieved pages and clock", and "each metric marked better or worse".
 
 ## What this bullet is about
 

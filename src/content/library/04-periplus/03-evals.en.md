@@ -6,13 +6,13 @@ section: Periplus
 # Periplus golden set and offline evaluation notes
 
 > Repository: `/Users/hanguangjun/Desktop/projects/parthenon-labs/periplus`
-> Resume bullet: **v66's third (and last) Periplus bullet, which was the fifth at v40**, word for word:
+> Resume bullet: **the last Periplus bullet**, word for word:
 >
 > *"Ran an offline eval harness against a frozen golden set, asserting ranges rather than literal output on evidence-gap rate, citation integrity and token cost: every prompt change lands as a before/after diff."*
 >
-> The v40 text was longer, and the two clauses it lost still have to be answerable: *each case freezes the brief, the retrieved pages and the clock* and *marking every metric better or worse*.
+> An earlier wording was longer, and the two clauses that are not on the resume still have to be answerable: *each case freezes the brief, the retrieved pages and the clock* and *marking every metric better or worse*.
 >
-> **This bullet was new in v40, and the six earlier Periplus notes covered none of it.** Every other bullet lands somewhere in the AI/BACKEND/FRONTEND notes; this one had nowhere, hence its own note.
+> **The six earlier Periplus notes covered none of this bullet.** Every other bullet lands somewhere in the AI/BACKEND/FRONTEND notes; this one had nowhere, hence its own note.
 >
 > All the code is in two places: `server/periplus/evals/` (six modules, 1367 lines) and `server/evals/` (four case JSONs and a baseline report). The tests are in `server/tests/test_evals.py` (473 lines, 38 tests).
 
@@ -306,7 +306,7 @@ The opening line of `tests/test_evals.py` (`:3`) is the whole section:
 | One full eval run | `PASS: 4/4 cases · 8727 tokens · $0.000000` | `cd server && uv run python -m periplus.evals --quiet` |
 | Wall time for the suite | 0.009s (the `wall_seconds` in the baseline report) | as above, without `--quiet` for the full report |
 
-**The 461 printed on v66 is the passing count, and the 406 on v40 was the collected count — different measures, and you should be able to say so. Tests keep being added; re-run before an interview.**
+**The 461 on the resume is the passing count, and collection is 464 — different measures, and you should be able to say so. Tests keep being added; re-run before an interview.**
 
 The four command-line switches (`__main__.py`) are worth memorising for "how do you run it":
 

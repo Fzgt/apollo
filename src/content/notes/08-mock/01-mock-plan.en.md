@@ -33,7 +33,7 @@ Practise three things out loud:
 
 **Goal**: a **non-technical recruiter** has to follow it. **Lead with the user's problem and the result, do not pile up API names.**
 
-**22 bullets = Beyz 4 + BioMap 4 + Baidu 5 + WinterFell 5 + Periplus 4** (the v72 count). There are 24 notes: one per bullet, plus Periplus ② (which shares the first bullet with ①) and Periplus ⑥ evidence and ruling (off the resume since v66). Both still have to be answerable.
+**22 bullets = Beyz 4 + BioMap 4 + Baidu 5 + WinterFell 5 + Periplus 4**. There are 24 notes: one per bullet, plus Periplus ② (which shares the first bullet with ①) and Periplus ⑥ evidence and ruling (not on the resume). Both still have to be answerable.
 
 **Where each 30-second draft lives:**
 

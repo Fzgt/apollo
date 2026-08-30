@@ -5,11 +5,10 @@ section: Beyz
 
 # Beyz — where each resume bullet comes from in the code, and how to tell it
 
-> ⚠️ **v66 (2026-08-27) cut Beyz from four bullets to three**: Bullet 1 and Bullet 2 below were merged into the first line on the resume, Bullet 3 became the second, Bullet 4 the third. **Each quote below has been swapped for the v66 text**, and the four-part structure stays — the merge was a layout decision on the resume, and it invalidates nothing about where the code is or how to tell it.
-> Wording that came off the resume at the same time: the four-state machine, reconciling interim/finalized transcripts, tRPC, typed server actions, the six subscription events, Fastify, cron triggering, PM2, and the three CI steps. **You still have to be able to answer all of it.**
+> ⚠️ **Beyz is four bullets on the resume, one per section below.** Each quote is the current resume wording.
+> Not on the resume but still answerable: the four-state machine, reconciling interim and finalized transcripts, tRPC, typed server actions, the six subscription events, Fastify, the cron trigger, PM2 and the three CI steps.
 >
-> Written 2026-08-17, checked 2026-08-18, re-checked 2026-08-23, aligned to v66 on 2026-08-27. This is the only Beyz revision note you should use.
-> The old `LEARNING_NOTES_BEYZAI.md` matched a much earlier resume (RHF+Zod forms, Jest coverage, TSLint/SonarQube); three of its four bullets no longer existed in v40, and it was **deleted on 2026-08-18**.
+> Written 2026-08-17, checked 2026-08-18, re-checked 2026-08-23, aligned to the current resume on 2026-08-30. This is the only Beyz revision note you should use.
 >
 > Code: `~/Desktop/Beyz/beyz-web` (Next.js 14 App Router), `~/Desktop/Beyz/beyz-server` (NestJS + Fastify).
 
@@ -17,9 +16,9 @@ section: Beyz
 
 ## Bullet 1 — the whole real-time interview copilot pipeline
 
-> Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged.
+> Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram and answered by GPT-4o token by token as each utterance ends.
 >
-> (First half of the first v66 line. The old v42 text: *…streamed over a WebSocket to Deepgram's live recognizer, with interim and finalized transcripts reconciled in the client…*)
+> (The first resume line. **Reconciling interim and finalized transcripts is not in it**; this section still has to be memorised.)
 
 ### What it is in one line
 
@@ -62,9 +61,9 @@ In an interview the other person's voice is in another browser tab, where the mi
 
 ## Bullet 2 — credentials, keep-alive, quota and concurrency on the real-time pipeline
 
-> Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged.
+> Minted 60-second usage-scoped Deepgram keys per session behind a plan gate, socket alive across pauses.
 >
-> (Second half of the first v66 line. The old v42 text: *Kept the transcription credential out of the browser by minting 60-second, usage-scoped keys per session behind a plan gate, held the socket alive across microphone pauses, and logged per-request token usage that backs per-plan quotas; **a four-state machine drops overlapping generations**.* — the four-state machine is off the resume, but this section still has to be memorised.)
+> (The second resume line. **The four-state machine and the per-request token logging are not in it**; this section still has to be memorised.)
 
 **This is the most valuable part of the whole section**, because it isn't "I integrated an SDK", it's "I knew what would go wrong after I integrated it".
 
@@ -109,7 +108,7 @@ The previous bullet is "I got it connected"; this one is "I closed off the four 
 
 > Owned the paid conversion path — Stripe Checkout, trials and lifetime purchases on Next.js and Drizzle — with entitlements written only by signature-verified webhooks: no event can downgrade a lifetime purchase.
 >
-> (The second v66 line. **Dropping tRPC was deliberate**: there is not one line of tRPC anywhere in the payment path, and leaving it in would fall apart on the spot. Typed server actions and "the six subscription events" also came off; you still have to be able to answer both.)
+> (The third resume line. **Dropping tRPC was deliberate**: there is not one line of tRPC anywhere in the payment path, and leaving it in would fall apart on the spot. Typed server actions and "the six subscription events" also came off; you still have to be able to answer both.)
 
 ### What it is in one line
 
@@ -140,7 +139,7 @@ The whole path the money takes is mine: trials, subscriptions, lifetime purchase
 
 > Sole author of a NestJS service for subscription emails and scheduled payment reminders, Dockerized and deployed to EC2 through GitHub Actions, and of the repo's first CI gate on every push.
 >
-> (The third v66 line. Fastify, cron triggering, PM2 and the three CI steps all came off the resume; this section still has to be memorised — especially the "if it's containerised, why is PM2 there at all" part.)
+> (The fourth resume line. Fastify, cron triggering, PM2 and the three CI steps are not on the resume; this section still has to be memorised — especially the "if it's containerised, why is PM2 there at all" part.)
 
 ### What it is in one line
 

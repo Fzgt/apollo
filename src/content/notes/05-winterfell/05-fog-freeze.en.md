@@ -9,7 +9,7 @@ section: WinterFell
 >
 > **Traced a freeze on every color change to the fog**: **rebuilding it as a new object made every material in the scene recompile its shader in one frame**. **Reusing one fog object and setting its color removed it**.
 
-> ℹ️ **v66 removed "fog is part of a material's program key" and the probe counting pipelines built per frame.** The probe is this bullet's only source of evidence; when pushed on "how do you know it was recompilation", you have to produce it.
+> ℹ️ **"Fog is part of a material's program key" and the probe counting pipelines built per frame are not on the resume.** The probe is this bullet's only source of evidence; when pushed on "how do you know it was recompilation", you have to produce it.
 
 ## What this bullet is about
 

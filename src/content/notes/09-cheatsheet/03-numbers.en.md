@@ -23,14 +23,14 @@ Then tag each one:
 
 **Output for the day**: for every number, write down the source, the way it was measured, the scope it can be attributed to, and a one-line answer for when someone pushes. Anything that cannot be defended gets its wording changed that day — do not spend thirteen days rehearsing wording you are going to drop.
 
-> **Aligned to resume v72.** The struck-through entries are numbers that have been off the resume since v66. You still have to be able to answer them — removing a line does not stop anyone asking about the topic next to it.
+> **Aligned to the current resume.** The struck-through entries are numbers that are **not on the resume**. You still have to be able to answer them — leaving a number off the page does not stop anyone asking about the topic next to it.
 
 ## The table
 
 | # | Number / claim | Where from | What to audit |
 |---|---|---|---|
 | 1 | 60-second, usage-scoped keys | Beyz credentials | Why 60 seconds; who mints them; expiry and renewal; what the scope restricts |
-| 2 | ~~six subscription events~~ | Beyz Stripe | **Removed from the resume** (v66, 2026-08-27); the event model and "which six" still have to be answerable |
+| 2 | ~~six subscription events~~ | Beyz Stripe | **Not on the resume**; the event model and "which six" still have to be answerable |
 | 3 | ~~LCP under 500 ms~~ | BioMap | **Removed from the resume** (2026-08-20), replaced by `detail pages open instantly`; the analysis still has to be answerable |
 | 4 | 5M+ daily page views | Baidu virtual list | Daily average PV or something else; platform figure or page figure |
 | 5 | DOM nodes constant at ~100 | Baidu virtual list | How it was counted; does it change with viewport or overscan |
@@ -42,13 +42,13 @@ Then tag each one:
 | 11 | 70% build-time reduction | Baidu Webpack | Cold or warm; local or CI; sample and machine |
 | 12 | 30M+ DAU | Baidu white screen | Public product scale; must not be implied as my own result |
 | 13 | First to diagnose | Baidu white screen | An attribution claim, and it gets pushed on like a number |
-| 14 | 461 pytest tests | Periplus | ✅ Measured 2026-08-27: 461 passed / 464 collected. **Note that the 406 printed on v40 was the collected count and the 461 on v66 is the passing count — the definition changed** |
+| 14 | 461 pytest tests | Periplus | ✅ Measured 2026-08-27: 461 passed / 464 collected. **Note that 461 is the passing count, not the collected count — collection is 464** |
 | 15 | 1.5 seconds end to end | Periplus | ✅ Measured 2026-08-27: pytest reports 1.52s, `time` reports 2.02s. The resume quotes the pytest figure; serial, single process, no xdist |
 | 16 | golden set numbers | Periplus | ✅ Measured: 4 cases / 8 claims / 8727 tokens / 0.009s |
 | 17 | 1,020 generated layouts | WinterFell | ✅ Reproduced by a real run on 2026-08-19: `--sections 20 --trials 51` = 1,020; 480 is only the script default. Raise it yourself that the last 3 sections have 0 obstacles, so the sections with content give 867 |
 | 18 | 129 → 76 draw calls | WinterFell | Which probe; same scene and same device; the p50 filter condition |
-| 19 | ~~2.6× triangles~~ | WinterFell | **Removed from the resume** (v66); the cost half of the sentence became plain language, but 26,230 → 69,112 still has to be answerable |
-| 20 | ~~no gap narrower than 15 units~~ | WinterFell | **Removed from the resume** (v66, along with the random-scatter control group); the threshold still has to be answerable |
+| 19 | ~~2.6× triangles~~ | WinterFell | **Not on the resume**; the cost half of the sentence is plain language, but 26,230 → 69,112 still has to be answerable |
+| 20 | ~~no gap narrower than 15 units~~ | WinterFell | **Not on the resume** (nor is the random-scatter control group); the threshold still has to be answerable |
 | 21 | twenty scenes | WinterFell | ✅ Measured 2026-08-27: the `SCENES` array has exactly 20 entries, one scene per 1,800 world units, and the last one does not loop |
 
 ---
@@ -77,7 +77,7 @@ Why 60 seconds and not 5 minutes? Who mints them (which server route)? How does 
 
 **From**: Beyz Stripe · ✅ done, full write-up in [#2 · six subscription events](/docs?section=beyz&item=stripe-billing)
 
-> ⚠️ **v66 took this number off the resume** (along with tRPC and the typed server action). That line now only says no event can downgrade a lifetime purchase. **The question does not go away**: talking about a webhook writing entitlement means talking about which events exist, and what happens when they arrive out of order or twice.
+> ⚠️ **This number is not on the resume** (nor are tRPC and the typed server action). That line only says no event can downgrade a lifetime purchase. **The question does not go away**: talking about a webhook writing entitlement means talking about which events exist, and what happens when they arrive out of order or twice.
 
 Which six events? Can I name them on the spot? Which bit of entitlement does each one change? What happens if one is missed?
 
@@ -323,7 +323,7 @@ This is an attribution claim, and it gets pushed on exactly like a number. Who e
 
 ✅ **Measured 2026-08-27**: `uv run pytest` reports `461 passed, 3 skipped in 1.52s`, and `--collect-only` collects 464 (the sum over 17 test files; `test_orchestrator.py` went from 67 to 92, and `test_observability.py` added 13).
 
-> ⚠️ **The definition changed, and this is the easiest place to get caught**: the 406 printed on v40 was the **collected** count (that version actually ran 403 passed), and the 461 on v66 is the **passing** count (464 collected). The 3 skips have always been the same database-reconnect tests, which need a reachable PostgreSQL — **they are not failures**.
+> ⚠️ **Volunteer the definition; this is the easiest place to get caught**: the 461 on the resume is the **passing** count, and collection is 464. The 3 skips have always been the same database-reconnect tests, which need a reachable PostgreSQL — **they are not failures**.
 
 **What still needs an answer is the mix of test types**: how many unit, integration and eval tests? Re-run `uv run pytest --collect-only -q` before the interview.
 
@@ -429,7 +429,7 @@ Which probe measured it? Same scene, same device? Be ready to explain why `bench
 
 **From**: WinterFell · ✅ done, full write-up in [#19 · 2.6× triangles](/docs?section=winterfell&item=instancing)
 
-> ⚠️ **v66 took this number off the resume**, and the cost half of the sentence became "obstacles off screen can no longer be skipped one by one". **The question does not go away**: the moment you say draw calls went from 129 to 76, "and what did that cost" follows, and 2.6× the triangles is the answer.
+> ⚠️ **This number is not on the resume**, and the cost half of the sentence reads "obstacles off screen can no longer be skipped one by one". **The question does not go away**: the moment you say draw calls went from 129 to 76, "and what did that cost" follows, and 2.6× the triangles is the answer.
 
 Why did the triangle count go *up* (26,230 → 69,112)? How does that relate to the drop in draw calls? What did it do to the actual frame rate? **The value of this one is that it is a number moving the wrong way — better said than extracted.**
 
@@ -451,7 +451,7 @@ Why did the triangle count go *up* (26,230 → 69,112)? How does that relate to 
 
 **From**: WinterFell · ✅ done, full write-up in [#20 · no gap narrower than 15 units](/docs?section=winterfell&item=level-fairness)
 
-> ⚠️ **v66 took this threshold off the resume together with the random-scatter control group**, and that line now only says every layout has a path through it. **The question does not go away**: what decides that a path exists, and the answer is this threshold.
+> ⚠️ **This threshold is not on the resume, and neither is the random-scatter control group**; that line only says every layout has a path through it. **The question does not go away**: what decides that a path exists, and the answer is this threshold.
 
 What is a "unit" in this game? How was the threshold of 15 chosen? How does it relate to the ship's collision radius? (Note: the earlier "14 units" was **reading the wrong column** — 14 came from "how wide", and the measured value is 15–20.)
 
@@ -474,10 +474,10 @@ What is a "unit" in this game? How was the threshold of 15 chosen? How does it r
 
 - [ ] All 20 items tagged
 - [ ] For everything tagged `Needs rewording`, write down the fix
-- [ ] Collect the wording changes into a v41 list
-- [ ] Until v41 exists, do not rehearse the old wording
+- [ ] Collect the wording changes into one list and fix the resume in a single pass
+- [ ] Until the resume is fixed, do not rehearse the old wording
 
-### Wording that has to change for v41
+### Wording that has to change on the resume
 
 | # | Current wording | Problem | Change to |
 |---|---|---|---|
@@ -486,7 +486,7 @@ What is a "unit" in this game? How was the threshold of 15 chosen? How does it r
 
 ## 21. twenty scenes
 
-**From**: WinterFell's opening bullet (added in v66) · ✅ done, full write-up in [① Twenty scenes and one seed per run](/docs?section=winterfell&item=procedural-world)
+**From**: WinterFell's opening bullet · ✅ done, full write-up in [① Twenty scenes and one seed per run](/docs?section=winterfell&item=procedural-world)
 
 ✅ **Measured 2026-08-27**: the `SCENES` array in `src/config/scenes.ts` has exactly **20** entries, from `Neon City` to `The Terminus`.
 `SCENE_DISTANCE = 1800`, so the scene changes every 1,800 world units; `sceneAt()` clamps the last scene with `Math.min`, so **flying past the end does not loop — it stays on the final scene**.

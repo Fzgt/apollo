@@ -27,14 +27,14 @@ status: doing
 
 **当日产出**：每个数字写清来源、测量方式、归因范围，以及被追问时的一句话答法。答不住口径的，当天把措辞改掉再往下走，别拿旧措辞练十三天。
 
-> **对齐到简历 v72。**打删除线的三条是自 v66 起就不在简历上的数字，题目仍要会答——撤掉不等于不会被问到相邻话题。
+> **对齐到当前这版简历。**打删除线的三条是**不在简历上**的数字，题目仍要会答——纸上没写不等于不会被问到相邻话题。
 
 ## 总表
 
 | # | 数字 / 声明 | 出处 | 审什么 |
 |---|---|---|---|
 | 1 | 60-second, usage-scoped keys | Beyz 凭证 | 为什么 60 秒；谁签发；过期与续签；scope 限了什么 |
-| 2 | ~~six subscription events~~ | Beyz Stripe | **已从简历删除**（v66，2026-08-27）；事件模型与「哪六个」仍要会答 |
+| 2 | ~~six subscription events~~ | Beyz Stripe | **不在简历上**；事件模型与「哪六个」仍要会答 |
 | 3 | ~~LCP under 500 ms~~ | BioMap | **已从简历删除**（2026-08-20），换成 `detail pages open instantly`；分析仍要会答 |
 | 4 | 5M+ daily page views | 百度虚拟列表 | 日均 PV 还是别的口径；平台数据还是页面数据 |
 | 5 | DOM 节点恒定 ~100 | 百度虚拟列表 | 怎么统计；不同 viewport / overscan 下变不变 |
@@ -46,13 +46,13 @@ status: doing
 | 11 | 70% build-time reduction | 百度 Webpack | cold 还是 warm；local 还是 CI；样本与机器 |
 | 12 | 30M+ DAU | 百度白屏 | 公开产品规模；不得暗示为个人成果 |
 | 13 | First to diagnose | 百度白屏 | 归因声明，和数字一样会被追 |
-| 14 | 461 pytest tests | Periplus | ✅ 2026-08-27 实测 461 passed / 464 collected。**注意 v40 印的 406 是收集数，v66 的 461 是通过数，口径换了** |
+| 14 | 461 pytest tests | Periplus | ✅ 2026-08-27 实测 461 passed / 464 collected。**注意 461 是通过数不是收集数，收集是 464** |
 | 15 | 1.5 seconds end to end | Periplus | ✅ 2026-08-27 实测 pytest 报 1.52s、`time` 报 2.02s。简历报的是 pytest 那个数；串行单进程，无 xdist |
 | 16 | golden set 相关数字 | Periplus | ✅ 已实测：4 case / 8 claim / 8727 tokens / 0.009s |
 | 17 | 1,020 generated layouts | WinterFell | ✅ 2026-08-19 实跑复现：`--sections 20 --trials 51` = 1,020；480 只是脚本默认值。要主动交代末 3 段障碍为 0，有内容的是 867 |
 | 18 | 129 → 76 draw calls | WinterFell | 哪个 probe；同场景同设备；p50 过滤条件 |
-| 19 | ~~2.6× triangles~~ | WinterFell | **已从简历删除**（v66）；代价那半句改成了大白话，但 26,230 → 69,112 仍要会答 |
-| 20 | ~~no gap narrower than 15 units~~ | WinterFell | **已从简历删除**（v66，随机散布对照组一并撤下）；阈值口径仍要会答 |
+| 19 | ~~2.6× triangles~~ | WinterFell | **不在简历上**；代价那半句写成了大白话，但 26,230 → 69,112 仍要会答 |
+| 20 | ~~no gap narrower than 15 units~~ | WinterFell | **不在简历上**（随机散布对照组同样不在）；阈值口径仍要会答 |
 | 21 | twenty scenes | WinterFell | ✅ 2026-08-27 实测 `SCENES` 数组正好 20 项，每 1,800 世界单位换一景，末景不循环 |
 
 ---
@@ -81,7 +81,7 @@ status: doing
 
 **出处**：Beyz Stripe · ✅ 已完成，详解见 [#2 · six subscription events](/docs?section=beyz&item=stripe-billing)
 
-> ⚠️ **v66 已把这个数从简历上撤掉**（连同 tRPC 与 typed server action）。现在那条只说「没有任何事件能把买断降级」。**题目不作废**：讲 webhook 写权益就必然讲到有哪些事件、乱序和重复怎么办。
+> ⚠️ **这个数不在简历上**（tRPC 与 typed server action 同样不在）。那条现在只说「没有任何事件能把买断降级」。**题目不作废**：讲 webhook 写权益就必然讲到有哪些事件、乱序和重复怎么办。
 
 哪六个事件？能不能当场报出名字？每个事件改了 entitlement 的哪一位？漏掉一个会发生什么？
 
@@ -327,7 +327,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ✅ **2026-08-27 实测**：`uv run pytest` 报 `461 passed, 3 skipped in 1.52s`，`--collect-only` 收集 464（17 个测试文件求和，`test_orchestrator.py` 从 67 涨到 92，新增 `test_observability.py` 13 个）。
 
-> ⚠️ **口径换了，这是最容易被问穿的地方**：v40 印的 406 是**收集数**（那版实跑 403 passed），v66 印的 461 是**通过数**（收集 464）。跳过的 3 个一直是同一批数据库重连测试，条件是需要可连的 PostgreSQL，**不是失败**。
+> ⚠️ **口径要主动说清，这是最容易被问穿的地方**：简历上的 461 是**通过数**，收集数是 464。跳过的 3 个一直是同一批数据库重连测试，条件是需要可连的 PostgreSQL，**不是失败**。
 
 **剩下要能答的是测试类型构成**：单测 / 集成 / eval 各多少？面试前重跑一次 `uv run pytest --collect-only -q`。
 
@@ -433,7 +433,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 **出处**：WinterFell · ✅ 已完成，详解见 [#19 · 2.6× triangles](/docs?section=winterfell&item=instancing)
 
-> ⚠️ **v66 已把这个数从简历上撤掉**，代价那半句改成了「屏幕外的障碍不能再逐个跳过」。**题目不作废**：一说 draw call 从 129 降到 76，「那代价呢」就跟着来，三角形涨 2.6 倍正是答案。
+> ⚠️ **这个数不在简历上**，代价那半句写成了「屏幕外的障碍不能再逐个跳过」。**题目不作废**：一说 draw call 从 129 降到 76，「那代价呢」就跟着来，三角形涨 2.6 倍正是答案。
 
 三角形为什么反而涨了（26,230 → 69,112）？和 draw call 下降是什么关系？对实际帧率的影响是什么？**这条的价值就在于它是反向数字，主动讲出来比被问出来强。**
 
@@ -455,7 +455,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 **出处**：WinterFell · ✅ 已完成，详解见 [#20 · no gap narrower than 15 units](/docs?section=winterfell&item=level-fairness)
 
-> ⚠️ **v66 已把这个阈值和随机散布对照组一起从简历上撤掉**，那条现在只说「每个布局都存在一条走得通的路」。**题目不作废**：「走得通」凭什么判定，答案就是这个阈值。
+> ⚠️ **这个阈值和随机散布对照组都不在简历上**，那条只说「每个布局都存在一条走得通的路」。**题目不作废**：「走得通」凭什么判定，答案就是这个阈值。
 
 「单位」在这个场景里是什么？15 这个阈值怎么定的？和飞行器碰撞半径是什么关系？（注意：早先的「14 units」是**看错了列**，14 来自 "how wide"，实测 15–20。）
 
@@ -478,10 +478,10 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 - [ ] 20 项全部打完标签
 - [ ] 标成 `Needs rewording` 的，列出改法
-- [ ] 需要改的措辞汇总成 v41 清单
-- [ ] v41 出版之前，不要拿旧措辞往下练
+- [ ] 需要改的措辞汇总成一张清单，一次性改进简历
+- [ ] 简历没改之前，不要拿旧措辞往下练
 
-### 需要改到 v41 的措辞
+### 需要改进简历的措辞
 
 | # | 现措辞 | 问题 | 改成 |
 |---|---|---|---|
@@ -490,7 +490,7 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 21. twenty scenes
 
-**出处**：WinterFell 开场 bullet（v66 新增）· ✅ 已完成，详解见 [① 二十个场景与一次开局的种子](/docs?section=winterfell&item=procedural-world)
+**出处**：WinterFell 开场 bullet · ✅ 已完成，详解见 [① 二十个场景与一次开局的种子](/docs?section=winterfell&item=procedural-world)
 
 ✅ **2026-08-27 实测**：`src/config/scenes.ts` 的 `SCENES` 数组正好 **20** 项，从 `Neon City` 到 `The Terminus`。
 `SCENE_DISTANCE = 1800`，即每飞 1,800 个世界单位换一景；`sceneAt()` 对末景做了 `Math.min` 截断，**飞过终点不循环，停在最后一景**。

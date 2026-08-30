@@ -13,6 +13,10 @@ status: done
 > **简历原句**
 >
 > Built a browser racing game: steer a craft through **fields of neon obstacles across twenty scenes**, with the **terrain, skyline and obstacles all generated on the fly from how far you have traveled**, on a **fresh seed each run**.
+>
+> ---
+>
+> 做了一个浏览器竞速游戏：驾驶飞行器穿过二十个场景里的霓虹障碍场，地形、天际线与障碍全部按已行驶里程实时生成，每局一个新种子。
 
 ## 这条要讲清什么
 

@@ -8,7 +8,7 @@ title: "④ The NestJS service and the delivery pipeline"
 >
 > **Sole author of a NestJS service** for subscription emails and scheduled payment reminders, **Dockerized and deployed to EC2 through GitHub Actions**, and of the repo's **first CI gate on every push**.
 
-> ℹ️ **v66 shortened this bullet**: Fastify, the cron trigger, PM2 and the three CI steps (lint / typecheck / build) are all off the resume. The body is unchanged — answer from the body when someone digs in.
+> ℹ️ **These are not in the resume line but have to be answerable when someone digs in**: Fastify, the cron trigger, PM2 and the three CI steps (lint / typecheck / build). The body below covers them.
 
 ## Don't unpack the technology names yet: this bullet proves two things
 

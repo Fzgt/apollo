@@ -1,19 +1,19 @@
 import type { QuestionSource } from './types';
 
 /**
- * Beyz —— 简历 bullet 的实战问答（v66 起收到三条，题库仍按原四条分组）。
+ * Beyz —— 简历四条 bullet 的实战问答。
  * 代码出处见 `content/library/03-beyz/00-notes.md`，这里只放「怎么答」。
  */
 export const beyz: QuestionSource = {
   id: 'beyz',
   title: 'Beyz',
-  subtitle: 'Real-time interview copilot · three resume bullets in v66 (the bank is still grouped by the original four)',
+  subtitle: 'Real-time interview copilot · four resume bullets',
   bullets: [
     {
       id: 'bullet-1',
-      title: 'Bullet 1 · The real-time path end to end (v66 bullet one, first half)',
+      title: 'Bullet 1 · The real-time path end to end',
       resume:
-        'Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged.',
+        'Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram and answered by GPT-4o token by token as each utterance ends.',
       questions: [
         {
           id: 'b1-main',
@@ -159,9 +159,9 @@ Deepgram 在开启 \`interim_results\` 之后，同一句话会先发若干条 \
     },
     {
       id: 'bullet-2',
-      title: 'Bullet 2 · Credentials, keep-alive, quota and concurrency (v66 bullet one, second half)',
+      title: 'Bullet 2 · Credentials, keep-alive, quota and concurrency',
       resume:
-        'Built the real-time interview copilot end to end: tab and system audio through getDisplayMedia, streamed over a WebSocket to Deepgram on 60-second usage-scoped keys minted per session behind a plan gate, and answered by GPT-4o token by token as each utterance ends — socket kept alive across pauses, token usage logged. — v66 merged the original bullets 1 and 2 into this one. The four-state machine no longer appears on the resume; the questions stay.',
+        'Minted 60-second usage-scoped Deepgram keys per session behind a plan gate, socket alive across pauses. — the four-state machine is not on the resume; the questions stay.',
       questions: [
         {
           id: 'b2-main',
@@ -281,7 +281,7 @@ Deepgram 在开启 \`interim_results\` 之后，同一句话会先发若干条 \
     },
     {
       id: 'bullet-3',
-      title: 'Bullet 3 · The paid conversion path (v66 bullet two)',
+      title: 'Bullet 3 · The paid conversion path',
       resume:
         'Owned the paid conversion path — Stripe Checkout, trials and lifetime purchases on Next.js and Drizzle — with entitlements written only by signature-verified webhooks: no event can downgrade a lifetime purchase.',
       questions: [
@@ -311,7 +311,7 @@ Deepgram 在开启 \`interim_results\` 之后，同一句话会先发若干条 \
 7. \`users.subscribedPlan\` 这个字段**只在这里被写**。写之前靠 \`stripeCustomerId\` 反查出是哪个用户，而且每一条写语句的 where 里都带 \`ne(subscribedPlan, Lifetime)\`，防止订阅事件把终身用户覆盖掉。
 8. webhook 处理完不往前端推任何东西。用户从 Stripe 跳回 success 页之后，前端自己重新拉一次用户状态，看到的就是已经写好的新套餐。
 
-> ✅ **这个隐患 v66 已经拆掉**：简历以前写「on Next.js, tRPC and Drizzle」，但**整条付费链路一行 tRPC 都没有**（tRPC 在这个仓里只出现在 copilot 和 resume 两个 router 上，付费走的是 server actions + webhook route + Drizzle）。v66 已改成「Next.js and Drizzle」，顺着简历问下来不会再穿帮。`,
+> ✅ **这个隐患已经拆掉**：简历以前写「on Next.js, tRPC and Drizzle」，但**整条付费链路一行 tRPC 都没有**（tRPC 在这个仓里只出现在 copilot 和 resume 两个 router 上，付费走的是 server actions + webhook route + Drizzle）。现在写的是「Next.js and Drizzle」，顺着简历问下来不会再穿帮。`,
           },
           phrases: [
             'Two paths that never touch: the browser starts the purchase, the webhook is the only thing that grants it.',
@@ -419,7 +419,7 @@ Deepgram 在开启 \`interim_results\` 之后，同一句话会先发若干条 \
     },
     {
       id: 'bullet-4',
-      title: 'Bullet 4 · Standalone mail service, deployment and the first CI gate (v66 bullet three)',
+      title: 'Bullet 4 · Standalone mail service, deployment and the first CI gate',
       resume:
         'Sole author of a NestJS service for subscription emails and scheduled payment reminders, Dockerized and deployed to EC2 through GitHub Actions, and of the repo’s first CI gate on every push.',
       questions: [

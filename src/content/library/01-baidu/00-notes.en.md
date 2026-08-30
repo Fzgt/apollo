@@ -3,15 +3,15 @@ title: Baidu · the five bullets
 section: Baidu
 ---
 
-# Baidu — the five resume bullets (v40)
+# Baidu — the five resume bullets
 
 > Why this exists: the Baidu period is the technically densest (the virtualized list, the Webpack migration and the P2 incident review are all real substance), but it was done and then forgotten. This note splits it by bullet and **explains the underlying mechanism of each one properly**, so an interview can go layer by layer.
 >
 > Every bullet has five parts: **the text** / **the core technical points** / **how it works** / **what you most likely did at the time** / **follow-ups to expect**.
 >
-> **Reordered 2026-08-18: the numbering now matches the v40 resume** (the note used to put the virtualized list third and withdrawals second, the reverse of the resume; they've been swapped). Every quote at the top of a bullet is the **v40 text**.
+> **The numbering matches the resume** (the note used to put the virtualized list third and withdrawals second, the reverse of the resume; they've been swapped). Every quote at the top of a bullet is **that bullet's earlier wording**; where it differs from the current resume, the notes on this site win.
 >
-> **Handled 2026-08-19**: the withdrawal bullet used to carry `without a single dollar of financial loss`. Zero financial loss is a conclusion from finance reconciliation, not something the frontend can measure — it's off the resume, replaced by three provable actions: the request lock, the idempotency key, and treating an uncertain outcome as a failure. The v40 quote below has been updated to match.
+> **Handled 2026-08-19**: the withdrawal bullet used to carry `without a single dollar of financial loss`. Zero financial loss is a conclusion from finance reconciliation, not something the frontend can measure — it's off the resume, replaced by three provable actions: the request lock, the idempotency key, and treating an uncertain outcome as a failure. The quote below has been updated to match.
 >
 > Also: the Baidu code is not on this machine, so this section rests entirely on this note plus memory — which makes it carry more weight than the other two.
 
@@ -19,7 +19,7 @@ section: Baidu
 
 ## Bullet 1: the Xiaodu App H5 smart-home module — jsBridge and hybrid apps
 
-> v40 text: Delivered the Xiaodu App's H5 smart-home module in Vue 2, adding native iOS/Android sharing via jsBridge, device detail pages and analytics tracking.
+> Older resume text: Delivered the Xiaodu App's H5 smart-home module in Vue 2, adding native iOS/Android sharing via jsBridge, device detail pages and analytics tracking.
 
 ### Core technical points
 
@@ -137,9 +137,9 @@ The frontend only calls `bridge.call('share', { title, desc, imageUrl, link })` 
 
 ## Bullet 2 ⭐ the virtualized list — DOM nodes constant at ~100, 30 FPS → 60 FPS
 
-> v40 text: Built a virtualized React feed serving 5M+ daily page views on a custom useVirtualList hook over IntersectionObserver: live DOM nodes stay near 100 at any scroll depth, scroll from 30 to a stable 60 FPS.
+> Older resume text: Built a virtualized React feed serving 5M+ daily page views on a custom useVirtualList hook over IntersectionObserver: live DOM nodes stay near 100 at any scroll depth, scroll from 30 to a stable 60 FPS.
 >
-> (v40 dropped the background details — React 16.8 / Webpack 4 / Haokan Video. You can still add them when talking, but the resume no longer promises them.)
+> (React 16.8 / Webpack 4 and Haokan Video are not on the resume. You can still add them when talking, but the paper does not promise them.)
 
 **This is the technically densest line on your resume, and interviewers will dig at it until it breaks. This is the section I go deepest on.**
 
@@ -399,7 +399,7 @@ An interviewer may ask "which step actually raised the frame rate?":
 
 ## Bullet 3: the withdrawal feature above 2000 QPS — frontend defence under high concurrency
 
-> v40 text: Built the withdrawal client on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures, never successes.
+> Older resume text: Built the withdrawal client on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures, never successes.
 
 ### Core technical points
 
@@ -547,7 +547,7 @@ async function tryClick() {
 
 ## Bullet 4 ⭐ the Webpack 3 → 5 migration — bundle -15%, build -70%
 
-> v40 text: Led a Webpack 3-to-5 migration across 10+ incompatible packages, extracting shared runtime through SplitChunksPlugin and turning on persistent caching — bundle size down ~15%, local build times down 70%.
+> Older resume text: Led a Webpack 3-to-5 migration across 10+ incompatible packages, extracting shared runtime through SplitChunksPlugin and turning on persistent caching — bundle size down ~15%, local build times down 70%.
 
 ### Core technical points
 
@@ -707,7 +707,7 @@ Webpack 5 decides whether a cache entry is valid from **content hashes plus depe
 
 ## Bullet 5: the P2 white-screen review — dependency pinning and pre-release verification
 
-> v40 text: First to diagnose a P2 white screen on Haokan Video's search page (100M+ DAU): mismatched Node versions regenerated package-lock.json, pulling a breaking minor bump — version locks and release checks followed.
+> Older resume text: First to diagnose a P2 white screen on Haokan Video's search page (100M+ DAU): mismatched Node versions regenerated package-lock.json, pulling a breaking minor bump — version locks and release checks followed.
 
 ### Core technical points
 

@@ -24,7 +24,7 @@ _to fill in_
 
 _to fill in_
 
-## Hooks for the five S-grade bullets (v72 wording)
+## Hooks for the five S-grade bullets
 
 > One sentence each — the sentence that makes the interviewer want to dig in.
 
@@ -47,7 +47,7 @@ _to fill in_
 ## Limits I have to raise myself
 
 - The Periplus evals have only four cases — a seed set, not a claim about coverage
-- Evidence and ruling has been off the resume since v66, but it is still the main answer to "how do you stop it inventing sources"; if asked, tell it anyway
+- Evidence and ruling is not on the resume, but it is still the main answer to "how do you stop it inventing sources"; if asked, tell it anyway
 - The evals only drive two stages, research and verify
 - Stripe has no event-id dedup table; it relies on convergent writes
 - concept-tracker / job-tracker are teaching projects I built myself, not work experience

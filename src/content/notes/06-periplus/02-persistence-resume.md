@@ -18,7 +18,7 @@ status: done
 >
 > 六阶段 LLM 流水线，阶段之间只认带类型的 Pydantic 契约，由受 schema 约束的 JSON 输出填充；运行状态与阶段产物都落在 PostgreSQL 里：流水线中途挂掉的运行可以从最后一个已完成阶段续跑。
 
-> ℹ️ **本篇和 [① 六阶段与类型化契约](/docs?section=periplus&item=typed-contract) 共用简历上的第一条。**「per-run token and time budgets」已从简历删除，但预算续跑那一节是这篇最值钱的部分，正文没动。
+> ℹ️ **本篇和 [① 六阶段与类型化契约](/docs?section=periplus&item=typed-contract) 共用简历上的第一条。**「per-run token and time budgets」不在简历上，但预算续跑那一节仍是这篇最值钱的部分。
 
 ## 这条 bullet 在讲什么
 
@@ -129,7 +129,7 @@ status: done
 
 ## 五、向量缓存不在这一条里
 
-**pgvector、ivfflat 余弦索引和本地 MiniLM 向量在 v72 里是独立的一条 bullet**，
+**pgvector、ivfflat 余弦索引和本地 MiniLM 向量是独立的一条 bullet**，
 细节全部搬到了 [③ pgvector 证据缓存与本地向量](/docs?section=periplus&item=pgvector-embeddings)。
 
 这一条只需要记住它和持久化的关系：**运行状态、阶段产物走 `PostgresRunPersistence`；

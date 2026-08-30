@@ -9,11 +9,9 @@ status: done
 
 # 简历面试复习总纲
 
-对应简历 **v72**。bullet 总数 **22**：Beyz 4、BioMap 4、Baidu 5、WinterFell 5、Periplus 4。
+对应当前这版简历。bullet 总数 **22**：Beyz 4、BioMap 4、Baidu 5、WinterFell 5、Periplus 4。
 
-笔记 **24 篇**：22 条 bullet 各有一篇，另加两篇——Periplus ② 持久化与 ① 共用简历第一条，Periplus ⑥ 证据与判断分离自 v66 起就不在简历上，两篇都留着，因为面试官照样会问。
-
-v72 相对 v66 拆回了两条 bullet：Beyz 的凭证与用量、Periplus 的 pgvector 证据缓存。这两条现在各有独立笔记（Beyz ②、Periplus ③），WinterFell 的开场那条也补了 ① 程序化世界。
+笔记 **24 篇**：22 条 bullet 各有一篇，另加两篇拓展——Periplus ② 持久化与 ① 共用简历第一条，Periplus ⑥ 证据与判断分离不在简历上。两篇都留着，因为面试官照样会问。
 
 ## 推进顺序
 
@@ -31,7 +29,7 @@ v72 相对 v66 拆回了两条 bullet：Beyz 的凭证与用量、Periplus 的 p
 | 10 | Periplus ② 持久化/resume + ③ pgvector 证据缓存 + ④ scripted seam | S |
 | 11 | Periplus ⑤ golden set 与 evals | S |
 | 12 | WinterFell 五条 | B |
-| 13 | 技能栏 Angular / Django（Go 自 v66 起已撤下） | A |
+| 13 | 技能栏 Angular / Django（Go 已不在简历上） | A |
 | 14 | 全份模拟面试 | — |
 
 第一列是**推进顺序**，对应站内每篇笔记的 Day 标签，不是日历天数。有整块时间就往前赶，没有就按序号推。
@@ -39,13 +37,13 @@ v72 相对 v66 拆回了两条 bullet：Beyz 的凭证与用量、Periplus 的 p
 ## 相对 v1 的四处结构性修改
 
 1. **数字口径审计从最后提到最前** —— 口径答不住会改简历措辞，改完再练才不返工。
-2. **新增 Day 13 技能栏专项** —— 当时简历 Skills 行写着 Angular / Go / Django，v1 排期里一个字没提。**v66 起已把 Go 撤下**，这一天现在只剩 Angular 和 Django 是必答的。
+2. **新增 Day 13 技能栏专项** —— 当时简历 Skills 行写着 Angular / Go / Django，v1 排期里一个字没提。**Go 现在已不在 Skills 行上**，这一天只剩 Angular 和 Django 是必答的。
 3. **Day 8–12 先读代码再写讲法** —— Periplus 和 WinterFell 的源码就在本机，凭记忆重建是面试翻车的主因。
 4. **Periplus 从 3 段加到 4 段，BioMap 从 2 段压到 1 段** —— 按 S/A/B 分级重新分配。
 
 ## 优先级（时间不够时按这个砍）
 
-**S 级**：Periplus 全部四条 · Beyz 实时 pipeline 与凭证用量（v72 拆回两条） · 百度虚拟列表 · 百度白屏
+**S 级**：Periplus 全部四条 · Beyz 实时 pipeline 与凭证用量 · 百度虚拟列表 · 百度白屏
 
 **A 级**：Stripe entitlement · NestJS 服务与 CI/部署 · TanStack Query 三层与悬停预取 · React 架构边界 · Webpack 迁移 · 提现幂等 · 技能栏 Angular/Django
 

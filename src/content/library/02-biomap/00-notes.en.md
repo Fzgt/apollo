@@ -3,16 +3,16 @@ title: BioMap · the four bullets
 section: BioMap
 ---
 
-# BioMap — the four resume bullets (v40)
+# BioMap — the four resume bullets
 
-> ⚠️ **This is historical material preserved in v40 order. The current resume order is: ① architecture boundaries ② design system ③ TanStack Query ④ LIMS.** Use the four rewritten notes under Plan for current interview wording; "Bullet 1–4" below only denotes the old numbering.
+> ⚠️ **This is historical material preserved in the old order. The current resume order is: ① architecture boundaries ② design system ③ TanStack Query ④ LIMS.** Use the four rewritten notes under Plan for current interview wording; "Bullet 1–4" below only denotes the old numbering.
 >
 > The structure matches **the four BioMap bullets on the resume**, no more and no less. Each one has four parts: **the text** / **where to look** / **how to tell it** / **likely follow-ups**.
-> The old "toolchain + Docker/Nginx/Jenkins" bullet is no longer on v40, so that whole section is deleted.
+> The old "toolchain + Docker/Nginx/Jenkins" bullet is no longer on the resume, so that whole section is deleted.
 
 ## Which repository to open — don't mix these up
 
-| v40 bullet | Where the code is |
+| Older bullet | Where the code is |
 |---|---|
 | ① LIMS + Luckysheet + CLI | `~/Desktop/BioMap/biomap-web-lims`, `~/Desktop/BioMap/biomap-cli` — **the real BioMap code** |
 | ② Digital OS architecture + ESLint module boundaries | `~/Desktop/projects/github/Prometheus` |
@@ -24,7 +24,7 @@ section: BioMap
 ---
 ## Bullet 1: the LIMS platform + the Luckysheet SDK + the CLI
 
-> v40 text: Developed the LIMS platform in Vue 3 and TypeScript for sample management and SOP workflows, integrating the Luckysheet SDK and a CLI for one-command project scaffolding.
+> Older resume text: Developed the LIMS platform in Vue 3 and TypeScript for sample management and SOP workflows, integrating the Luckysheet SDK and a CLI for one-command project scaffolding.
 
 ### Where to look ⭐ (updated 2026-08-18: the code turned up, so this is no longer from memory)
 
@@ -64,7 +64,7 @@ section: BioMap
 ---
 
 
-### The CLI (second half of v40 Bullet 1)
+### The CLI (second half of the older Bullet 1)
 
 The code is in `~/Desktop/BioMap/biomap-cli`, and here is what it actually is (not what the previous version guessed):
 
@@ -81,7 +81,7 @@ The code is in `~/Desktop/BioMap/biomap-cli`, and here is what it actually is (n
 
 ## Bullet 2: feature-driven architecture + custom ESLint rules enforcing module boundaries ⭐
 
-> v40 text: Led the React 18 and TypeScript architecture for Digital OS, the team's core consumer-facing product, enforcing feature boundaries with custom ESLint rules.
+> Older resume text: Led the React 18 and TypeScript architecture for Digital OS, the team's core consumer-facing product, enforcing feature boundaries with custom ESLint rules.
 
 ### Where to look ⭐ (all in Prometheus)
 - **Directory layout**: under `src/` there is `app/`, `features/`, `components/`, `hooks/`, `lib/`, `types/`, `utils/`, `testing/`. Each `features/*` then splits into `api/` and `components/`.
@@ -114,7 +114,7 @@ The code is in `~/Desktop/BioMap/biomap-cli`, and here is what it actually is (n
 
 ## Bullet 3 (historical): three TanStack Query layers + cache invalidation + hover prefetch ⭐
 
-> v40 text: Layered TanStack Query in three tiers — API functions, queryOptions factories, typed hooks — single-source cache keys, mutation-driven invalidation, route preloading and hover prefetch: detail-page LCP under 500 ms.
+> Older resume text: Layered TanStack Query in three tiers — API functions, queryOptions factories, typed hooks — single-source cache keys, mutation-driven invalidation, route preloading and hover prefetch: detail-page LCP under 500 ms.
 
 ### Where to look ⭐ (this is the best-covered bullet in Prometheus)
 
@@ -170,7 +170,7 @@ onSuccess: () => {
 
 ## Bullet 4: a Radix UI component library + Storybook + CVA + an MSW mock layer ⭐
 
-> v40 text: Built a design system on Radix UI, Storybook and CVA, plus an MSW mock layer that let frontend delivery run independent of backend progress.
+> Older resume text: Built a design system on Radix UI, Storybook and CVA, plus an MSW mock layer that let frontend delivery run independent of backend progress.
 
 ### Where to look ⭐ (all in Prometheus)
 

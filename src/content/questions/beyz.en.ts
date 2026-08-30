@@ -133,7 +133,7 @@ Adding that last paragraph turns this from "I added a check" into "I know the fu
 7. \`users.subscribedPlan\` **is written here and nowhere else.** The user is resolved from \`stripeCustomerId\`, and every write statement carries \`ne(subscribedPlan, Lifetime)\` in its WHERE clause so a subscription event can never overwrite a lifetime user.
 8. The webhook pushes nothing to the front end. After Stripe returns the user to the success page, the client refetches their state and sees the plan that was already written.
 
-> ✅ **v66 removed a landmine here**: the resume used to say "on Next.js, tRPC and Drizzle", but **there is not one line of tRPC anywhere on the payment path** (tRPC appears in this repo only on the copilot and resume routers; payments run on server actions, a webhook route and Drizzle). v66 now says "Next.js and Drizzle", so following the resume down no longer walks into it.`,
+> ✅ **This landmine has been removed**: the resume used to say "on Next.js, tRPC and Drizzle", but **there is not one line of tRPC anywhere on the payment path** (tRPC appears in this repo only on the copilot and resume routers; payments run on server actions, a webhook route and Drizzle). the resume now says "Next.js and Drizzle", so following the resume down no longer walks into it.`,
 
   'b3-success-page': `**Because that page is both untrusted and unreliable — two faults pointing in opposite directions, either one enough to disqualify it.**
 

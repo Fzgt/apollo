@@ -9,7 +9,7 @@ section: WinterFell
 >
 > **Cut draw calls from 129 to 76** by collapsing each obstacle field into **two instanced meshes**, **measured frame by frame in a headless Chromium harness**: **the cost is that off-screen obstacles can no longer be skipped one by one**.
 
-> ℹ️ **v66 removed "triangles submitted up 2.6×"** and rewrote the cost clause in plain language. You still need the 2.6× figure ready — it is the key link in "why a reduction in draw calls comes with a cost to declare".
+> ℹ️ **"Triangles submitted up 2.6×" is not on the resume**; the cost clause is written in plain language instead. You still need the 2.6× figure ready — it is the key link in "why a reduction in draw calls comes with a cost to declare".
 
 ## What this bullet is about
 
