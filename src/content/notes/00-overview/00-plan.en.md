@@ -5,9 +5,9 @@ section: Overview
 
 # Master plan for the resume interview review
 
-Matches resume **v66**. Bullets in total: **20** — Beyz 3, BioMap 4, Baidu 5, WinterFell 5, Periplus 3.
+Matches resume **v72**. Bullets in total: **22** — Beyz 4, BioMap 4, Baidu 5, WinterFell 5, Periplus 4.
 
-There are still 22 notes: Beyz ① and ② are now merged into the first line on the resume, and Periplus ⑤ (separating evidence from judgment) is no longer on the resume. Both stay here, because interviewers ask about them anyway.
+There are 22 notes, one per bullet. Two things to know: Beyz ① and ② were merged into one line in v66, and v72 split them back apart (credentials and usage get their own line). Periplus ⑤ (separating evidence from judgment) is still not on the resume; the note stays, because interviewers ask about it anyway.
 
 ## Order of work
 
@@ -25,7 +25,7 @@ There are still 22 notes: Beyz ① and ② are now merged into the first line on
 | 10 | Periplus ② persistence/resume + ③ scripted seam | S |
 | 11 | Periplus ④ golden set and evals | S |
 | 12 | WinterFell, all five | B |
-| 13 | Skills row: Angular / Django (Go was dropped in v66) | A |
+| 13 | Skills row: Angular / Django (Go has been off since v66) | A |
 | 14 | Full mock interview | — |
 
 The first column is the **order of work**, and it matches the Day tag on each note. It is not a calendar. If a big block of time turns up, run ahead; otherwise just follow the numbers.
@@ -33,15 +33,15 @@ The first column is the **order of work**, and it matches the Day tag on each no
 ## Four structural changes since v1
 
 1. **The audit of every number moved from last to first.** If a number cannot be defended, the resume wording has to change — and rehearsing before that change means rehearsing twice.
-2. **Day 13, the skills row, is new.** The Skills line said Angular / Go / Django and the v1 schedule never mentioned it once. **v66 dropped Go**, so this day now only has to cover Angular and Django.
+2. **Day 13, the skills row, is new.** The Skills line said Angular / Go / Django and the v1 schedule never mentioned it once. **Go came off in v66**, so this day now only has to cover Angular and Django.
 3. **Days 8–12 read the code before writing the answer.** The Periplus and WinterFell sources are on this machine. Rebuilding them from memory is the main reason interviews go wrong.
 4. **Periplus grew from 3 sessions to 4, BioMap shrank from 2 to 1** — redistributed by the S/A/B ranking.
 
 ## Priority (cut from the bottom when time runs short)
 
-**S**: all three Periplus lines · the Beyz real-time pipeline (credentials and state machine included, merged into one line in v66) · Baidu virtual list · Baidu white screen
+**S**: all four Periplus lines · the Beyz real-time pipeline and the credentials/usage line (split back apart in v72) · Baidu virtual list · Baidu white screen
 
-**A**: Stripe entitlement · NestJS service, CI and deploy · TanStack Query tiers and hover prefetch · React architecture boundaries · Webpack migration · withdrawal idempotency · skills row Angular/Go/Django
+**A**: Stripe entitlement · NestJS service, CI and deploy · TanStack Query tiers and hover prefetch · React architecture boundaries · Webpack migration · withdrawal idempotency · skills row Angular/Django
 
 **B**: LIMS/Luckysheet/scaffolding · design system/Storybook/MSW · H5/JSBridge · the five WinterFell lines
 

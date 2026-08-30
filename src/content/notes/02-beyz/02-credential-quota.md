@@ -12,9 +12,9 @@ status: done
 
 > **简历原句**
 >
-> Built the real-time interview copilot end to end: tab and system audio through **getDisplayMedia**, streamed over a **WebSocket** to Deepgram on **60-second usage-scoped keys minted per session behind a plan gate**, and answered by **GPT-4o token by token as each utterance ends** — socket kept alive across pauses, token usage logged.
+> Minted **60-second usage-scoped Deepgram keys** per session **behind a plan gate**, socket alive across pauses.
 
-> ℹ️ **本篇和 [① 实时面试 copilot](/docs?section=beyz&item=realtime-copilot) 共用简历上的第一条。**临时密钥与 token 用量还在句子里；**四态状态机 v66 已经不在简历上了**，笔记留着——「两条路径同时触发生成怎么办」照样会被问。
+> ℹ️ **v72 把这条拆回了独立 bullet**（v66 时它和 [① 实时面试 copilot](/docs?section=beyz&item=realtime-copilot) 共用一句）。临时密钥、plan gate 和断线保活都在句子里；**四态状态机自 v66 起不在简历上**，笔记留着——「两条路径同时触发生成怎么办」照样会被问。
 
 ## 先看懂：这条是在给实时 demo 补生产边界
 

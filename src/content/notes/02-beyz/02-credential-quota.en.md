@@ -6,9 +6,9 @@ title: "② Credentials, quota and the four-state machine"
 
 > **Resume line**
 >
-> Built the real-time interview copilot end to end: tab and system audio through **getDisplayMedia**, streamed over a **WebSocket** to Deepgram on **60-second usage-scoped keys minted per session behind a plan gate**, and answered by **GPT-4o token by token as each utterance ends** — socket kept alive across pauses, token usage logged.
+> Minted **60-second usage-scoped Deepgram keys** per session **behind a plan gate**, socket alive across pauses.
 
-> ℹ️ **This page and [① Real-time interview copilot](/docs?section=beyz&item=realtime-copilot) share the same resume bullet.** The ephemeral key and the token usage are still in that sentence; **the four-state machine is no longer on the resume as of v66**, but the note stays — "what happens when two paths trigger generation at once" still gets asked.
+> ℹ️ **v72 split this back into its own bullet** (in v66 it shared one sentence with [① Real-time interview copilot](/docs?section=beyz&item=realtime-copilot)). The ephemeral key, the plan gate and keeping the socket alive are all in that sentence; **the four-state machine has been off the resume since v66**, but the note stays — "what happens when two paths trigger generation at once" still gets asked.
 
 ## First understand this: it puts production edges on a real-time demo
 

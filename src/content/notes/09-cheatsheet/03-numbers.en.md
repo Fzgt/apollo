@@ -23,7 +23,7 @@ Then tag each one:
 
 **Output for the day**: for every number, write down the source, the way it was measured, the scope it can be attributed to, and a one-line answer for when someone pushes. Anything that cannot be defended gets its wording changed that day — do not spend thirteen days rehearsing wording you are going to drop.
 
-> **Aligned to resume v66 (2026-08-27).** The struck-through entries are numbers v66 removed from the resume. You still have to be able to answer them — removing a line does not stop anyone asking about the topic next to it.
+> **Aligned to resume v72.** The struck-through entries are numbers that have been off the resume since v66. You still have to be able to answer them — removing a line does not stop anyone asking about the topic next to it.
 
 ## The table
 

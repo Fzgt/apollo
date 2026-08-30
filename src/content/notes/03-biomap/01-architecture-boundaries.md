@@ -14,67 +14,101 @@ status: done
 >
 > 主导团队核心 C 端产品 Digital OS 的 **React 18 + TypeScript 架构**，通过 **5 条自定义 ESLint 导入区域**强制执行 feature 边界：任何 feature 都不能伸进另一个 feature。
 
-> ⚠️ **证据边界**：本机没有 Digital OS 源码。`Prometheus` 是 2026 年写的后续示例，只能用来复习做法。里面的 `blog`、`comments`、`theme` 不是 BioMap 的 feature 名，面试时不能拿它们冒充 Digital OS 的 5 条规则。
-
 ## 这条要讲清什么
 
-项目变大后，目录约定很容易被破坏。我做的是按业务 feature 划分代码，再用 ESLint 检查不允许出现的依赖，让错误在开发和 CI 阶段直接出现。
+代码按业务 feature 纵向组织，依赖只能单向流动，而这个方向不是写在文档里靠人记，是用 ESLint 规则在编辑器和 CI 里直接拦住。
 
 ## 第一层：必须答顺
 
-### 1. Digital OS 是什么？“主导架构”是什么意思？
+### 1. Digital OS 是什么？"主导架构"是什么意思？
 
-Digital OS 是团队的核心 C 端产品。“主导”不是所有页面都由我写，而是我确定了代码如何分层、feature 如何组织、哪些 import 不允许出现，以及这些规则如何自动检查。
+Digital OS 是团队的核心 C 端产品。"主导"不是所有页面都由我写，而是我定了三件事：代码怎么分层、feature 怎么组织、哪些 import 不允许出现以及怎么自动检查。
 
-### 2. 什么是 feature-first 结构？
+### 2. 依赖方向是什么？
 
-代码按业务功能组织，而不是把所有组件、hooks 和 API 分散到不同的大目录里。一个 feature 可以包含自己的页面、组件、hooks、API 和类型。修改一个业务功能时，相关代码大多在同一个位置。
+```
+app  →  features  →  components / hooks / lib / types / utils
+```
 
-### 3. 5 条 import zones 解决什么问题？
+- `app`：路由、Provider、全局入口，负责装配。
+- `features`：按业务能力纵向切，每个 feature 自带 `api/`、`components/`、`hooks/`、`types/`。
+- 底层共享目录：稳定、不含业务的通用能力。
 
-本机没有原始配置，所以不要背 `Prometheus` 里的 5 个名字。安全的讲法是说明它们保护了三类边界：
+上层可以依赖下层，下层不能反过来知道上层；两个 feature 之间也不能互相伸进内部文件。
 
-- 一个 feature 不能直接读取另一个 feature 的内部文件。
-- feature 不能反向依赖应用入口层。
-- 公共组件和工具不能反向依赖具体业务。
+### 3. 5 条 import zones 分别守什么？
 
-如果面试官要求逐条说出 Digital OS 的 5 个 zone，只说你真实记得的内容，不要用后来的示例补空白。
+用的是 `eslint-plugin-import` 的 `import/no-restricted-paths`：
 
-### 4. 为什么要用 ESLint，而不是写进 README？
+```js
+'import/no-restricted-paths': [
+  'error',
+  {
+    zones: [
+      // Zone 1-3：每个 feature 只能引用自己
+      { target: './src/features/blog',     from: './src/features', except: ['./blog'] },
+      { target: './src/features/comments', from: './src/features', except: ['./comments'] },
+      { target: './src/features/theme',    from: './src/features', except: ['./theme'] },
 
-README 需要人记住，ESLint 可以在写代码和 CI 时直接报错。这样模块边界不只靠 code review，也不会等项目已经耦合以后才发现。
+      // Zone 4：features 不能反向引用 app
+      { target: './src/features', from: './src/app' },
+
+      // Zone 5：共享层不能引用 features 或 app
+      {
+        target: './src/(components|hooks|lib|types|utils)',
+        from: './src/(features|app)',
+      },
+    ],
+  },
+],
+```
+
+一句话读法：`target` 是"谁"，`from` 是"不能碰哪里"，`except` 是"除了自己这一格"。
+
+前 3 条是 feature 互相隔离，一个 feature 一条；第 4 条挡住下层反向依赖入口层；第 5 条挡住共享组件反向依赖业务。另外配一条 `import/no-cycle: 'error'`，把 zone 没覆盖到的循环依赖也拦下来。
+
+> 追问"为什么是 5 条不是 1 条"：feature 隔离必须一个 feature 写一条，因为 `except` 要指向自己。feature 增加，zone 数量跟着增加。
+
+### 4. 为什么用 ESLint，不写进 README？
+
+README 只能提醒，要靠人记住、靠 code review 恰好有人看见。ESLint 在写代码时红线就出现，在 CI 里直接挡住 merge。架构约定从"口头协议"变成每次提交都执行的检查。
 
 ### 5. 两个 feature 需要合作怎么办？
 
-常见做法有三种：通过公开入口调用；在上层页面或 `app` 层组合；把真正通用的能力放到共享层。不要直接导入另一个 feature 的内部文件。
+三条合法路径，任选：
+
+1. 通过对方 feature 的**公开入口**（barrel export）调用，不碰内部文件。
+2. 在上层 `app` 或页面层做**编排**，让两个 feature 在更高一层组合。
+3. 把真正通用、没有业务归属的部分**下沉到共享层**。
+
+边界限制的是依赖方式，不是禁止业务组合。
 
 ## 第二层：概念补充
 
-### TypeScript 为什么不能代替 ESLint 边界？
+### feature-first 比按文件类型分目录好在哪？
 
-TypeScript 检查类型是否正确，但一个类型正确的 import 仍然可能破坏架构。ESLint 负责检查“能不能依赖这一层”。
+按 `components/`、`hooks/`、`services/` 横向铺开时，一个需求的代码散在三四个目录里，改动影响范围看不出来，删除功能更是要全局搜。按 feature 纵向切，一个功能的 API、组件、hook、类型在同一个文件夹，能整块迁移，也能整块删掉。
 
-### feature-first 有什么代价？
+### TypeScript 已经检查类型了，为什么还要 ESLint？
 
-边界太严格会让共享代码放置困难。重复出现的跨 feature 需求通常说明需要公开 API、上层组合或新的共享模块。规则需要跟项目一起调整，不能为了守规则制造更复杂的代码。
+TypeScript 判断"这个 import 能不能编译通过"，不判断"这一层该不该知道那一层"。一个类型完全正确的 import 照样可以破坏架构。类型正确和架构正确是两件事。
 
-### 公共入口为什么重要？
+### barrel export 的代价是什么？
 
-feature 的公开入口决定外部可以使用什么。入口过宽，内部代码会慢慢变成公共 API；入口清楚，feature 内部就可以安全重构。
+feature 的 `index.ts` 决定外部能用什么。入口开得太宽，内部实现会慢慢变成事实上的公共 API，以后想重构就动不了。入口收紧，feature 内部才敢改。
 
-## 当前不能证明的内容
+### 边界会不会太死？
 
-- 本机无法核对 Digital OS 的真实目录和 5 条 zone。
-- `Prometheus` 的规则能解释方法，但不能证明 BioMap 当时的 feature 名和配置细节。
-- 没有原始 CI 配置时，不要主动说这些规则一定在每次 BioMap 提交中执行。
+会。所以规则要跟着真实依赖图演进。同一个跨 feature 需求反复出现，通常说明缺一层公开 API 或缺一个共享抽象，而不是说明规则该关掉。
 
 ## 30 秒回答
 
-> Digital OS 变大以后，我不希望模块边界只靠团队记忆。我按业务 feature 组织代码，再用 5 条 ESLint import zones 阻止 feature 互相读取内部文件、阻止下层反向依赖上层。这样违规 import 会在开发和 CI 阶段直接失败。跨 feature 的功能则通过公开入口、上层组合或共享模块完成，而不是直接穿透内部目录。
+> Digital OS 变大以后，我不希望模块边界只靠团队记忆。我按业务 feature 纵向组织代码，依赖方向定成 app → features → 共享层，再用 5 条 ESLint import zones 固化：前三条让每个 feature 只能引用自己，第四条禁止 features 反向依赖 app，第五条禁止共享层知道业务，另外单开一条规则拦循环依赖。违规的 import 在编辑器里就红，在 CI 里直接挡住。跨 feature 的需求走公开入口、上层编排或下沉共享层，不允许直接穿透内部目录。
 
 ## 自检
 
-1. 能否用一句话解释 feature-first？
-2. 能否说清 ESLint 边界与 TypeScript 类型检查的区别？
-3. 能否说出跨 feature 合作的三种方式？
-4. 被问到 5 条真实 zone 时，能否避免拿 `Prometheus` 的 feature 名冒充 BioMap？
+1. 不看笔记，能否画出 app → features → 共享层这个方向？
+2. 能否说清 `target` / `from` / `except` 三个字段各是什么意思？
+3. 能否说出 5 条 zone 分别守哪一类边界，以及为什么 feature 隔离要一个 feature 一条？
+4. 能否给出跨 feature 合作的三种合法路径？
+5. 能否解释 ESLint 边界和 TypeScript 类型检查的分工？

@@ -5,13 +5,13 @@ section: Overview
 
 # Notes and code index
 
-> ⚠️ **Everything below is still written against v40** (2026-08-18). The resume is now **v66**: the four Beyz lines became three, the five Periplus lines became three (evidence and ruling was dropped), WinterFell moved ahead of Periplus and gained an extra opening line, Go left the Skills row, and the Periplus test count changed from 406 to 461. **When these files disagree with the notes on this site, the site wins.**
+> ⚠️ **Everything below is still written against v40** (2026-08-18). The resume is now **v72**: Beyz 4, BioMap 4, Baidu 5, WinterFell 5, Periplus 4 — 22 lines in total. The main changes since v40: the Periplus evidence-and-ruling line was dropped, WinterFell moved ahead of Periplus and gained an extra opening line, Go left the Skills row, and the Periplus test count changed from 406 to 461. **When these files disagree with the notes on this site, the site wins.**
 
 ## Existing notes (Obsidian vault: `~/Desktop/Znlm/resume-review/`)
 
 | File | Use it? | Notes |
 |---|---|---|
-| `CONCEPT_MAP_v40.md` | ⚠️ only checked to v40 | Breadth list. The three "no code on this machine" entries for Go / Angular / Django are corrected. **Go was dropped in v66** |
+| `CONCEPT_MAP_v40.md` | ⚠️ only checked to v40 | Breadth list. The three "no code on this machine" entries for Go / Angular / Django are corrected. **Go has been off since v66** |
 | `beyz/project-related/LEARNING_NOTES_BEYZ_V40.md` | ✅ **the only Beyz source** | The four lines it quotes match v40 word for word, with real line numbers |
 | `LEARNING_NOTES_BAIDU.md` | ✅ the most complete one | Reordered to match v40 (virtual list = 2nd, withdrawal = 3rd) |
 | `LEARNING_NOTES_BioMap.md` | ✅ rewritten around the four v40 lines | Opens with a table of which line maps to which repo |

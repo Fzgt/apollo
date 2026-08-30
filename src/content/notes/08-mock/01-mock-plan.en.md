@@ -29,11 +29,11 @@ Practise three things out loud:
 
 > ⭐ **Your own study plan says it: "however thick the technical prep, if the first ten minutes collapse there is no rest of it."** There is a reason this round goes first.
 
-## Round 1 · 20 bullets, 30 seconds each
+## Round 1 · 22 bullets, 30 seconds each
 
 **Goal**: a **non-technical recruiter** has to follow it. **Lead with the user's problem and the result, do not pile up API names.**
 
-**20 bullets = Beyz 3 + BioMap 4 + Baidu 5 + WinterFell 5 + Periplus 3** (the v66 count; there are still 22 notes, since Beyz ① and ② merged into the resume's first line and Periplus ⑤ is no longer on the resume).
+**22 bullets = Beyz 4 + BioMap 4 + Baidu 5 + WinterFell 5 + Periplus 4** (the v72 count). There are 22 notes, one per bullet: v66 had merged Beyz ① and ② into one line and cut Periplus to three, and v72 split the credentials/usage line and the pgvector line back out. Periplus ⑤, evidence and ruling, is still not on the resume — the note stays and still has to be answerable.
 
 **Where each 30-second draft lives:**
 

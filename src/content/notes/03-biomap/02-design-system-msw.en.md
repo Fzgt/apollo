@@ -1,78 +1,114 @@
 ---
-title: "② Design system: behaviour, styles, examples, and mocks"
+title: "② Design system: behaviour, styles, display, mocks"
 section: BioMap
 ---
 
-# ② Design system: behaviour, styles, examples, and mocks
+# ② Design system: behaviour, styles, display, mocks
 
 > **Resume line**
 >
-> Built the design system on **Radix UI, Storybook and CVA** over **MSW mocks**, with component variants typed directly from the styles.
+> Built the design system on **Radix UI, Storybook and CVA** over **MSW mocks**, variants typed off the styles.
 
-> ⚠️ **Evidence limit**: the Digital OS design-system code is not on this machine. `Prometheus` is a later example that can help explain Radix, CVA, Storybook, and MSW. It cannot prove the number of BioMap components, the Storybook setup, or the MSW handlers used there.
+## What this line has to show
 
-## What this bullet needs to show
+A design system is not "we wrapped a Button". It splits a component into four jobs that do not overlap: interaction behaviour, visual variants, standalone display, and data. Each job has one source of truth, so styles and types are never written twice.
 
-I kept component behaviour, visual choices, examples, and API mocks as separate parts. This made component behaviour more stable, kept styles and TypeScript types together, and let frontend work continue before the real API was ready.
+## Layer one: answer these without thinking
 
-## First layer: answer these clearly
+### 1. What does each of the four tools do?
 
-### 1. What did each tool do?
+- **Radix UI**: unstyled interaction primitives. Focus handling, keyboard, Esc to close, ARIA roles and state.
+- **CVA** (class-variance-authority): keeps all visual variants in one config, and derives the TypeScript props from that config.
+- **Storybook**: shows every state of a component on its own, outside any business page.
+- **MSW**: intercepts real network requests, so pages and tests share the same mock handlers.
 
-- **Radix UI** provided behaviour and accessibility for unstyled components such as Dialog and Dropdown.
-- **CVA** kept `variant` and `size` styles in one place and created TypeScript types from them.
-- **Storybook** showed components and their states without opening a full product page.
-- **MSW** caught network requests and provided mock APIs for development and tests.
+The chain is: **behaviour → style contract → state catalogue → data**.
 
-Storybook and MSW are separate tools. Do not say Storybook used the same MSW handlers unless the original project really had that setup.
+### 2. What does "variants typed off the styles" mean?
 
-### 2. What does “variants typed off the styles” mean?
+First define the allowed style branches with `cva`, then derive the props from that same definition with `VariantProps`:
 
-The allowed variants are first defined with CVA. `VariantProps` then creates the component props from that definition. When a style option is added or removed, the TypeScript type changes with it. There is no second list of strings to keep in sync.
+```tsx
+const buttonVariants = cva(
+  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors disabled:opacity-50',
+  {
+    variants: {
+      variant: {
+        default:     'bg-primary text-primary-foreground hover:bg-primary/90',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        outline:     'border border-input bg-background hover:bg-accent',
+        secondary:   'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        ghost:       'hover:bg-accent hover:text-accent-foreground',
+        link:        'text-primary underline-offset-4 hover:underline',
+      },
+      size: {
+        default: 'h-9 px-4 py-2',
+        sm:      'h-8 rounded-md px-3 text-xs',
+        lg:      'h-10 rounded-md px-8',
+        icon:    'size-9',
+      },
+    },
+    defaultVariants: { variant: 'default', size: 'default' },
+  },
+);
 
-This only checks values used in TypeScript code. A string from an API or JSON still needs a runtime check.
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof buttonVariants>;
+```
 
-### 3. Why use Radix instead of writing Dialog from the start?
+`VariantProps<typeof buttonVariants>` turns `variant` into `'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'`. Add a style branch and callers get a new valid value straight away. Remove one and every old use turns red.
 
-The hard parts of Dialog are keyboard use, focus handling, Escape to close, ARIA data, and screen-reader support. Radix handles the base behaviour, and the team adds the product styles.
+**There is only one copy of that type.** No hand-written union sitting next to the styles, slowly drifting out of date.
 
-### 4. What problem did Storybook solve?
+One limit worth saying out loud: this only checks TypeScript callers. A string arriving from an API or JSON still needs a runtime check.
 
-Developers and designers could view Button, Dialog, and other components in different variants, sizes, and disabled states. A component issue could be shown and discussed without going through a business page.
+### 3. Why use Radix instead of writing Dialog and Dropdown yourself?
 
-Do not claim automatic visual tests or a loading story unless you remember that BioMap really had them.
+Drawing the box was never the hard part. The hard part is trapping focus inside the dialog, closing on Esc, keeping Tab from walking into the background, arrow-key navigation in a menu, keeping `aria-expanded` and `aria-controls` in sync, and layering nested overlays. Radix ships that as primitives. I only add the visuals and the product rules, instead of rebuilding accessibility details and probably getting them wrong.
 
-### 5. How did MSW help frontend and backend work at the same time?
+### 4. What does Storybook solve for a team?
 
-MSW catches real HTTP requests, so the page still uses its normal request code. The frontend can work against an agreed API shape. When the backend is ready, the mock can be turned off without changing page logic.
+Default, disabled, loading, every size and variant — you can see them all without first walking into some page and setting up that exact state. Design and engineering look at the same running state. When something breaks, you can tell straight away whether the component broke or the page integration broke.
 
-## Second layer: useful concepts
+### 5. Why does MSW belong in this line?
 
-### What should I watch when using Radix `asChild`?
+It is the base layer that lets the other three run on their own. The browser worker and the test server share one set of `handlers`, and the handlers sit on one in-memory data model:
 
-The child component must accept the given props and pass the ref to its HTML element. After changing a button into a link or another element, the HTML meaning and keyboard use must still be correct.
+```ts
+// mocks/handlers.ts — one set of handlers
+export const handlers = [...postsHandlers, ...commentsHandlers];
 
-### How is MSW different from mocking one function?
+// mocks/browser.ts — development
+export const worker = setupWorker(...handlers);
 
-MSW works at the network edge and can check the URL, method, payload, and response together. Mocking one function is simpler, but it may skip the real request flow.
+// mocks/server.ts — tests
+export const server = setupServer(...handlers);
+```
 
-### How do I stop a design system from becoming too large?
+Pages and tests then see exactly the same API shape. You never end up with one set of fake data for development and a different one for tests. It also means the frontend does not wait for the backend: when the real API lands you switch the mock off, and no page code changes.
 
-Only repeated components with a stable API should move into the design system. A component used by one feature should stay there until more parts of the product truly need it.
+## Layer two: extra background
 
-## What we cannot prove from local code
+### What does Radix's `asChild` cost?
 
-- The real BioMap components, stories, and MSW setup are not available here.
-- In `Prometheus`, the browser app and tests share handlers, but Storybook does not load MSW. The old note said all three shared one setup, which was wrong.
-- Do not present the later Storybook 8 or MSW 2 code as the exact BioMap API used in 2022.
+`asChild` merges Radix's behaviour and props into the child you pass, instead of adding another DOM layer. The cost: your child component must pass props through and must use `forwardRef`, or the behaviour silently stops working. And once you swap the underlying element (a button for a link, say), keeping the semantics and keyboard behaviour correct is your job, not Radix's.
 
-## 30-second answer
+### How is MSW different from just mocking a function?
 
-> I split the design system into four parts. Radix handled base behaviour and accessibility. CVA kept visual variants in one place and created the TypeScript props. Storybook showed component states by themselves. MSW provided mock APIs for development and tests. This kept styles and types in sync, made components easier to review, and let frontend work continue before every backend API was ready.
+MSW intercepts at the network boundary, so the app still runs the request code it uses in production. URL, method, payload and response handling all get exercised. Replacing a client function is easier, but it skips the real path — change the API signature and the test stays green.
+
+### How do you stop a design system turning into a component graveyard?
+
+Only take in things that repeat and whose contract is stable. A component that serves one feature stays inside that feature until there is a second and third use. Every shared component needs clear variants, clear states and a clear way out — rather than absorbing every page detail in the name of consistency.
+
+## The 30-second answer
+
+> I split the design system into four jobs. Radix gives unstyled interaction primitives and owns focus, keyboard and ARIA. CVA keeps every visual variant in one config, and the component props are derived from that config with `VariantProps`, so styles and types have a single source. Storybook shows each state on its own, away from business pages. Underneath, MSW intercepts requests at the network layer, and the browser and the tests share the same handlers — so components can be built, reviewed and tested without waiting for the backend. Add a variant and the styles and the types move together.
 
 ## Self-check
 
-1. Can I explain the role of each tool in one sentence?
-2. Can I explain which repeated definition `VariantProps` removes?
-3. Can I explain that Storybook and MSW are separate tools?
-4. Can I avoid presenting later Storybook 8 and MSW 2 examples as BioMap source code?
+1. Can you say in one sentence what Radix, CVA, Storybook and MSW each own?
+2. Can you explain which duplicated definition `VariantProps` removes?
+3. Can you say what `asChild` requires around prop forwarding and refs?
+4. Can you explain what MSW checks that mocking a function does not?
+5. Can you explain why variant types are not runtime validation?

@@ -1,76 +1,179 @@
 ---
-title: "④ LIMS: adding Luckysheet to Vue"
+title: "④ LIMS: keeping an imperative grid inside a Vue boundary"
 section: BioMap
 ---
 
-# ④ LIMS: adding Luckysheet to Vue
+# ④ LIMS: keeping an imperative grid inside a Vue boundary
 
 > **Resume line**
 >
-> Developed the LIMS platform in **Vue 3 and TypeScript** for sample management and SOP workflows, extending the Luckysheet SDK with **custom cell actions and a per-cell JSON contract**, plus a scaffolding CLI.
+> Developed the **LIMS platform in Vue 3 and TypeScript** for sample management and SOP workflows, extending the **Luckysheet SDK with custom cell actions and a per-cell JSON contract**, plus a scaffolding CLI.
 
-> ✅ **Evidence limit**: the Luckysheet and SOP code can be checked in the real BioMap repository. You confirmed that you also worked on the CLI, but the local CLI Git history does not show your commits. In an interview, explain only the parts you truly worked on and can describe. Do not say you were the only author of the CLI.
+## What this line has to show
 
-## What this bullet needs to show
+Two things: **how a global, imperative grid SDK gets wired into a reactive Vue page**, and **what the CLI automated**. That is your 30 seconds. Saving, resize and teardown come out only if they ask.
 
-This bullet has two topics: how Luckysheet was added to a Vue page, and how the CLI reduced repeated setup for new projects. Keep the main answer near 30 seconds. Explain saving and resize details only when asked.
-
-## First layer: answer these clearly
+## Layer one: answer these without thinking
 
 ### 1. What are LIMS and SOP?
 
-A LIMS is a laboratory information management system for samples, work steps, and results. An SOP is a standard operating procedure. This page needed to store experiment settings on spreadsheet cells, so it was more than a normal data table.
+LIMS is a laboratory information management system. It tracks samples, workflows and results. SOP means standard operating procedure. On the SOP editing page the grid does not just show data — each cell also carries experiment steps, analysis methods and data write-back settings. A normal table component cannot do that, which is why we used Luckysheet.
 
-### 2. How was Luckysheet added to Vue?
+### 2. How does Luckysheet get into Vue?
 
-The page provides an empty `<div>` and creates the spreadsheet through `window.luckysheet.create(...)`. Vue owns page state, modals, and API data. Luckysheet owns the spreadsheet DOM inside the container. Events and SDK methods pass data between them.
+Give the SDK an empty container, then create it imperatively:
 
-### 3. What were the custom cell actions?
+```ts
+const lucky = ref(null);
 
-The code adds 3 right-click actions through `cellRightClickConfig.customs`. An action opens a Vue modal. After the user finishes the form, `setCellValue` writes the data back to the selected cell.
+const initSop = async () => {
+  const metaData = await loadExcelMetadata();
+  luckysheet.create(initOptions(metaData));
+};
 
-### 4. What was the per-cell JSON contract?
+initSop();
+```
 
-Each cell can store `sopExpandProperty`, including business fields such as `analyseMethod` and `dataBackFill`. `MarkModal.vue` turns the object into JSON for editing, then parses it and writes it back to the cell.
+**The boundary is the point.** Vue owns page state, modals and business data. Luckysheet owns the grid DOM inside the container. The two only talk through SDK methods and hooks. Vue never renders the SDK's internal DOM — two rendering systems writing to the same DOM always ends badly.
 
-The current code uses `JSON.parse` but has no full schema check. Invalid JSON needs clearer error handling.
+### 3. What are the custom cell actions?
 
-### 5. How were edits saved?
+Three right-click actions registered on `cellRightClickConfig.customs`:
 
-Luckysheet's `updated` hook starts the save flow. The code reads all sheets, removes the two-dimensional `data` field that can be rebuilt, and then calls the API. Saving uses a trailing 2-second debounce, so a request is not sent after every small edit.
+```ts
+cellRightClickConfig: {
+  customs: [
+    {
+      title: 'SOP config JSON field',
+      onClick: (e, k, params) => {
+        const { rowIndex, columnIndex } = params;
+        const v = luckysheet.getCellValue(rowIndex, columnIndex, { type: 'v' });
+        const m = luckysheet.getCellValue(rowIndex, columnIndex, { type: 'm' });
+        openModal(true, { ...params, m, v });
+      },
+    },
+    { title: 'SOP data validation', onClick: (e, k, params) => openVerify(true, { ...params }) },
+    { title: 'SOP Mark Fields',     onClick: (e, k, params) => openMark(true,   { ...params }) },
+  ],
+},
+```
 
-### 6. Why did resize need extra work?
+The chain is: **right-click → SDK hands over the coordinates → open a Vue modal → user fills the form → write back into the cell**.
 
-The page uses ResizeObserver with a 600ms debounce. A width change below 20px does not rebuild the spreadsheet, which filters small layout changes caused by modals and page movement. Other size changes call `create()` again.
+```ts
+const setSheetSopJson = ({ columnIndex, rowIndex, cellUi, cellJson }) => {
+  luckysheet.setCellValue(rowIndex, columnIndex, { m: cellUi, v: cellJson });
+};
+```
+
+`m` is the displayed value the user sees. `v` is the real stored value. The SDK only provides the trigger point and the write method; the complex form stays a Vue component.
+
+### 4. What is the per-cell JSON contract?
+
+Business metadata hangs off the cell as `sopExpandProperty`, holding fields like `analyseMethod` and `dataBackFill`. `MarkModal.vue` turns it into JSON for editing, then parses it back on save:
+
+```ts
+// open: object → formatted JSON text
+sopExpandProperty.value = JSON.stringify(data, null, 2);
+
+// save: text → object → write back into that cell
+setMark({
+  ...params,
+  sopExpandProperty: JSON.parse(sopExpandProperty.value),
+});
+```
+
+```ts
+const setMark = ({ columnIndex, rowIndex, sopExpandProperty }) => {
+  luckysheet.setCellValue(rowIndex, columnIndex, { sopExpandProperty });
+};
+```
+
+The gain: **the visible cell value and the business config behind it stay separate**, and the config is saved, exported and restored along with the SOP template.
+
+Say the cost yourself: this is a project convention, and there is no schema validation around that `JSON.parse`. Broken JSON needs a clearer error path. That is a real gap.
+
+### 5. How does saving work?
+
+It hangs off Luckysheet's `updated` hook, and strips the rebuildable matrix before sending:
+
+```ts
+const handleUpdate = () => {
+  const allSheets = luckysheet.getAllSheets();
+  allSheets.forEach((sheet) => (sheet.data = undefined));   // data rebuilds from celldata, no need to upload
+  saveSopTemplate(allSheets);
+};
+
+const saveSopTemplate = debounce(
+  (data) => putSopTemplate({ sopTemplateConfigId: Number(sopId), config: data })
+    .then(() => message.success('Saved')),
+  2000,
+  { leading: false },
+);
+```
+
+`sheet.data` is the two-dimensional matrix used for rendering. It can be rebuilt from `celldata` and it is far bigger, so it is dropped before the request.
+
+Saving runs on a **2-second trailing debounce**: continuous edits collapse into one call, sent 2 seconds after the user stops.
+
+> `{ leading: false }` just makes the default explicit. lodash `debounce` is trailing by default (`leading: false, trailing: true`) — it does **not** fire immediately. **This gets asked, so do not get it backwards.** Firing immediately is `throttle`, or `debounce` with `leading: true` set on purpose.
+
+### 6. Why does resize need its own handling?
+
+Luckysheet works out grid sizes at creation time, so a changed container means a rebuild. But ResizeObserver fires constantly:
+
+```ts
+const onResize = debounce(
+  (entries) => {
+    const targetInfo = entries[0].contentRect;
+    lastViewport.value &&
+      (isMicroChange = Math.abs(targetInfo.width - lastViewport.value.width) < 20);
+    isInit || isMicroChange ? (isInit = false) : initSop();
+    lastViewport.value = targetInfo;
+  },
+  600,
+  { leading: false },
+);
+
+useResizeObserver(lucky, onResize);
+```
+
+Two gates: a **600ms debounce** collapses the bursts, and **a width change under 20px counts as jitter** and is skipped. Opening a modal or a scrollbar appearing will not rebuild the whole grid.
+
+State the cost too: a rebuild is heavy and throws away the current selection and edit state. Better would be an SDK resize API that adjusts size without recreating.
 
 ### 7. What did the CLI do?
 
-The CLI uses questions to choose and copy a full Vue or React project template. It changes the project name, HTML app id, entry selector, and dotfiles. It sets up a new project; it does not add one business page to an existing project.
+`@biomap/cli` used Commander with interactive prompts to pick a template, copied a full Vue or React project skeleton, restored the dotfiles, then rewrote the package name, the HTML app id and the mount selector.
 
-The local history shows another teammate as the original CLI author. You confirmed that you worked on it, so be clear about the exact part you changed or maintained. Do not describe the whole CLI as solo work.
+It is a **project scaffold** — it removes the repeated setup work when starting a new project. It is not a module generator that adds a page, route, API and types to an existing project. Get that distinction right; overstating it is easy to catch.
 
-## Second layer: useful concepts
+## Layer two: extra background
 
-### Why does Vue not manage the spreadsheet's inner DOM?
+### Why not let Vue manage the grid's internal DOM?
 
-Luckysheet creates and updates that DOM itself. If Vue also manages the same area, the two update systems can conflict. The simple boundary is to give the full container to the SDK and let Vue talk to it through public methods.
+Luckysheet creates and updates its own DOM. If Vue's virtual DOM also diffs the same subtree, the two update mechanisms overwrite each other and you get missing nodes and corrupted state — the kind of bug that takes days. The clean boundary is: the whole container belongs to the SDK, and Vue talks to it only through public methods and events.
 
-### Does debounce make saving safe?
+### The standard boundary for an imperative SDK
 
-No. It only reduces requests. A stronger design also handles save failures, old requests replacing newer data, the last save before leaving the page, and clear saving or failed states.
+Six things belong in one adapter or composable: creation, event bridging, data sync, resize, error handling and teardown. Page components should consume business meaning, not reach for `window.luckysheet` all over the place.
 
-### What else should this SDK setup include?
+There is no explicit dispose on unmount in this page, so leaving and re-entering risks leftover instances and listeners. That is a fair gap to raise yourself.
 
-Setup, events, data updates, resize, errors, and cleanup should sit in an adapter or composable. The page has no clear Luckysheet cleanup step, so an old instance or event listener may remain after the user leaves and returns.
+### Does debounce make saving reliable?
 
-## 30-second answer
+No. It only cuts the number of requests; it does not guarantee the final state is correct. Production also needs a version number or ETag so a slow old response cannot overwrite a newer edit, retries on failure, a flush of the last change before leaving the page, and a visible "saving / saved / failed" state.
 
-> The LIMS SOP page needed to store experiment settings on spreadsheet cells. I gave Luckysheet its own container: Vue handled the page and modals, while the SDK handled the spreadsheet. Three right-click actions opened Vue forms and wrote the result back into each cell's `sopExpandProperty` JSON. Edits used a trailing 2-second debounce, and saving removed the two-dimensional data field that could be rebuilt. The CLI reduced setup work by copying Vue or React project templates.
+## The 30-second answer
+
+> The SOP editing page in LIMS had to carry experiment config on individual cells, so I treated Luckysheet as an imperative island: it gets an empty container, Vue owns the page and the modals, the SDK owns the grid DOM, and they only talk through methods and hooks. I added three right-click actions on `cellRightClickConfig.customs`; each opens a Vue form and writes the result back into the cell's `sopExpandProperty` JSON with `setCellValue`. Saving hangs off the `updated` hook on a 2-second trailing debounce, and drops the rebuildable two-dimensional data before sending. Resize is gated by a 600ms debounce plus a 20px threshold so small jitter never rebuilds the grid. The CLI I built is a project scaffold — it copies and rewrites a whole Vue or React template so a new project starts configured.
 
 ## Self-check
 
-1. Can I explain what Vue owns and what Luckysheet owns?
-2. Can I explain the full right-click action, modal, JSON, and cell update flow?
-3. Can I explain the 2-second save debounce and 600ms resize debounce?
-4. Can I explain that the CLI creates a full project rather than one business module?
-5. Can I state my exact CLI work without calling myself the only author?
+1. Can you say what state and DOM Vue owns, what Luckysheet owns, and why they must not mix?
+2. Can you walk the full chain: right-click → modal → JSON → `setCellValue` write-back?
+3. Can you explain the difference between `m` and `v`?
+4. Can you state correctly that lodash `debounce` is trailing by default, not immediate?
+5. Can you explain what the 2-second save debounce and the 600ms + 20px resize gates each block?
+6. Can you keep the CLI described as a project scaffold, not a module generator?
+7. Can you raise the dispose, schema validation and resize-rebuild gaps yourself?
