@@ -490,14 +490,14 @@ cold build 还是 warm build？本地还是 CI？样本几次取平均？机器�
 
 ## 21. twenty scenes
 
-**出处**：WinterFell（v66 新增的开场 bullet）· ✅ 已完成，详解见 [WinterFell 项目笔记](/docs?section=winterfell&item=bloom-webgpu)
+**出处**：WinterFell 开场 bullet（v66 新增）· ✅ 已完成，详解见 [① 二十个场景与一次开局的种子](/docs?section=winterfell&item=procedural-world)
 
 ✅ **2026-08-27 实测**：`src/config/scenes.ts` 的 `SCENES` 数组正好 **20** 项，从 `Neon City` 到 `The Terminus`。
 `SCENE_DISTANCE = 1800`，即每飞 1,800 个世界单位换一景；`sceneAt()` 对末景做了 `Math.min` 截断，**飞过终点不循环，停在最后一景**。
 
 配色是另一套：`src/config/levels.ts` 的 `LEVELS` 只有 **6** 组（Signal / Vapour / Circuit / Ember / Toxic / Nova）。
 
-> ⚠️ **别把这两个数说混**：**20 是场景，6 是配色。**换配色那件事正是 [④ 一次精确到帧的排查](/docs?section=winterfell&item=fog-freeze) 里雾卡顿的触发点。
+> ⚠️ **别把这两个数说混**：**20 是场景，6 是配色。**换配色那件事正是 [⑤ 一次精确到帧的排查](/docs?section=winterfell&item=fog-freeze) 里雾卡顿的触发点。
 
 | 项 | 填写 |
 |---|---|

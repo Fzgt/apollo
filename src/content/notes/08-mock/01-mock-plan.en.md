@@ -33,7 +33,7 @@ Practise three things out loud:
 
 **Goal**: a **non-technical recruiter** has to follow it. **Lead with the user's problem and the result, do not pile up API names.**
 
-**22 bullets = Beyz 4 + BioMap 4 + Baidu 5 + WinterFell 5 + Periplus 4** (the v72 count). There are 22 notes, one per bullet: v66 had merged Beyz ① and ② into one line and cut Periplus to three, and v72 split the credentials/usage line and the pgvector line back out. Periplus ⑤, evidence and ruling, is still not on the resume — the note stays and still has to be answerable.
+**22 bullets = Beyz 4 + BioMap 4 + Baidu 5 + WinterFell 5 + Periplus 4** (the v72 count). There are 24 notes: one per bullet, plus Periplus ② (which shares the first bullet with ①) and Periplus ⑥ evidence and ruling (off the resume since v66). Both still have to be answerable.
 
 **Where each 30-second draft lives:**
 
@@ -42,8 +42,8 @@ Practise three things out loud:
 | Beyz ① | The top of [① The full data flow](/docs?section=beyz&item=realtime-copilot) |
 | Baidu ③ ④ | The tops of [④ Withdrawals](/docs?section=baidu&item=withdrawal)) and [② Webpack](/docs?section=baidu&item=webpack-migration)) |
 | Baidu ② ⑤ | The top of [①③ The virtualized feed and the production white screen](/docs?section=baidu&item=virtual-list) (two paragraphs) |
-| Periplus ① ② ③ ⑤ | The top of each must-read page |
-| WinterFell ① ② ③ ④ | The top of [①④ The render pipeline and that freeze](/docs?section=winterfell&item=fog-freeze) (four paragraphs) |
+| Periplus ① ② ③ ④ | The top of each must-read page (notes ②③④⑤) |
+| WinterFell ① ② ③ ④ ⑤ | The "30-second answer" in each of the five notes, starting with [① The procedural world](/docs?section=winterfell&item=procedural-world) |
 | BioMap | The "30-second answer" in each of the four notes, starting with [① Architectural boundaries](/docs?section=biomap&item=architecture-boundaries) |
 
 > **Write the drafts for the ones that have none** — if you cannot produce a 30-second version, you have not really thought that one through.

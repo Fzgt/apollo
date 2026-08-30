@@ -38,7 +38,7 @@ status: done
 
 **目标**：让**非技术的 recruiter** 也听得懂。**先讲用户问题和结果，别堆 API 名。**
 
-**22 条 = Beyz 4 + BioMap 4 + 百度 5 + WinterFell 5 + Periplus 4**（v72 口径）。笔记也是 22 篇，一一对应：v66 曾把 Beyz ①② 并成一条、Periplus 收到三条，v72 把凭证用量和 pgvector 都拆回了独立 bullet。Periplus ⑤ 证据与裁决仍不在简历上，笔记留着照样要会答。
+**22 条 = Beyz 4 + BioMap 4 + 百度 5 + WinterFell 5 + Periplus 4**（v72 口径）。笔记 24 篇：22 条 bullet 各一篇，另加 Periplus ②（与 ① 共用简历第一条）和 Periplus ⑥ 证据与裁决（自 v66 起不在简历上），两篇照样要会答。
 
 **每条的 30 秒草稿在哪**：
 
@@ -47,8 +47,8 @@ status: done
 | Beyz ① | [① 数据流全图](/docs?section=beyz&item=realtime-copilot) 顶部 |
 | 百度 ③ ④ | [④ 提现](/docs?section=baidu&item=withdrawal)) · [② Webpack](/docs?section=baidu&item=webpack-migration)) 顶部 |
 | 百度 ② ⑤ | [①③ 虚拟列表与生产白屏](/docs?section=baidu&item=virtual-list) 顶部（两段） |
-| Periplus ① ② ③ ⑤ | 各自必看篇顶部 |
-| WinterFell ① ② ③ ④ | [①④ 渲染管线与那次冻结](/docs?section=winterfell&item=fog-freeze) 顶部（四段） |
+| Periplus ① ② ③ ④ | 各自必看篇顶部（②③④⑤ 四篇） |
+| WinterFell ① ② ③ ④ ⑤ | 五篇各自的「30 秒回答」；从 [① 程序化世界](/docs?section=winterfell&item=procedural-world) 开始 |
 | BioMap | 四篇各自的「30 秒回答」；从 [① 架构边界](/docs?section=biomap&item=architecture-boundaries) 开始 |
 
 > **没有草稿的几条自己写**——写不出 30 秒版，说明那条你还没真的想清楚。

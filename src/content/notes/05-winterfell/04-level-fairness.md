@@ -1,5 +1,5 @@
 ---
-title: "③ 关卡可通过性扫描"
+title: "④ 关卡可通过性扫描"
 tier: must
 section: WinterFell
 icon: gamepad-2
@@ -8,7 +8,7 @@ level: B
 status: done
 ---
 
-# ③ 关卡可通过性扫描
+# ④ 关卡可通过性扫描
 
 > **简历原句**
 >

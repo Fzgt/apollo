@@ -1,9 +1,9 @@
 ---
-title: "⑤ Separating evidence from judgement"
+title: "⑥ Separating evidence from judgement"
 section: Periplus
 ---
 
-# ⑤ Separating evidence from judgement
+# ⑥ Separating evidence from judgement
 
 > **Resume line**
 >
@@ -145,7 +145,7 @@ The docstring at `verification.py:167-171`:
 | **Stable tests** | Without it, a case asserting "a price within 30 days should be valid" **goes red on its own a few months later** — a "time-bomb test" |
 | **Reproducible replay** | Re-running the same run gives identical verdicts |
 
-> ⭐ **Time is a business input here, not environmental noise** — the freshness decision consumes it directly. **The same reasoning as [③ injecting the clock](/docs?section=periplus&item=scripted-seams)).**
+> ⭐ **Time is a business input here, not environmental noise** — the freshness decision consumes it directly. **The same reasoning as [④ injecting the clock](/docs?section=periplus&item=scripted-seams)).**
 
 ### ② Date extraction accepts only what the publisher declared
 

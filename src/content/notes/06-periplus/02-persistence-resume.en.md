@@ -7,7 +7,7 @@ section: Periplus
 
 > **Resume line**
 >
-> **Six-stage LLM pipeline behind typed Pydantic stage contracts** filled by **schema-constrained JSON output**, with **run state, stage artifacts and a pgvector cache of local MiniLM embeddings in PostgreSQL**: **a run that dies mid-pipeline resumes from the last completed stage**.
+> **Six-stage LLM pipeline behind typed Pydantic stage contracts** filled by **schema-constrained JSON output**, with **run state and stage artifacts in PostgreSQL**: **a run that dies mid-pipeline resumes from the last completed stage**.
 
 > ℹ️ **This page shares the resume's first bullet with [① Six stages behind typed contracts](/docs?section=periplus&item=typed-contract).** "Per-run token and time budgets" came off the resume, but the section on budgets across resumes is the most valuable part of this page and has been left intact.
 
@@ -110,32 +110,20 @@ The file header of `budget.py`, verbatim:
 
 **What an "embedding" is**: turning a piece of text into a list of numbers such that **texts with similar meaning have similar numbers**. That lets you ask "is there anything I already fetched that means roughly this?"
 
-**Invalidation comes from [the freshness windows in ⑤](/docs?section=periplus&item=evidence-judgment))** — **the cache itself has no expiry; freshness is decided by date at the point of consumption.**
+**Invalidation comes from [the freshness windows in ⑥](/docs?section=periplus&item=evidence-judgment))** — **the cache itself has no expiry; freshness is decided by date at the point of consumption.**
 
 > ⭐ **This distinction is worth stating**: **the cache does not judge freshness, it only avoids repeated work. Freshness is business semantics and belongs to the function that decides staleness.**
 
-## 5. The pgvector choices (checked against the code)
+## 5. The vector cache is not part of this bullet
 
-```sql
-CREATE INDEX evidence_cache_embedding_idx
-    ON evidence_cache USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
-```
+**pgvector, the ivfflat cosine index and the local MiniLM embeddings are their own bullet in v72.**
+All the detail moved to [③ The pgvector evidence cache and local embeddings](/docs?section=periplus&item=pgvector-embeddings).
 
-**pgvector is a PostgreSQL extension that lets the database store vectors and run "find the most similar" queries.**
-
-| Question | Answer |
-|---|---|
-| **Why cosine similarity rather than Euclidean distance** | Cosine is the conventional choice for semantic similarity, **and it is insensitive to vector magnitude** — two passages with the same meaning but different lengths still come out close |
-| **How was `lists = 100` chosen** | The index **cuts the vector space into 100 clusters** and a query scans only the nearest few. **It is the knob between "fast to query" and "finds everything"**, and 100 is a common starting point. ⚠️ **The code records no tuning rationale, so say plainly that it is a default** |
-| **Why ivfflat rather than HNSW** | ⚠️ **The code gives no reason.** My understanding: ivfflat **builds fast and uses little memory**, suiting a cache with frequent writes and a moderate row count; HNSW queries faster but builds slowly and eats memory. **If asked, say this is a trade-off rather than a settled conclusion** |
-
-**But one comment is worth quoting** (`postgres_evidence.py:71-72`):
-
-> *"a fresh database just gets a single-list index, which degrades to a full scan until enough rows accumulate. **That is a correct, if slow, index — never a wrong answer.**"*
-
-> ⭐ "**Rather slow than wrong**" — the same value as [the "rather no date than a guessed one" rule in ⑤](/docs?section=periplus&item=evidence-judgment)).
-
-**There is also a fail-soft design**: when embedding fails or the database errors, the cache **returns "no similar match" instead of raising** — so **a PostgreSQL blip only causes one page to be fetched again; it does not kill the run.**
+What this bullet needs is only the relationship: **run state and stage artifacts go through
+`PostgresRunPersistence`; the evidence cache goes through `PostgresEvidenceCache` — a different
+class, a different table, a different lifetime.** They share PostgreSQL, but their failure
+semantics are opposite: lose the resume data and the run is finished, lose the evidence cache
+and you fetch one page again.
 
 ## Glossary
 

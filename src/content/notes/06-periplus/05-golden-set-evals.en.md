@@ -1,9 +1,9 @@
 ---
-title: "④ The golden set and offline evals"
+title: "⑤ The golden set and offline evals"
 section: Periplus
 ---
 
-# ④ The golden set and offline evals
+# ⑤ The golden set and offline evals
 
 > **Resume line**
 >
@@ -291,7 +291,7 @@ PASS: 4/4 cases · 8727 tokens · $0.000000
 > ⭐ **All three points are in those three notes:**
 >
 > 1. **Freshness windows are per claim type** — 180 days for a price, never for a location
-> 2. **Staleness is decided by code, not by the model** (see [⑤ Separating evidence from judgement](/docs?section=periplus&item=evidence-judgment)))
+> 2. **Staleness is decided by code, not by the model** (see [⑥ Separating evidence from judgement](/docs?section=periplus&item=evidence-judgment)))
 > 3. **"Stale" ≠ "gap"** — it means "usable but flagged", not "cannot be shown to the user"
 
 ## 13. ⭐ The person writing the eval thought about how it could be cheated

@@ -7,7 +7,9 @@ section: Overview
 
 Matches resume **v72**. Bullets in total: **22** — Beyz 4, BioMap 4, Baidu 5, WinterFell 5, Periplus 4.
 
-There are 22 notes, one per bullet. Two things to know: Beyz ① and ② were merged into one line in v66, and v72 split them back apart (credentials and usage get their own line). Periplus ⑤ (separating evidence from judgment) is still not on the resume; the note stays, because interviewers ask about it anyway.
+There are **24 notes**: one per bullet, plus two extras — Periplus ② persistence shares the resume's first bullet with ①, and Periplus ⑥ (separating evidence from judgment) has been off the resume since v66. Both stay, because interviewers ask about them anyway.
+
+v72 split two bullets back out of v66: Beyz's credentials and usage, and Periplus's pgvector evidence cache. Each now has its own note (Beyz ②, Periplus ③), and WinterFell's opening line gained ① the procedural world.
 
 ## Order of work
 
@@ -21,9 +23,9 @@ There are 22 notes, one per bullet. Two things to know: Beyz ① and ② were me
 | 6 | Baidu ⑤ H5/JSBridge + ④ withdrawal + ② Webpack | A |
 | 7 | Baidu ① virtual list + ③ production white screen | S |
 | 8 | Periplus ① six stages and the typed contract | S |
-| 9 | Periplus ⑤ evidence and the ruling | S |
-| 10 | Periplus ② persistence/resume + ③ scripted seam | S |
-| 11 | Periplus ④ golden set and evals | S |
+| 9 | Periplus ⑥ evidence and the ruling | S |
+| 10 | Periplus ② persistence/resume + ③ the pgvector evidence cache + ④ scripted seams | S |
+| 11 | Periplus ⑤ golden set and evals | S |
 | 12 | WinterFell, all five | B |
 | 13 | Skills row: Angular / Django (Go has been off since v66) | A |
 | 14 | Full mock interview | — |

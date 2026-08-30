@@ -11,7 +11,9 @@ status: done
 
 对应简历 **v72**。bullet 总数 **22**：Beyz 4、BioMap 4、Baidu 5、WinterFell 5、Periplus 4。
 
-笔记也是 22 篇，一一对应。两处要注意：Beyz ①② 在 v66 曾合并成一条，v72 又拆回两条（凭证与用量单独成行）；Periplus ⑤ 证据与判断分离仍不在简历上，笔记留着，因为面试官照样会问。
+笔记 **24 篇**：22 条 bullet 各有一篇，另加两篇——Periplus ② 持久化与 ① 共用简历第一条，Periplus ⑥ 证据与判断分离自 v66 起就不在简历上，两篇都留着，因为面试官照样会问。
+
+v72 相对 v66 拆回了两条 bullet：Beyz 的凭证与用量、Periplus 的 pgvector 证据缓存。这两条现在各有独立笔记（Beyz ②、Periplus ③），WinterFell 的开场那条也补了 ① 程序化世界。
 
 ## 推进顺序
 
@@ -25,9 +27,9 @@ status: done
 | 6 | Baidu ⑤ H5/JSBridge + ④ 提现 + ② Webpack | A |
 | 7 | Baidu ① 虚拟列表 + ③ 生产白屏 | S |
 | 8 | Periplus ① 六阶段与 typed contract | S |
-| 9 | Periplus ⑤ 证据与裁决 | S |
-| 10 | Periplus ② 持久化/resume + ③ scripted seam | S |
-| 11 | Periplus ④ golden set 与 evals | S |
+| 9 | Periplus ⑥ 证据与裁决 | S |
+| 10 | Periplus ② 持久化/resume + ③ pgvector 证据缓存 + ④ scripted seam | S |
+| 11 | Periplus ⑤ golden set 与 evals | S |
 | 12 | WinterFell 五条 | B |
 | 13 | 技能栏 Angular / Django（Go 自 v66 起已撤下） | A |
 | 14 | 全份模拟面试 | — |

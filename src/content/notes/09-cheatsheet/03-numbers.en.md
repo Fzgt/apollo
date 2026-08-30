@@ -486,14 +486,14 @@ What is a "unit" in this game? How was the threshold of 15 chosen? How does it r
 
 ## 21. twenty scenes
 
-**From**: WinterFell (the opening bullet added in v66) · ✅ done, full write-up in [WinterFell project notes](/docs?section=winterfell&item=bloom-webgpu)
+**From**: WinterFell's opening bullet (added in v66) · ✅ done, full write-up in [① Twenty scenes and one seed per run](/docs?section=winterfell&item=procedural-world)
 
 ✅ **Measured 2026-08-27**: the `SCENES` array in `src/config/scenes.ts` has exactly **20** entries, from `Neon City` to `The Terminus`.
 `SCENE_DISTANCE = 1800`, so the scene changes every 1,800 world units; `sceneAt()` clamps the last scene with `Math.min`, so **flying past the end does not loop — it stays on the final scene**.
 
 The colour palettes are a separate thing: `LEVELS` in `src/config/levels.ts` has only **6** entries (Signal / Vapour / Circuit / Ember / Toxic / Nova).
 
-> ⚠️ **Do not mix these two up**: **20 is scenes, 6 is palettes.** Switching palette is exactly what triggers the fog stall in [④ A frame-accurate hunt](/docs?section=winterfell&item=fog-freeze).
+> ⚠️ **Do not mix these two up**: **20 is scenes, 6 is palettes.** Switching palette is exactly what triggers the fog stall in [⑤ A frame-accurate hunt](/docs?section=winterfell&item=fog-freeze).
 
 | Item | Fill in |
 |---|---|

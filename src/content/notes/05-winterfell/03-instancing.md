@@ -1,5 +1,5 @@
 ---
-title: "② 合批渲染与它的代价"
+title: "③ 合批渲染与它的代价"
 tier: must
 section: WinterFell
 icon: gamepad-2
@@ -8,7 +8,7 @@ level: B
 status: done
 ---
 
-# ② 合批渲染与它的代价
+# ③ 合批渲染与它的代价
 
 > **简历原句**
 >

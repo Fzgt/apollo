@@ -1,9 +1,9 @@
 ---
-title: "② Batched rendering and what it costs"
+title: "③ Batched rendering and what it costs"
 section: WinterFell
 ---
 
-# ② Batched rendering and what it costs
+# ③ Batched rendering and what it costs
 
 > **Resume line**
 >

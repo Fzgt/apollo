@@ -12,11 +12,11 @@ status: done
 
 > **简历原句**
 >
-> **Six-stage LLM pipeline behind typed Pydantic stage contracts** filled by **schema-constrained JSON output**, with **run state, stage artifacts and a pgvector cache of local MiniLM embeddings in PostgreSQL**: **a run that dies mid-pipeline resumes from the last completed stage**.
+> **Six-stage LLM pipeline behind typed Pydantic stage contracts** filled by **schema-constrained JSON output**, with **run state and stage artifacts in PostgreSQL**: **a run that dies mid-pipeline resumes from the last completed stage**.
 >
 > ---
 >
-> 六阶段 LLM 流水线，阶段之间只认带类型的 Pydantic 契约，由受 schema 约束的 JSON 输出填充；运行状态、阶段产物，以及本地 MiniLM 向量的 pgvector 缓存都落在 PostgreSQL 里：流水线中途挂掉的运行可以从最后一个已完成阶段续跑。
+> 六阶段 LLM 流水线，阶段之间只认带类型的 Pydantic 契约，由受 schema 约束的 JSON 输出填充；运行状态与阶段产物都落在 PostgreSQL 里：流水线中途挂掉的运行可以从最后一个已完成阶段续跑。
 
 > ℹ️ **本篇和 [① 六阶段与类型化契约](/docs?section=periplus&item=typed-contract) 共用简历上的第一条。**「per-run token and time budgets」已从简历删除，但预算续跑那一节是这篇最值钱的部分，正文没动。
 
@@ -123,34 +123,19 @@ status: done
 
 **「向量」（embedding）是什么**：把一段文字转换成一串数字，**意思相近的文字，数字也相近**。这样就能问「有没有和这段话意思差不多的、我已经抓过的内容」。
 
-**失效靠的是 [⑤ 那套新鲜度窗口](/docs?section=periplus&item=evidence-judgment))** —— **缓存本身不设过期时间，是消费它的时候按日期判断过没过期。**
+**失效靠的是 [⑥ 那套新鲜度窗口](/docs?section=periplus&item=evidence-judgment))** —— **缓存本身不设过期时间，是消费它的时候按日期判断过没过期。**
 
 > ⭐ **这个区分值得说**：**缓存不负责判断「新不新鲜」，只负责「别重复干活」。新鲜度是业务语义，归判断过期的那个函数管。**
 
-## 五、pgvector 那几个选择（代码里核过）
+## 五、向量缓存不在这一条里
 
-```sql
-CREATE INDEX evidence_cache_embedding_idx
-    ON evidence_cache USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
-```
+**pgvector、ivfflat 余弦索引和本地 MiniLM 向量在 v72 里是独立的一条 bullet**，
+细节全部搬到了 [③ pgvector 证据缓存与本地向量](/docs?section=periplus&item=pgvector-embeddings)。
 
-**「pgvector」是 PostgreSQL 的一个扩展，让数据库能存向量并做「找最相似的」查询。**
-
-| 问 | 答 |
-|---|---|
-| **为什么用余弦相似度不用欧氏距离** | 余弦是语义相似度的惯例选择，**而且对向量长度不敏感** —— 两段话意思一样但长短不同时，余弦仍然判它们近 |
-| **`lists = 100` 怎么定的** | 这个索引把向量空间**切成 100 个簇**，查询时只扫最近的几个簇。**这是个「查得快」和「找得全」的旋钮**，100 是常见起点。⚠️ **代码里没写调优依据，照实说是默认值** |
-| **为什么用 ivfflat 不用 HNSW** | ⚠️ **代码里没有说明理由。** 我的理解：ivfflat **建索引快、占内存小**，适合这种写入频繁、行数中等的缓存；HNSW 查询更快但建索引慢、吃内存。**被问到就说这是权衡不是定论** |
-
-**但有一行注释值得引**（`postgres_evidence.py:71-72`）：
-
-> *"a fresh database just gets a single-list index, which degrades to a full scan until enough rows accumulate. **That is a correct, if slow, index — never a wrong answer.**"*
->
-> （空库只会得到一个单簇的索引，在积累够行数之前它退化成全表扫描。**那是一个正确但慢的索引 —— 绝不会给出错的答案。**）
-
-> ⭐ 「**宁可慢也不能错**」 —— 和 [⑤ 那条「宁可没有日期也不要猜一个」](/docs?section=periplus&item=evidence-judgment)) 是同一个价值观。
-
-**还有一个「失败也不炸」的设计**：算向量失败或数据库出错时，缓存**返回「没找到相似的」而不是抛异常** —— 所以 **PostgreSQL 抖一下只会导致重复抓一次页面，不会让整个 run 挂掉。**
+这一条只需要记住它和持久化的关系：**运行状态、阶段产物走 `PostgresRunPersistence`；
+证据缓存走 `PostgresEvidenceCache`，是另一个类、另一张表、另一套生命周期。**
+两者共用 PostgreSQL，但失败语义完全不同——续跑数据丢了这次运行就废了，
+证据缓存丢了只是多抓一次页面。
 
 ## 六、本篇术语英文对照
 

@@ -12,11 +12,11 @@ status: done
 
 > **简历原句**
 >
-> **Six-stage LLM pipeline behind typed Pydantic stage contracts** filled by **schema-constrained JSON output**, with **run state, stage artifacts and a pgvector cache of local MiniLM embeddings in PostgreSQL**: **a run that dies mid-pipeline resumes from the last completed stage**.
+> **Six-stage LLM pipeline behind typed Pydantic stage contracts** filled by **schema-constrained JSON output**, with **run state and stage artifacts in PostgreSQL**: **a run that dies mid-pipeline resumes from the last completed stage**.
 >
 > ---
 >
-> 六阶段 LLM 流水线，阶段之间只认带类型的 Pydantic 契约，由受 schema 约束的 JSON 输出填充；运行状态、阶段产物，以及本地 MiniLM 向量的 pgvector 缓存都落在 PostgreSQL 里：流水线中途挂掉的运行可以从最后一个已完成阶段续跑。
+> 六阶段 LLM 流水线，阶段之间只认带类型的 Pydantic 契约，由受 schema 约束的 JSON 输出填充；运行状态与阶段产物都落在 PostgreSQL 里：流水线中途挂掉的运行可以从最后一个已完成阶段续跑。
 
 > ℹ️ **v66 把原来的 bullet 1 和 bullet 3 合并成了这一条。**本篇讲契约与编排；持久化与续跑在 [② 持久化与断点续跑](/docs?section=periplus&item=persistence-resume)。「agentic workflow」「OpenAPI 生成前端类型」两个说法已从简历撤下，改成了 Pydantic 与 MiniLM。
 
