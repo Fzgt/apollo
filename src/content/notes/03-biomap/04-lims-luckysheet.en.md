@@ -1,83 +1,76 @@
 ---
-title: "④ LIMS: containing an imperative spreadsheet inside Vue"
+title: "④ LIMS: adding Luckysheet to Vue"
 section: BioMap
 ---
 
-# ④ LIMS: containing an imperative spreadsheet inside Vue
+# ④ LIMS: adding Luckysheet to Vue
 
 > **Resume line**
 >
 > Developed the LIMS platform in **Vue 3 and TypeScript** for sample management and SOP workflows, extending the Luckysheet SDK with **custom cell actions and a per-cell JSON contract**, plus a scaffolding CLI.
 
-> ✅ **Evidence boundary**: this article has real BioMap repositories to inspect: `biomap-web-lims` and `biomap-cli`. I still should not invent measured outcomes that the code does not establish.
+> ✅ **Evidence limit**: the Luckysheet and SOP code can be checked in the real BioMap repository. You confirmed that you also worked on the CLI, but the local CLI Git history does not show your commits. In an interview, explain only the parts you truly worked on and can describe. Do not say you were the only author of the CLI.
 
-## Establish this first: this bullet only needs two claims
+## What this bullet needs to show
 
-1. How I integrated a global, imperative spreadsheet SDK into a reactive Vue page.
-2. What the CLI actually automated.
+This bullet has two topics: how Luckysheet was added to a Vue page, and how the CLI reduced repeated setup for new projects. Keep the main answer near 30 seconds. Explain saving and resize details only when asked.
 
-The main answer only needs about 30 seconds. Saving, resize behaviour, and SDK lifecycle belong in follow-up answers.
-
-## First layer: answer these cleanly
+## First layer: answer these clearly
 
 ### 1. What are LIMS and SOP?
 
-A LIMS is a laboratory information management system for samples, processes, and result records. An SOP is a standard operating procedure. On this page, the spreadsheet was not just a data display; cells also carried experimental steps, analysis methods, and data-backfill configuration.
+A LIMS is a laboratory information management system for samples, work steps, and results. An SOP is a standard operating procedure. This page needed to store experiment settings on spreadsheet cells, so it was more than a normal data table.
 
-### 2. How was Luckysheet integrated into Vue?
+### 2. How was Luckysheet added to Vue?
 
-`sop-edit/index.vue` gives the SDK an empty container and initialises it imperatively through `window.luckysheet.create(...)`. Vue owns page state, modals, and business data; Luckysheet owns the spreadsheet inside the container. They exchange data through explicit methods and events instead of asking Vue to declaratively render SDK-owned DOM.
+The page provides an empty `<div>` and creates the spreadsheet through `window.luckysheet.create(...)`. Vue owns page state, modals, and API data. Luckysheet owns the spreadsheet DOM inside the container. Events and SDK methods pass data between them.
 
 ### 3. What were the custom cell actions?
 
-The page registers 3 right-click actions through `cellRightClickConfig.customs`. A cell opens a Vue modal, the user edits business information, and `setCellValue` writes the result back. The SDK supplies the trigger point while Vue components own the complex forms.
+The code adds 3 right-click actions through `cellRightClickConfig.customs`. An action opens a Vue modal. After the user finishes the form, `setCellValue` writes the data back to the selected cell.
 
 ### 4. What was the per-cell JSON contract?
 
-Business metadata lives in the cell's `sopExpandProperty`, including fields such as `analyseMethod` and `dataBackFill`. `MarkModal.vue` reads and edits it through a JSON editor. This separates the visible cell value from its business configuration and allows both to travel with the SOP template.
+Each cell can store `sopExpandProperty`, including business fields such as `analyseMethod` and `dataBackFill`. `MarkModal.vue` turns the object into JSON for editing, then parses it and writes it back to the cell.
 
-It is an internal project contract, not proof of complete schema validation. Malformed JSON still needs validation and useful error handling.
+The current code uses `JSON.parse` but has no full schema check. Invalid JSON needs clearer error handling.
 
-### 5. Why not upload the entire Luckysheet object on every edit?
+### 5. How were edits saved?
 
-Before saving from the `updated` hook, the code gets all sheets and removes the reconstructable two-dimensional `data` matrix, avoiding a large duplicate runtime payload. Saving uses a trailing 2-second debounce: continuous edits coalesce and the request runs after the user pauses.
+Luckysheet's `updated` hook starts the save flow. The code reads all sheets, removes the two-dimensional `data` field that can be rebuilt, and then calls the API. Saving uses a trailing 2-second debounce, so a request is not sent after every small edit.
 
-The old note claimed lodash debounce runs immediately by default. That was wrong: trailing execution is the default, while `leading: false` only makes the intention explicit.
+### 6. Why did resize need extra work?
 
-### 6. What did the CLI actually generate?
+The page uses ResizeObserver with a 600ms debounce. A width change below 20px does not rebuild the spreadsheet, which filters small layout changes caused by modals and page movement. Other size changes call `create()` again.
 
-`@biomap/cli` uses Commander and interactive prompts to choose a template, copy a complete Vue or React project, restore dotfiles, and rewrite the package name, HTML app id, and entry selector. It is a **project scaffolder**, not a module generator that adds one page, route, API file, and types to an existing application.
+### 7. What did the CLI do?
 
-## Second layer: only if they keep digging
+The CLI uses questions to choose and copy a full Vue or React project template. It changes the project name, HTML app id, entry selector, and dotfiles. It sets up a new project; it does not add one business page to an existing project.
 
-### Why did resize need special handling?
+The local history shows another teammate as the original CLI author. You confirmed that you worked on it, so be clear about the exact part you changed or maintained. Do not describe the whole CLI as solo work.
 
-The page debounces ResizeObserver by 600ms and ignores width changes below 20px to avoid repeatedly rebuilding the spreadsheet for layout noise. That reduces churn, but rebuilding remains heavy. A reliable SDK resize API that preserves selection and editing state would be better.
+## Second layer: useful concepts
 
-### What is the standard boundary for an imperative SDK?
+### Why does Vue not manage the spreadsheet's inner DOM?
 
-Initialisation, event bridging, data synchronisation, resize, errors, and disposal should sit behind an adapter or composable. Page components should consume business semantics rather than reaching for a global SDK throughout the codebase.
+Luckysheet creates and updates that DOM itself. If Vue also manages the same area, the two update systems can conflict. The simple boundary is to give the full container to the SDK and let Vue talk to it through public methods.
 
-### How would saving become more reliable?
+### Does debounce make saving safe?
 
-Debouncing reduces requests; it does not guarantee final consistency. A production design should also consider a version or ETag, protection against an older response overwriting newer edits, retries, flushing before navigation, and explicit saving, saved, and failed states.
+No. It only reduces requests. A stronger design also handles save failures, old requests replacing newer data, the last save before leaving the page, and clear saving or failed states.
 
-## Current gaps
+### What else should this SDK setup include?
 
-- Luckysheet is loaded through `window`, so the application owns typing, script order, and version compatibility.
-- The page shows no explicit unmount disposal, creating a risk of retained listeners or instances on re-entry.
-- Resize rebuilds rather than adjusting lightly and may lose transient interaction state.
-- `sopExpandProperty` is a JSON convention without visible full runtime schema validation.
-- Removing `data` clearly reduces the payload; there is no measurement supporting a claimed number of megabytes.
+Setup, events, data updates, resize, errors, and cleanup should sit in an adapter or composable. The page has no clear Luckysheet cleanup step, so an old instance or event listener may remain after the user leaves and returns.
 
 ## 30-second answer
 
-> The LIMS SOP editor needed cells to carry experimental configuration. I treated Luckysheet as an imperative island: Vue owned the page and modals, while the SDK owned only its spreadsheet container. Right-click actions opened Vue forms and wrote the result back into each cell's `sopExpandProperty` JSON. Edits used a trailing 2-second debounce, and saving removed the reconstructable two-dimensional data matrix. Separately, my CLI copied and rewrote complete Vue or React templates as one-command project scaffolding; it did not generate individual business modules.
+> The LIMS SOP page needed to store experiment settings on spreadsheet cells. I gave Luckysheet its own container: Vue handled the page and modals, while the SDK handled the spreadsheet. Three right-click actions opened Vue forms and wrote the result back into each cell's `sopExpandProperty` JSON. Edits used a trailing 2-second debounce, and saving removed the two-dimensional data field that could be rebuilt. The CLI reduced setup work by copying Vue or React project templates.
 
 ## Self-check
 
-1. Can I state which state and DOM Vue owns and which Luckysheet owns?
-2. Can I explain the complete right-click action → modal → JSON → cell write-back path?
-3. Can I describe the 2-second debounce correctly without calling the default immediate?
-4. Can I state that the CLI generates complete project templates without exaggerating it into a business-module generator?
-5. Can I volunteer the disposal, runtime validation, and unmeasured-payload gaps?
+1. Can I explain what Vue owns and what Luckysheet owns?
+2. Can I explain the full right-click action, modal, JSON, and cell update flow?
+3. Can I explain the 2-second save debounce and 600ms resize debounce?
+4. Can I explain that the CLI creates a full project rather than one business module?
+5. Can I state my exact CLI work without calling myself the only author?

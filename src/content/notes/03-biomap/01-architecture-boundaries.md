@@ -1,5 +1,5 @@
 ---
-title: "① 架构边界：把约定变成约束"
+title: "① 架构边界：把规则放进 ESLint"
 tier: must
 section: BioMap
 icon: microscope
@@ -8,81 +8,73 @@ level: B
 status: done
 ---
 
-# ① 架构边界：把约定变成约束
+# ① 架构边界：把规则放进 ESLint
 
 > **简历原句**
 >
 > 主导团队核心 C 端产品 Digital OS 的 **React 18 + TypeScript 架构**，通过 **5 条自定义 ESLint 导入区域**强制执行 feature 边界：任何 feature 都不能伸进另一个 feature。
 
-> ⚠️ **证据边界**：本机没有 Digital OS 的生产仓库。下面能逐行指给面试官看的，是后来 `Prometheus` 里的同构实现；不要把这些文件路径冒充成 BioMap 源码。
+> ⚠️ **证据边界**：本机没有 Digital OS 源码。`Prometheus` 是 2026 年写的后续示例，只能用来复习做法。里面的 `blog`、`comments`、`theme` 不是 BioMap 的 feature 名，面试时不能拿它们冒充 Digital OS 的 5 条规则。
 
-## 这条真正要证明什么
+## 这条要讲清什么
 
-我做的不是选 React 和 TypeScript，而是把依赖方向写成机器可执行的规则。代码量变大、多人并行之后，架构不会只靠每个人“自觉”。
+项目变大后，目录约定很容易被破坏。我做的是按业务 feature 划分代码，再用 ESLint 检查不允许出现的依赖，让错误在开发和 CI 阶段直接出现。
 
 ## 第一层：必须答顺
 
-### 1. Digital OS 是什么？“主导架构”具体做了什么？
+### 1. Digital OS 是什么？“主导架构”是什么意思？
 
-Digital OS 是团队的核心 C 端产品。这里的“主导”不是说所有页面都由我写，而是我确定了目录边界、依赖方向和违反边界时的检查方式，让后续业务代码沿同一套结构增长。
+Digital OS 是团队的核心 C 端产品。“主导”不是所有页面都由我写，而是我确定了代码如何分层、feature 如何组织、哪些 import 不允许出现，以及这些规则如何自动检查。
 
-### 2. 依赖方向是什么？
+### 2. 什么是 feature-first 结构？
 
-核心方向是：
+代码按业务功能组织，而不是把所有组件、hooks 和 API 分散到不同的大目录里。一个 feature 可以包含自己的页面、组件、hooks、API 和类型。修改一个业务功能时，相关代码大多在同一个位置。
 
-`app → features → components / hooks / lib / types / utils`
+### 3. 5 条 import zones 解决什么问题？
 
-- `app` 负责装配路由、Provider 和全局入口。
-- `features` 按业务能力纵向组织。
-- 底层共享目录提供稳定、无业务归属的能力。
+本机没有原始配置，所以不要背 `Prometheus` 里的 5 个名字。安全的讲法是说明它们保护了三类边界：
 
-上层可以依赖下层，下层不能反向知道具体业务；两个 feature 也不能直接钻进彼此内部。
+- 一个 feature 不能直接读取另一个 feature 的内部文件。
+- feature 不能反向依赖应用入口层。
+- 公共组件和工具不能反向依赖具体业务。
 
-### 3. “5 条 import zones”到底限制什么？
+如果面试官要求逐条说出 Digital OS 的 5 个 zone，只说你真实记得的内容，不要用后来的示例补空白。
 
-参考实现位于 `Prometheus/.eslintrc.cjs`：
+### 4. 为什么要用 ESLint，而不是写进 README？
 
-- 前 3 条隔离 `blog`、`comments`、`theme`，阻止 feature 互相读取内部文件。
-- 第 4 条禁止 `features` 反向导入 `app`。
-- 第 5 条禁止共享层导入 `features` 或 `app`。
+README 需要人记住，ESLint 可以在写代码和 CI 时直接报错。这样模块边界不只靠 code review，也不会等项目已经耦合以后才发现。
 
-另外还有 `import/no-cycle: error`，拦住单个 zone 没覆盖到的循环依赖。
+### 5. 两个 feature 需要合作怎么办？
 
-### 4. 为什么不用 README 约定？
+常见做法有三种：通过公开入口调用；在上层页面或 `app` 层组合；把真正通用的能力放到共享层。不要直接导入另一个 feature 的内部文件。
 
-README 只能提醒，ESLint 能在写代码和 CI 时立即失败。它把架构评审从“某个资深同事是否刚好看见”变成每次提交都执行的反馈环。
+## 第二层：概念补充
 
-### 5. feature 之间真的完全不能协作吗？
+### TypeScript 为什么不能代替 ESLint 边界？
 
-可以协作，但不能偷读内部实现。跨 feature 的能力应通过公开入口、上移到 `app` 做编排，或抽成没有业务归属的共享模块。边界约束的是依赖方式，不是阻止业务组合。
+TypeScript 检查类型是否正确，但一个类型正确的 import 仍然可能破坏架构。ESLint 负责检查“能不能依赖这一层”。
 
-## 第二层：继续追问时再讲
+### feature-first 有什么代价？
 
-### 为什么 feature-first 比按文件类型分目录更适合大项目？
+边界太严格会让共享代码放置困难。重复出现的跨 feature 需求通常说明需要公开 API、上层组合或新的共享模块。规则需要跟项目一起调整，不能为了守规则制造更复杂的代码。
 
-一个功能的 API、组件、hooks 和类型放在一起，改需求时影响范围更清楚，也更容易删除或迁移。按 `components/`、`hooks/`、`services/` 横向铺开，业务边界会随着规模增长而消失。
+### 公共入口为什么重要？
 
-### 边界规则会不会太死？
+feature 的公开入口决定外部可以使用什么。入口过宽，内部代码会慢慢变成公共 API；入口清楚，feature 内部就可以安全重构。
 
-会，所以规则必须跟真实依赖图一起演进。重复出现的合法跨域需求，通常说明公开 API 或共享抽象缺了一层；偶发的绕过应在 review 里解释，而不是默默关闭规则。
+## 当前不能证明的内容
 
-### TypeScript 已经能检查类型，为什么还需要 ESLint？
-
-TypeScript 判断“这个导入能不能编译”，不会判断“这一层是否应该知道那一层”。类型正确和架构正确是两件事。
-
-## 当前实现的缺口
-
-- 本机能验证的是 `Prometheus` 参考实现，不是 Digital OS 生产代码。
-- 规则只在真正进入编辑器检查和 CI 时才有强制力。
-- barrel export 如果设计得太宽，仍可能把 feature 内部细节变成事实上的公共 API。
+- 本机无法核对 Digital OS 的真实目录和 5 条 zone。
+- `Prometheus` 的规则能解释方法，但不能证明 BioMap 当时的 feature 名和配置细节。
+- 没有原始 CI 配置时，不要主动说这些规则一定在每次 BioMap 提交中执行。
 
 ## 30 秒回答
 
-> Digital OS 变大以后，我最担心的不是某个组件写得不好，而是依赖方向慢慢失控。我把代码分成 app、features 和稳定共享层，再用 5 条 ESLint import zones 固化规则：feature 不能互相伸进内部，features 不能反向依赖 app，共享层也不能知道上层业务；循环依赖另外直接报错。这样边界不是写在文档里等人记，而是在本地和 CI 里持续执行。
+> Digital OS 变大以后，我不希望模块边界只靠团队记忆。我按业务 feature 组织代码，再用 5 条 ESLint import zones 阻止 feature 互相读取内部文件、阻止下层反向依赖上层。这样违规 import 会在开发和 CI 阶段直接失败。跨 feature 的功能则通过公开入口、上层组合或共享模块完成，而不是直接穿透内部目录。
 
 ## 自检
 
-1. 不看笔记，能否画出依赖方向？
-2. 能否说清 5 条 zone 分别守哪一类边界？
-3. 面试官问“两个 feature 如何协作”，能否给出公开入口、app 编排、共享抽象三种办法？
-4. 能否主动说明 BioMap 源码与 `Prometheus` 参考实现的证据边界？
+1. 能否用一句话解释 feature-first？
+2. 能否说清 ESLint 边界与 TypeScript 类型检查的区别？
+3. 能否说出跨 feature 合作的三种方式？
+4. 被问到 5 条真实 zone 时，能否避免拿 `Prometheus` 的 feature 名冒充 BioMap？

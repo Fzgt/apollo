@@ -1,80 +1,80 @@
 ---
-title: "③ TanStack Query: three tiers and one cache identity"
+title: "③ TanStack Query: one source for cache rules"
 section: BioMap
 ---
 
-# ③ TanStack Query: three tiers and one cache identity
+# ③ TanStack Query: one source for cache rules
 
 > **Resume line**
 >
 > Layered TanStack Query in **three tiers — API functions, queryOptions factories, typed hooks** — with **single-source cache keys, mutation-driven invalidation and hover prefetch**: detail pages open instantly, with no request at all.
 
-> ⚠️ **Evidence boundary**: the verifiable implementation lives in my later personal project, `Prometheus`, not in the BioMap source available on this machine. I can discuss the architecture, but I should not call the reference repository the Digital OS production codebase.
+> ⚠️ **Version limit**: the BioMap work was in 2022. Here, “queryOptions factory” should mean a project function that returned `queryKey` and `queryFn`. Do not say the project used the v5 `queryOptions()` helper, because that helper appeared in 2023. `Prometheus` is a v5 example built in 2026 and only shows how the same idea can be written today.
 
-## Establish this first: three tiers are not inherently impressive
+## What this bullet needs to show
 
-The tiers only matter because list queries, detail queries, prefetching, and invalidation reuse one query identity. The same resource is always described by the same key and query function, so the cache can be hit reliably and declared stale precisely.
+The important part is not the number of layers. Lists, detail pages, prefetching, and cache updates all use one query definition. When the key and request function come from one place, the detail page can find the data that was prefetched.
 
-## First layer: answer these cleanly
+## First layer: answer these clearly
 
-### 1. Why use TanStack Query instead of putting requests in `useEffect`?
+### 1. Why not use a separate `useEffect` on every page?
 
-API data is server state: it has asynchronous status, caching, freshness, request deduplication, and resynchronisation concerns. `useEffect` can send a request, but every page then recreates loading, error, cancellation, cache, and race handling. TanStack Query puts that lifecycle into one shared cache.
+API data has loading, error, cache, expiry, repeated requests, and update problems. Handling all of this on each page creates repeated code and can leave different pages with different data. TanStack Query puts this work into one shared cache.
 
-### 2. What does each tier do?
+### 2. What did the three layers do?
 
-- **API function** owns only HTTP input and output and knows nothing about React.
-- **queryOptions factory** binds the `queryKey` and `queryFn` into the resource's canonical description.
-- **typed hook** exposes the query to components with a limited set of behavioural options.
+- **API function** sent the request and returned data without depending on React.
+- **Options factory** returned the `queryKey`, `queryFn`, and needed query settings.
+- **Typed hook** gave the query to components and allowed safe settings.
 
-In the reference implementation, `QueryConfig` explicitly omits `queryKey` and `queryFn`. A caller can tune behaviour but cannot silently redefine the resource identity inside a page.
+For the 2022 work, the key point is this project structure, not the `queryOptions()` helper later added in v5.
 
-### 3. Why is the `queryOptions` factory the hub?
+### 3. Why should the query key have one source?
 
-`useQuery`, hover prefetching, and other cache operations consume the same factory. If the detail key is `['posts', slug]`, card prefetching must generate exactly that key. Otherwise prefetching appears to work while the detail page creates a second cache entry and requests again.
+The cache uses the key to identify data. If card prefetching uses `['posts', slug]`, the detail page must use exactly the same key. Writing the key in two places can easily create two cache entries because of a different order, name, or parameter.
 
-### 4. What exactly happens when hover prefetch leads to no request?
+### 4. How did hover prefetch make the detail page faster?
 
-The card's `onMouseEnter` calls `queryClient.prefetchQuery(getPostQueryOptions(slug))`. Once that completes, the detail page's `usePost(slug)` uses the same key. While that data remains fresh, the component reads the cache and does not send a second request merely because it mounted.
+When the user moved the pointer over a card, the code called `prefetchQuery`. If that request finished before the click, the detail page could read fresh data under the same key. It did not need to send a second request just because the page opened.
 
-This is not a promise that every click produces zero network traffic. A click may beat the prefetch, the prefetch may fail, or the data may already be stale. The resume describes the successful warm-cache path.
+The resume phrase “with no request at all” should mean **no second request from the detail page**. The prefetch itself still uses the network when data is missing or stale.
 
-### 5. Does `prefetchQuery` itself always send a request?
+### 5. Does `prefetchQuery` always send a request?
 
-No. It uses `staleTime` to decide whether existing data is fresh enough. The reference implementation has a global `staleTime` of 60 seconds; prefetching a fresh entry does not fetch it again. The old note stated this incorrectly.
+No. It checks whether cached data exists and is still fresh. Fresh data can be reused. The detail page may still need a request if the user clicks too quickly, the prefetch fails, or the data is already stale.
 
-### 6. Why invalidate after a mutation instead of manually synchronising every page?
+### 6. Why invalidate after a successful mutation?
 
-After a comment is created or deleted, the code invalidates `['comments', postId]`. That expresses “this cache group is no longer trustworthy”, allowing active queries to resynchronise under TanStack Query's rules. Manual cache edits suit cases where the new response shape is certain; invalidation is more conservative and less likely to miss derived lists.
+After data is created or deleted, related cache data may be wrong. Invalidation marks the matching key as stale and lets active pages update under the query rules. Each page does not need to keep its own list in sync by hand.
 
-## Second layer: only if they keep digging
+## Second layer: useful concepts
 
-### What is the difference between `staleTime` and `gcTime`?
+### What is the difference between `staleTime` and cache storage time?
 
-`staleTime` controls how long data is considered fresh and therefore whether it needs another fetch. `gcTime` controls how long an unobserved cache entry is retained. One governs freshness; the other governs lifetime after nobody is using it.
-
-### Why should query keys be hierarchical?
-
-Hierarchical keys can identify one `['posts', slug]` entry precisely and also operate on a resource group by prefix. Keys should reflect business identity and include every parameter that changes the response. Different keys for the same data duplicate caches; the same key for different data mixes results.
+`staleTime` says how long data is fresh. Cache storage time says how long an unused query stays in memory. TanStack Query v4 called the second setting `cacheTime`; v5 renamed it to `gcTime`.
 
 ### What is the difference between invalidate and refetch?
 
-Invalidation first marks data stale, then active state and configuration determine whether it fetches. Refetch directly asks a query to execute again. After a mutation, expressing “the old data is invalid” is usually easier to maintain than issuing imperative refresh commands across pages.
+Invalidate says the old data cannot be trusted and lets query state decide whether to fetch. Refetch directly asks the query to run again. After a mutation, saying “this cache is old” is usually easier to manage.
 
-## Current gaps
+### Can prefetching waste network data?
 
-- The code I can verify line by line is `Prometheus`, not the Digital OS production repository.
-- Hover only serves pointer users; the same intent signal should cover keyboard focus.
-- Global `retry: false` is direct for development, but production needs a retry policy based on error type and network conditions.
-- The reference project uses `prefetchQuery` from TanStack Query v5.32; the latest official guide has moved to `queryClient.query`, so an upgrade should follow the current API rather than preserving an old method name by habit.
+Yes. A user may hover and never click. The project can add a short delay, prefetch only links with a high click rate, or decide based on data size and network quality.
+
+## What we cannot prove from local code
+
+- The BioMap TanStack Query source is not available, so we cannot check the old function names, keys, `staleTime`, or exact pages.
+- The `QueryConfig`, posts example, and v5 helper in `Prometheus` are not BioMap code evidence.
+- There is no 2022 measurement, so do not promise a fixed number of milliseconds or say every click has zero network use.
 
 ## 30-second answer
 
-> I separated server data into API functions, queryOptions factories, and typed hooks, but the important part was not the number of tiers. The options factory fixed the key and query function as one identity, and lists, details, and hover prefetching all reused it. Once prefetching completed and the cache was still fresh, the detail page mounted against the same key and sent no second request. Successful mutations invalidated the relevant resource prefix, so the cache resynchronised instead of every page maintaining its own copy.
+> I split server data into API functions, query option factories, and typed hooks. The factory kept the query key and request function in one place, and lists, detail pages, and hover prefetching all used it. After prefetching finished, the detail page read fresh cache data under the same key and sent no second request. After a successful mutation, I invalidated the related key so active data could update instead of each page managing its own copy.
 
 ## Self-check
 
-1. Can I explain why the queryOptions factory is more central than the hook?
-2. Can I state the conditions for “no request” without promising zero requests on every click?
-3. Can I distinguish `staleTime`, `gcTime`, invalidation, and refetching?
-4. Can I identify the current gaps in hover accessibility, retry policy, and API migration?
+1. Can I explain the job of each layer?
+2. Can I explain why prefetching and the detail page must use the same key?
+3. Can I explain “no request” as “no second request from the detail page”?
+4. Can I separate the 2022 options factory from the v5 `queryOptions()` helper added in 2023?
+5. Can I explain that v4 `cacheTime` and v5 `gcTime` are the old and new names for the same setting?

@@ -1,83 +1,75 @@
 ---
-title: "① Architectural boundaries: turning conventions into constraints"
+title: "① Architecture boundaries: putting rules into ESLint"
 section: BioMap
 ---
 
-# ① Architectural boundaries: turning conventions into constraints
+# ① Architecture boundaries: putting rules into ESLint
 
 > **Resume line**
 >
 > Led the **React 18 and TypeScript architecture** for Digital OS, the team's core consumer-facing product, enforcing feature boundaries with **five custom ESLint import zones: no feature can reach into another**.
 
-> ⚠️ **Evidence boundary**: the Digital OS production repository is not on this machine. The implementation I can walk through line by line is the equivalent pattern in my later `Prometheus` project; I should not present those paths as BioMap source code.
+> ⚠️ **Evidence limit**: the Digital OS source code is not on this machine. `Prometheus` is a later example built in 2026 and can only help explain the pattern. Its `blog`, `comments`, and `theme` names are not BioMap feature names. Do not present them as the five Digital OS rules.
 
-## What this bullet actually has to prove
+## What this bullet needs to show
 
-My contribution was not choosing React and TypeScript. It was turning the dependency direction into executable rules, so architecture did not depend on everybody remembering a convention as the codebase and team grew.
+As the project grew, folder rules were easy to break. I grouped code by business feature and used ESLint to block imports that broke the layer rules. Problems could be found during development and in CI.
 
-## First layer: answer these cleanly
+## First layer: answer these clearly
 
 ### 1. What was Digital OS, and what did “led the architecture” mean?
 
-Digital OS was the team's core consumer-facing product. “Led” does not mean I wrote every page. It means I established the directory boundaries, dependency direction, and enforcement mechanism that later feature work followed.
+Digital OS was the team's main consumer product. “Led” does not mean I wrote every page. It means I decided how the code was split into layers, how features were organised, which imports were not allowed, and how those rules were checked.
 
-### 2. What was the dependency direction?
+### 2. What is a feature-first structure?
 
-The core direction was:
+Code is grouped by business feature instead of putting every component, hook, and API file into large shared folders. A feature can contain its own pages, components, hooks, API code, and types. Most files for one business change stay in one place.
 
-`app → features → components / hooks / lib / types / utils`
+### 3. What problem did the five import zones solve?
 
-- `app` composes routing, providers, and global entry points.
-- `features` organise code vertically by business capability.
-- Lower shared directories provide stable capabilities with no feature ownership.
+The original config is not available, so do not learn the five names from `Prometheus`. The safe answer is that the rules protected three kinds of boundary:
 
-Higher layers may depend on lower ones. Lower layers must not know concrete business features, and one feature must not reach into another feature's internals.
+- One feature could not read another feature's private files.
+- A feature could not import back up into the app entry layer.
+- Shared components and tools could not import business features.
 
-### 3. What do the five import zones actually prevent?
+If an interviewer asks for all five Digital OS zones, only give details you truly remember. Do not fill the gap with the later example.
 
-The reference implementation is in `Prometheus/.eslintrc.cjs`:
+### 4. Why use ESLint instead of a README?
 
-- The first 3 isolate `blog`, `comments`, and `theme`, preventing features from reading one another's internals.
-- The fourth prevents `features` from importing back up into `app`.
-- The fifth prevents shared layers from importing `features` or `app`.
+People have to remember a README. ESLint can fail while they code and in CI. The team does not have to wait until modules are already tied together before finding the problem.
 
-`import/no-cycle: error` separately catches circular dependencies that an individual zone may not express.
+### 5. How can two features work together?
 
-### 4. Why not leave this as a README convention?
+There are three common choices: use a public entry point, join the features in a page or the `app` layer, or move truly shared code into a shared module. One feature should not import another feature's private files.
 
-A README can remind people; ESLint can fail immediately while they code and in CI. It turns architecture review from “did a senior engineer happen to notice?” into feedback executed on every change.
+## Second layer: useful concepts
 
-### 5. Does that mean features can never collaborate?
+### Why can TypeScript not replace ESLint boundaries?
 
-They can collaborate without reading private implementation. A cross-feature capability can go through a public entry point, be composed one layer up in `app`, or be extracted into a genuinely unowned shared module. The rule constrains dependency shape, not business composition.
+TypeScript checks whether types are correct. An import can have correct types and still break the architecture. ESLint checks whether that layer is allowed to depend on another layer.
 
-## Second layer: only if they keep digging
+### What is the cost of feature-first structure?
 
-### Why does feature-first structure scale better than grouping by file type?
+Rules that are too strict can make shared code hard to place. A repeated need across features may show that the project needs a public API, app-level work, or a new shared module. The rules should grow with the project instead of making the code harder.
 
-A feature keeps its API, components, hooks, and types together, so the change surface is visible and the capability is easier to remove or migrate. A horizontal forest of `components/`, `hooks/`, and `services/` gradually erases business boundaries.
+### Why are public entry points important?
 
-### Can boundary rules become too rigid?
+A feature's public entry point controls what other code may use. If it exports too much, private code slowly becomes public. A small, clear entry point lets the feature change safely inside.
 
-Yes, so the rules must evolve with the real dependency graph. Repeated legitimate cross-domain needs usually reveal a missing public API or shared abstraction. A rare exception should be explained in review, not hidden by switching the rule off.
+## What we cannot prove from local code
 
-### If TypeScript checks imports, why is ESLint necessary?
-
-TypeScript answers whether an import can compile. It does not answer whether this layer should know that layer. Type correctness and architectural correctness are different properties.
-
-## Current gaps
-
-- The locally verifiable code is the `Prometheus` reference implementation, not the Digital OS production repository.
-- The rules only enforce anything if editor checks and CI actually run them.
-- Overly broad barrel exports can still turn feature internals into accidental public APIs.
+- The real Digital OS folders and five zones are not available here.
+- The `Prometheus` rules explain the method, but they do not prove the BioMap feature names or exact config.
+- Without the original CI config, do not claim that every BioMap commit ran these checks.
 
 ## 30-second answer
 
-> As Digital OS grew, the main risk was not one badly written component; it was dependency direction decaying over time. I separated app composition, business features, and stable shared layers, then encoded the boundaries in five ESLint import zones: features cannot reach into one another, features cannot import back into app, and shared code cannot know upper business layers. Circular imports fail separately. That made the architecture executable in local development and CI instead of leaving it as a convention people had to remember.
+> As Digital OS grew, I did not want module boundaries to depend on team memory. I grouped code by business feature and added five ESLint import zones to stop features reading each other's private files and stop lower layers importing higher layers. A bad import then failed during development and in CI. When features needed to work together, we used public entry points, joined them at a higher layer, or moved shared code into a shared module.
 
 ## Self-check
 
-1. Can I draw the dependency direction without looking?
-2. Can I explain which class of boundary each of the five zones protects?
-3. If asked how two features collaborate, can I give the three options: public entry point, app-level composition, or shared abstraction?
-4. Can I state the evidence boundary between BioMap source and the `Prometheus` reference implementation before I am challenged on it?
+1. Can I explain feature-first in one sentence?
+2. Can I explain the difference between ESLint boundaries and TypeScript checks?
+3. Can I give the three ways for features to work together?
+4. If asked for the five real zones, can I avoid using `Prometheus` feature names as BioMap facts?

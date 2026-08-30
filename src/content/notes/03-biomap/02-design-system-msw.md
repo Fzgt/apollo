@@ -1,5 +1,5 @@
 ---
-title: "② 设计系统：组件契约，而不是组件目录"
+title: "② 设计系统：行为、样式、展示和 Mock"
 tier: must
 section: BioMap
 icon: microscope
@@ -8,75 +8,76 @@ level: B
 status: done
 ---
 
-# ② 设计系统：组件契约，而不是组件目录
+# ② 设计系统：行为、样式、展示和 Mock
 
 > **简历原句**
 >
 > 基于 **Radix UI、Storybook 和 CVA** 构建设计系统，以 **MSW mocks** 为底层支撑，组件 variant 类型直接从样式定义推导。
 
-> ⚠️ **证据边界**：本机没有 Digital OS 的设计系统仓库。下面的代码锚点来自后来 `Prometheus` 里的参考实现；它能证明设计方法，不是 BioMap 生产源码。
+> ⚠️ **证据边界**：本机没有 Digital OS 的设计系统代码。`Prometheus` 是后来的示例，可以帮助复习 Radix、CVA、Storybook 和 MSW，但不能证明 BioMap 当时的组件数量、Storybook 配置或 MSW handlers。
 
-## 这条真正要证明什么
+## 这条要讲清什么
 
-设计系统的价值不是“封装了 Button”，而是建立一套稳定契约：交互和无障碍由 primitive 托底，视觉变体只有一个真相源，组件状态能独立展示，接口数据也能在后端未就绪时被稳定模拟。
+我把组件的交互、视觉变体、独立展示和接口 mock 分开处理。这样组件行为更稳定，样式和 TypeScript 类型不会维护两份，前端也能在真实接口未完成时继续开发。
 
 ## 第一层：必须答顺
 
-### 1. Radix UI、CVA、Storybook、MSW 各自负责什么？
+### 1. 四个工具分别做什么？
 
-- **Radix UI**：提供无样式的交互 primitive，包括焦点管理、键盘操作、ARIA 角色和状态。
-- **CVA**：把视觉 variant 写成一份配置，并从这份配置推导 TypeScript props。
-- **Storybook**：把组件状态隔离出来，供开发、评审和回归查看。
-- **MSW**：在网络层拦截真实请求，让页面、测试和 Storybook 共用同一组 mock handlers。
+- **Radix UI**：提供 Dialog、Dropdown 等无样式组件的交互和无障碍行为。
+- **CVA**：集中定义 `variant`、`size` 等样式分支，并从定义中生成 TypeScript 类型。
+- **Storybook**：单独展示组件和不同状态，不需要先进入完整业务页面。
+- **MSW**：在网络层拦截请求，为开发和测试提供 mock API。
 
-它们不是四个并列名词，而是一条链：行为 → 样式契约 → 状态目录 → 数据环境。
+Storybook 和 MSW 是两项不同能力。除非原项目真的做过配置，不要说 Storybook 一定加载了同一组 MSW handlers。
 
 ### 2. “variants typed off the styles”是什么意思？
 
-参考实现的 `Button` 和 `Badge` 都先用 `cva` 定义 `variant`、`size` 等样式分支，再用 `VariantProps<typeof ...>` 生成组件 props。新增或删除样式变体时，调用端类型会跟着变化，不需要再维护一份容易漂移的手写联合类型。
+先用 CVA 定义允许的 variant，再用 `VariantProps` 生成组件 props。新增或删除一个样式分支时，TypeScript 类型会一起变化，不需要再手写一份字符串联合类型。
 
-这能拦住 TypeScript 调用端的非法值，但不会自动校验从接口或 JSON 进入的运行时字符串。
+这只能检查 TypeScript 代码里的值。接口或 JSON 传进来的字符串仍然需要运行时校验。
 
-### 3. 为什么选 Radix，而不是从零写 Dialog、Dropdown？
+### 3. 为什么使用 Radix，而不是从零写 Dialog？
 
-真正难的不是画一个浮层，而是焦点圈定、Esc 关闭、键盘导航、ARIA 状态和嵌套交互。Radix 把这些底层行为做成 primitive，我只定义视觉和产品规则，减少重复实现无障碍细节的风险。
+Dialog 难的不是外观，而是键盘操作、焦点管理、Esc 关闭、ARIA 属性和屏幕阅读器支持。Radix 处理基础行为，团队再按产品设计添加样式。
 
-### 4. Storybook 在团队里解决什么问题？
+### 4. Storybook 解决什么问题？
 
-它让组件的 default、disabled、loading、不同 size 和 variant 不必依附某个业务页面才能被看见。设计和开发讨论的是同一个可运行状态，回归时也更容易确认究竟是组件坏了还是页面集成坏了。
+开发和设计可以直接查看 Button、Dialog 等组件的 variant、size 和 disabled 状态。组件问题可以在脱离业务页面的情况下复现和讨论。
 
-### 5. MSW 为什么放在设计系统这一条里？
+不要主动说做了自动视觉回归或 loading story，除非你记得 BioMap 确实有这些内容。
 
-它只是支撑层，不是这条的主角。参考实现中浏览器 worker 与测试 server 共用 `handlers`，handler 又连接同一个内存数据模型；因此页面、Storybook 和测试看到一致的接口形状。它让前端状态可独立演示，也降低“每个环境各写一套假数据”的漂移。
+### 5. MSW 怎样帮助前后端并行？
 
-## 第二层：继续追问时再讲
+MSW 拦截真实的 HTTP 请求，所以页面仍使用正式的请求代码。前端可以先按约定的接口格式开发，后端完成后关闭 mock 即可，不需要改页面逻辑。
 
-### Radix 的 `asChild` 有什么代价？
+## 第二层：概念补充
 
-`asChild` 会把行为和 props 合并到子元素上。自定义子组件必须透传 props 并转发 ref；换掉底层元素后，语义是否仍然可访问也由调用者负责。Radix 提供底层行为，不会替产品补齐标签文案。
+### Radix 的 `asChild` 需要注意什么？
 
-### MSW 和直接 mock `fetch` 有什么区别？
+子组件需要接收传入的 props，并把 ref 转发到底层元素。换成链接或其他元素以后，也要确认 HTML 语义和键盘操作仍然正确。
 
-MSW 在网络边界拦截请求，应用仍走生产使用的请求代码。这样能同时验证 URL、method、payload 和响应处理；直接替换某个客户端函数更轻，但更容易跳过真实集成路径。
+### MSW 和直接 mock 一个函数有什么区别？
 
-### 怎样防止设计系统变成“组件坟场”？
+MSW 在网络边界处理请求，可以一起检查 URL、method、payload 和响应。直接 mock 函数更简单，但可能跳过真实请求流程。
 
-只收纳重复且稳定的契约。业务特有组件先留在 feature 内；出现明确复用后再上提。每个公共组件都要有清楚的 variant、状态和退出路径，而不是为了“统一”把所有页面细节塞进去。
+### 怎样避免设计系统越来越重？
 
-## 当前实现的缺口
+只有重复出现并且接口稳定的组件才进入设计系统。只属于一个业务的组件先留在 feature 内，确认多个地方需要后再抽出来。
 
-- 本机可核对的是 `Prometheus` 的 Button、Badge、Dialog、stories 和 MSW handlers，不是 Digital OS 源码。
-- TypeScript 的 variant 类型不等于运行时校验。
-- 无障碍 primitive 仍需要正确的标签、文案和产品层测试。
-- MSW 能解除开发阻塞，但 mock 合约仍可能与真实后端漂移，需要接口契约或集成环境对账。
+## 当前不能证明的内容
+
+- 本机无法核对 BioMap 设计系统的真实组件、stories 和 MSW 配置。
+- `Prometheus` 的浏览器和测试环境共用 handlers，但它的 Storybook 没有接入 MSW；旧笔记把三者说成共用一套，是错的。
+- 不要把 `Prometheus` 的 Storybook 8 或 MSW 2 写法说成 2022 年 BioMap 的具体 API。
 
 ## 30 秒回答
 
-> 我把设计系统看成组件契约，不是组件文件夹。Radix 负责焦点、键盘和 ARIA 等底层行为；CVA 把视觉 variants 放在一个真相源里，再由 TypeScript 直接推导 props；Storybook 展示每个状态；MSW 则让这些状态能用统一接口数据独立运行。这样新增 variant 时样式和类型一起变，组件也不必等具体页面或后端完成才能评审。
+> 我把设计系统分成四部分：Radix 负责基础交互和无障碍，CVA 集中管理视觉 variants 并生成 TypeScript props，Storybook 单独展示组件状态，MSW 为开发和测试提供接口 mock。这样样式和类型只有一个来源，组件可以独立评审，前端也不用等后端接口全部完成才开始工作。
 
 ## 自检
 
-1. 能否用一句话分别说清 Radix、CVA、Storybook、MSW 的职责？
-2. 能否解释 `VariantProps` 消除了哪一份重复真相？
-3. 能否说出 `asChild` 对 props、ref 和语义的要求？
-4. 能否说明 MSW 为什么只是支撑层，以及它不能解决什么？
+1. 能否用一句话说清四个工具的职责？
+2. 能否解释 `VariantProps` 删除了哪一份重复定义？
+3. 能否说清 Storybook 与 MSW 是两项不同能力？
+4. 能否避免把后来的 Storybook 8 / MSW 2 示例说成 BioMap 源码？
