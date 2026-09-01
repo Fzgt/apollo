@@ -9,19 +9,56 @@ section: WinterFell
 >
 > Built a browser racing game: steer a craft through **fields of neon obstacles across twenty scenes**, with the **terrain, skyline and obstacles all generated on the fly from how far you have traveled**, on a **fresh seed each run**.
 
-## Terms, in one line each
+## Terms, in plain language
+
+This page looks full of maths. Peel it back and there are only **two things: a blender, and a few waves.** Get those two intuitions first; every other term is a part of one of them.
 
 **Procedural generation** — the world is not hand-placed by an artist and saved as a level file; it is computed by a function. Input: how far you have driven. Output: what is here.
 
-**Pseudo-random** — a computer has no real randomness. "Random" numbers come out of a fixed formula, and the same starting point always produces the same sequence.
+**Seed** — one integer fed to that function, drawn once per run. **Same seed, identical run; different seed, a different world.** A seed is not "randomness", it is **this run's ID number**. The earlier version used unseeded `Math.random()`, so no run could ever be reproduced — and, as below, the shape of the route was fixed anyway.
 
-**Seed** — that starting point: the first integer fed to the formula. **Same seed, identical run; different seed, a different world.** A seed is not "randomness", it is **this run's ID number**. The earlier version used unseeded `Math.random()`, so no run could ever be reproduced — and, as below, the shape of the route was fixed anyway.
+### 1. The blender: hash functions and pseudo-randomness
 
-**Hash function** — mixes a few integers into one that looks patternless but is fully determined. Same input, same output, always. World generation depends on this: **asking "what is at 3000 metres" has to give the same answer every time, or the world changes when you look back.**
+`hash2(a, b)` is a **mincer**: throw in two integers, get back one number between 0 and 1. Two properties are all you need:
 
-**Noise** — a smooth undulating curve, like a terrain cross-section. Not per-point white noise: neighbouring points are close, which is what makes it usable for natural-looking terrain and density.
+- **The same input always returns the same result.** It is not a die roll, it is a lookup — except the table does not exist, it is computed on the spot.
+- **A slightly different input gives a completely unrelated output.** 3000 and 3001 come out with nothing in common, which is what makes it look random.
 
-**Period** — how often that curve rises and falls. Short period, the route changes mood quickly; long period, one character persists.
+**Pseudo-random** means exactly that: fake randomness. It looks disorderly and is fully determined. The world depends on this — when you look back at metre 3000 it has to be what it was the first time, or the world deforms in front of you.
+
+The `Math.imul`, `0x9e3779b9` and `h >>> 15` inside the function are the **stirring**: multiply by a large prime, fold the high bits down into the low bits, multiply and fold again. The recipe is lifted from standard hashes (the xxHash family); it does not need a line-by-line explanation, and no interviewer asks why that particular magic number. The trailing `/ 4294967296` only squeezes a 32-bit integer down into 0..1.
+
+### 2. The waves: noise, period, phase
+
+**Noise** here is not TV static, it is a **sea surface** — rising and falling, with neighbouring points at similar heights, which is what makes it smooth and therefore usable for terrain and density.
+
+- **Period** — how far apart two crests are. Short period, dense waves, the route changes its mind constantly; long period, sparse waves, one character persists.
+- **Phase** — where the wave is right now, which position the crest falls on.
+
+The three noise streams (lane, pressure, slab-versus-spire mix) run at **different periods**, so their crests never line up. At one shared period they would all peak together — one very dense stretch, one very empty one, and the rhythm reads as fake. Out of step, the combined shape does not repeat.
+
+This is also why the **seams disappear** later on: none of the three waves knows where a section boundary is, they just undulate at their own rate, so **the boundary never existed in the maths at all**.
+
+### 3. XOR (`^`) and one-to-one mappings
+
+A bitwise operation, one rule: **bits that differ give 1, bits that match give 0.**
+
+```
+1010
+1100
+----
+0110
+```
+
+The seed is folded into the hash with XOR rather than addition because **XOR loses no information**: applying it twice returns the original, so **two different seeds stay different after folding**. That is what **one-to-one** means — one input, one output, no collisions. Addition collides: stream 3 of seed A can land exactly on stream 5 of seed B, and two streams that should be independent overlap.
+
+### 4. `| 0` and `>>> 0`
+
+JS bitwise operators only work on 32-bit integers, so these are **type conversions, not algorithm**: `| 0` truncates a float to a 32-bit integer, `>>> 0` bends a negative back to positive. Not worth interview time.
+
+### The one-sentence version
+
+**The world is a pure function: input is distance and the seed, output is what stands here. The hash guarantees same input, same output; a few noise streams at different periods guarantee it never looks repetitive.**
 
 ## What this line has to show
 
@@ -79,7 +116,7 @@ const hash2 = (a: number, b: number) => {
 
 Two things to point at. First, **`hash2` is a pure function** — the same `(a, b)` always returns the same number, which is why the world does not deform when you look back at it. Second, **the seed participates in exactly one line** (`b ^ routeSeed`), and every noise stream draws from `hash2`, so changing one place changes the whole run.
 
-Why fold it in with **XOR** rather than addition: **XOR is a bijection**, so different seeds stay different after folding and several streams cannot accidentally be pulled into the same phase. With addition, "seed A's third stream" can land on exactly "seed B's fifth stream" and the two collide. That question comes up occasionally, and answering it shows you knew what you were doing.
+Why fold it in with **XOR** rather than addition is covered in section 3 above: XOR is a bijection, so different seeds stay different after folding and several streams cannot accidentally be pulled into the same phase. That question comes up occasionally, and answering it shows you knew what you were doing.
 
 ## Is a new seed enough
 
@@ -111,8 +148,6 @@ Note what it has to clear: everything **memoised** by distance (cached so it is 
 ## Background
 
 **Why not author levels by hand.** Twenty scenes plus endless distance means hand-placement costs grow linearly, while a player only ever sees one stretch per run. Generation costs a constant, and it guarantees continuity at the seams — hand-authored boundaries are always hard cuts. The cost is less control, which is exactly why the fairness sweep exists as a **regression check**.
-
-**Why the noise streams use different periods.** Streams sharing a period peak together, and the world turns into a rhythm of very dense and very empty. Offset periods drift in and out of phase, so the combined shape does not repeat — this is the standard way to get "no discernible pattern" out of very few parameters.
 
 **What clamping the scene index costs.** Past the twentieth scene the world stops changing. That is deliberate, but it means the back half of a long run is visually static, with only the level palette still cycling. To keep introducing variety you would either add scenes or let scenes cycle — and cycling gives up the idea of an ending.
 
