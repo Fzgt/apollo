@@ -9,64 +9,110 @@ section: BioMap
 >
 > Led the **React 18 and TypeScript architecture** for Digital OS, the team's core consumer-facing product, enforcing feature boundaries with **five custom ESLint import zones: no feature can reach into another**.
 
+## Terms, in one line each
+
+**Feature** — a vertical slice of code organised by business capability, carrying its own API layer, components, hooks and types. **Not a folder of one file type.**
+
+**Feature-first** — directories split by business first, file type second; the opposite is **type-first** (`components/`, `hooks/`, `services/` at the top).
+
+**Import zone** — one entry in `eslint-plugin-import`'s `no-restricted-paths` rule, stating **who may not import from where**.
+
+**Barrel export** — a feature's `index.ts`, exporting exactly what it chooses to make public. **Outsiders enter only through it.**
+
+**Circular dependency** — A imports B and B imports A back. Initialisation order becomes unpredictable and bundlers cannot tree-shake.
+
+**CI (continuous integration)** — the pipeline that builds and checks every commit. **"Blocked in CI" means it cannot be merged.**
+
 ## What this line has to show
 
-Code is organised by business feature, dependencies only flow one way, and that direction is not a note in the README that people have to remember — it is an ESLint rule that stops you in the editor and in CI. The point is not "I configured a few lint rules". The point is that a spoken agreement became a check that runs on every commit. That gap is the whole content of this line.
+Code is organised vertically by feature, dependencies flow one way, and **that direction is not written in a document for people to remember — it is blocked by ESLint in the editor and in CI.**
+
+The point is not "I configured a few lint rules", it is "**I turned a verbal agreement into a check that runs on every commit**". **The gap between an agreement and a check is the whole content of this line.**
 
 ## What Digital OS is, and what "led the architecture" means
 
-Digital OS is the team's core consumer product. "Led" does not mean I wrote every page. It means three things were mine to decide: how the code is layered, how features are organised, and which imports are not allowed plus how that gets checked automatically. Anyone can have an opinion on the first two. The third one is the step that makes an opinion permanent — and the only one I can show evidence for.
+Digital OS is the team's core consumer-facing product. **Leading it does not mean I wrote every page.** It means three things were mine: how the code is layered, how features are organised, and which imports are forbidden and how that is checked automatically.
 
-## The dependency direction
+Anyone can have an opinion on the first two. **The third is the step that makes an opinion permanent — and the only one that leaves evidence.**
 
-Three layers, top to bottom: app, features, and the shared layer. `app` holds routes, providers and the global entry point; its job is wiring. `features` are cut vertically by business capability, and each one carries its own API layer, components, hooks and types. The shared layer is `components`, `hooks`, `lib`, `types` and `utils` — stable, general code with no business meaning.
+## The direction of dependencies
 
-One rule: an upper layer may depend on a lower one, a lower layer must never know about an upper one, and two features must never reach into each other's internal files.
+Three layers, flowing **`app` → `features` → shared**:
 
-## What the five import zones protect
+- **`app`** — routing, providers, global entry. Its job is **assembly**.
+- **`features`** — vertical business slices, each with its own `api/`, `components/`, `hooks/`, `types/`.
+- **shared** — `components` / `hooks` / `lib` / `types` / `utils`: **stable, business-free** capability.
 
-This uses `import/no-restricted-paths` from `eslint-plugin-import`. It has three fields: `target` is "who", `from` is "where that who may not reach", and `except` is "apart from its own square". Be ready to explain those three on the spot, because an interviewer will usually ask you to read the config back.
+**One rule: upper layers may depend on lower ones, lower layers may not know about upper ones, and no two features may reach into each other's internals.**
 
-The first three zones isolate features from each other, one zone per feature. Take blog: `target` points at blog's own folder, `from` points at the whole features folder, and `except` carves out blog itself — so code inside blog may not import anything under features except blog. Comments and theme get the same shape.
+## What the five zones each guard
 
-The fourth zone blocks the reverse dependency: `target` is the whole features folder, `from` is app. Nothing inside features may import anything from app. The entry layer is allowed to know about business; business is not allowed to know about the entry layer.
+```js
+'import/no-restricted-paths': ['error', {
+  zones: [
+    // Zones 1-3: each feature may only import itself
+    { target: './src/features/blog',     from: './src/features', except: ['./blog'] },
+    { target: './src/features/comments', from: './src/features', except: ['./comments'] },
+    { target: './src/features/theme',    from: './src/features', except: ['./theme'] },
 
-The fifth zone stops the shared layer knowing about business: `target` is the five shared folders, `from` is features and app. A generic button may not import a feature's types, because then it is no longer generic.
+    // Zone 4: features may not import back into app
+    { target: './src/features', from: './src/app' },
 
-A separate `import/no-cycle` rule catches the circular dependencies the zones do not cover.
+    // Zone 5: the shared layer may not import features or app
+    { target: './src/(components|hooks|lib|types|utils)', from: './src/(features|app)' },
+  ],
+}],
 
-"Why five and not one" always comes. The answer is in `except`: feature isolation needs one zone per feature because `except` has to name that feature, and it cannot be written as a wildcard. Add a feature, add a zone. That is both its cost and the reason it is precise.
+'import/no-cycle': 'error',   // cycles the zones cannot see, caught separately
+```
+
+**Be able to explain the three fields instantly**, because interviewers usually ask you to read the config itself: **`target` is "who", `from` is "where that who may not reach", `except` is "apart from its own square".**
+
+**The first three** isolate features, **one zone per feature**. Take blog: `target` is blog's own directory, `from` is all of `features`, `except` carves out blog itself — meaning **code in blog may import nothing under `features` except itself.**
+
+**The fourth** blocks the reverse edge: `target` is all of `features`, `from` is `app`. **The entry layer may know the business; the business may not know the entry layer.**
+
+**The fifth** stops the shared layer knowing the business. **A generic button may not import a feature's types, or it stops being generic.**
+
+**"Why five and not one" is a certainty as a follow-up.** The answer is `except`: feature isolation needs one zone per feature **because `except` must point at that feature, which cannot be expressed as a wildcard**. More features, more zones — **which is both its cost and the reason it is precise.**
 
 ## Why ESLint and not the README
 
-A README can only remind. It relies on people remembering, on a reviewer happening to notice, on someone telling the new hire. All three fail, and when they fail there is no signal.
+**A README can only remind.** It relies on people remembering, on a reviewer happening to notice, on someone telling the new hire. **All three fail, and they fail without a signal.**
 
-ESLint is different. A bad import is red in the editor while you type it, and it blocks the merge in CI. The architecture went from a spoken agreement to a check that runs on every commit — that sentence is what this line is for.
+ESLint does not: **the offending import is red in the editor as you type it, and blocked at merge in CI.**
+
+The sentence worth memorising: **enforced in the editor and in CI, not in a README.**
 
 ## What if two features need to work together
 
-Three legal routes, pick one. Call the other feature through its public entry point, its barrel export, without touching internal files. Or compose the two one layer up, in app or in the page. Or push the genuinely generic part — the part with no business owner — down into the shared layer.
+Three legal paths, take any one:
 
-Say out loud that the boundary restricts *how* things depend on each other, not whether business logic can be combined. Without that sentence it sounds like the rules stop people working.
+1. Call through the other feature's **public entry point (barrel export)**, never its internals.
+2. **Compose one layer up**, in `app` or the page layer.
+3. **Lift** the genuinely generic, business-free part **into the shared layer**.
+
+**The boundary restricts how you depend, not whether features may combine** — say that unprompted, or the rules sound like they stop people working.
 
 ## Background
 
-**Why feature-first beats folders by file type.** When code is spread horizontally across `components`, `hooks` and `services`, one requirement lives in three or four folders, you cannot see the blast radius of a change, and deleting a feature means grepping the whole repo. Cut vertically, one feature's API, components, hooks and types sit together — it can be moved as a block, and deleted as a block.
+**Why feature-first beats type-first.** Spread across `components/`, `hooks/` and `services/`, one requirement's code sits in three or four directories, the blast radius of a change is invisible, and deleting a feature means grepping the repo. Sliced vertically, a feature's API, components, hooks and types live in one folder — **it can be moved as a block, and deleted as a block.**
 
-**TypeScript already checks types, so why ESLint.** TypeScript answers "does this import compile". It does not answer "should this layer know about that layer". An import can be perfectly typed and still break the architecture. Type-correct and architecture-correct are two different things, and fumbling this one makes it look like you never thought about the split.
+**TypeScript already checks types, so why ESLint.** TypeScript decides "**does this import compile**", not "**should this layer know about that one**". **A perfectly typed import can still break the architecture.** Type-correct and architecture-correct are different things; missing this makes it look like you never thought about the division of labour.
 
-**What a barrel export costs.** A feature's entry file decides what the outside can use. Open it too wide and the internals quietly become a public API you can no longer refactor. Keep it narrow and the feature stays free to change inside.
+**What barrel exports cost.** A feature's `index.ts` decides what outsiders can use. **Open it too wide and the internals quietly become a de facto public API**, and refactoring becomes impossible. Keep it narrow and the feature stays free to change inside.
 
-**Are the boundaries too rigid.** Yes, sometimes. So the rules follow the real dependency graph. When the same cross-feature need keeps coming back, that usually means a public API or a shared abstraction is missing — not that the rule should be turned off.
+**Are the boundaries too rigid?** Yes, sometimes. So the rules evolve with the real dependency graph. **The same cross-feature need appearing repeatedly usually means a missing public API or a missing shared abstraction — not that the rule should be switched off.**
 
 ## The 30-second answer
 
-> Once Digital OS grew, I did not want module boundaries to live in the team's memory. I organised the code vertically by feature, fixed the dependency direction as app to features to the shared layer, and locked it down with five ESLint import zones: the first three let each feature import only itself, the fourth stops features depending back on app, the fifth stops the shared layer knowing about business, and a separate rule catches cycles. A bad import is red in the editor and blocked in CI. Cross-feature work goes through a public entry point, gets composed one layer up, or gets lifted into the shared layer — it never reaches through into internal folders.
+> As Digital OS grew I did not want module boundaries to depend on team memory. I organised code vertically by feature, fixed the dependency direction as app → features → shared, then froze it with five ESLint import zones: the first three let each feature import only itself, the fourth forbids features importing back into app, the fifth forbids the shared layer knowing the business, plus a separate no-cycle rule for circular dependencies. An offending import is red in the editor and blocked at merge in CI. Cross-feature needs go through a public entry point, get composed one layer up, or get lifted into the shared layer — never straight through someone's internals.
 
 ## Self-check
 
-1. Without notes, can you draw app → features → shared layer?
-2. Can you say what `target`, `from` and `except` each mean?
-3. Can you name what each of the five zones protects, and why feature isolation needs one zone per feature?
-4. Can you give the three legal routes for cross-feature work?
-5. Can you explain the division of labour between the ESLint boundary and TypeScript's type checking?
+1. Without notes, can you draw `app → features → shared`?
+2. Can you explain what `target`, `from` and `except` each mean?
+3. Can you say what each of the five zones guards, and why feature isolation needs one zone per feature?
+4. Can you give the three legal paths for cross-feature work?
+5. Can you explain the division of labour between ESLint boundaries and TypeScript type checking?
+6. Can you name the cost of an over-wide barrel export?
