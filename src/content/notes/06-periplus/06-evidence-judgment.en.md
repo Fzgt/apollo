@@ -5,116 +5,164 @@ section: Periplus
 
 # ⑥ Splitting evidence from judgment
 
-> **Resume line (historical)**
+> **Resume line**
 >
 > **Split evidence from judgment**: the research stage emits **claims bound to exact source quotes**, a separate verification stage rules on them, and **application code — not prompts — enforces citation membership and freshness windows**. **A claim with no supporting quote never advances.**
 
-This one is not on the resume. Periplus has four lines and this is not among them; the wording above is what it said when it was on there, kept for reference. The note stays, because "how do you stop the model fabricating sources" is a mandatory question for any LLM role, and the answer is all here.
+**This note is not on the resume.** Periplus has four bullets and this is not one of them; the line above is quoted from when it was, for reference. **The note stays, because "how do you stop the model fabricating sources" is a certainty in any LLM interview, and the answer is entirely here.**
+
+## Terms, in one line each
+
+**Hallucination / fabricated citation** — the model says "according to the official site, tickets are $45" **when that sentence does not exist in the source.**
+
+**Claim** — one statement to be shown to the traveller.
+
+**Evidence** — a passage lifted **verbatim** from a page, with its URL and published date.
+
+**Verbatim quote / exact source quote** — **not one character changed.** Tidying it to `$30.00` makes it no longer verbatim.
+
+**Verdict** — whether the claim stands up.
+
+**Citation membership** — whether the evidence id the model cited **is actually in that claim's evidence bundle.** **A set lookup, not a judgement.**
+
+**Freshness window** — how old evidence for this kind of claim may be **before it counts as stale.**
+
+**Provenance** — the chain from a final sentence back to its original source.
+
+**Pure function** — same input, same output, no side effects.
 
 ## What this line has to show
 
-The most common failure in an LLM system is a fabricated source: it says "according to the official site, admission is 45 dollars" when that sentence does not exist anywhere in the source.
+The most common failure of an LLM system is **fabricating sources.**
 
-The usual approach is a prompt saying "always cite real sources". The entire content of this line is that this does not work, because a prompt is a request, not a constraint.
+The usual response is a prompt line saying "always cite real sources". **The entire content of this bullet is that this does not work, because a prompt is a request, not a constraint.**
 
-## Three objects, defined first
+## Who produces each of the three objects
 
-In this system every sentence is split across three layers.
+Every sentence is split into three layers:
 
-A claim is a sentence to tell the user, such as "admission to the opera house is 45 dollars". It comes from the research stage. Evidence is a passage taken verbatim from a page, along with its URL and publication date; it also comes from the research stage. A verdict is whether the claim holds up, and it comes from the verification stage — never from the research stage.
+- **The claim** ("Opera House tickets are $45") — **produced by the research stage.**
+- **The evidence** (the source passage, its URL, its published date) — **also produced by the research stage.**
+- **The verdict** — **produced by the verification stage, never written by research.**
 
-"Claims bound to exact source quotes" means the research stage cannot merely say admission is 45 dollars; it must produce the source sentence that says so.
+**"Claims bound to exact source quotes" means research may not merely say "tickets are $45"; it must supply where that sentence came from.**
 
-## Six verdicts, and who decides each
+## Six verdicts, and who gets to decide
 
-This is the most valuable list in the note, and it is worth memorising.
+**This is the most valuable list in the note. Memorise it.**
 
-The model may return four. Supported: the evidence directly supports the whole claim. Partial: it establishes a weaker or incomplete part, or the supplied sources conflict. Contradicted: the evidence directly disproves the claim. Unsupported: there is evidence, but it does not address the claim.
+**The model may return four:**
 
-Application code decides the other two. Stale: the evidence supports the claim, but predates that claim's freshness window. No evidence: there is none at all.
+- **`supported`** — the evidence directly supports the whole claim.
+- **`partial`** — it supports only part of it, or the sources conflict.
+- **`contradicted`** — the evidence directly refutes the claim.
+- **`unsupported`** — **there is evidence and it does not address the claim.**
 
-The line in the prompt is quotable directly, and quoting it beats paraphrasing tenfold: never decide freshness and never return stale or no_evidence; application code owns those.
+**Application code decides the other two:**
 
-That is the literal source of "application code — not prompts — enforces" on the resume. Quote the English in an interview: it proves this is not a story assembled after the fact, it is a design boundary that was written into the prompt at the time.
+- **`stale`** — the evidence supports it **but predates the claim's freshness window.**
+- **`no_evidence`** — **there is no evidence at all.**
 
-There is another constant that is easy to get wrong: the usable verdicts are supported, partial and stale. Stale is usable — it means usable with a currency caveat, not unshowable. Unsupported, contradicted and no evidence are all unusable.
+The prompt line is quotable as it stands, **and quoting it beats paraphrasing it tenfold**:
 
-## Freshness windows are per claim type
+```
+- Never decide freshness and never return stale or no_evidence; application code owns those.
+```
 
-A freshness window is how old this kind of claim's evidence can be before it counts as expired.
+**That is the literal source of "application code — not prompts — enforces" on the resume.** Quote it in the interview — **it proves this is not a story constructed afterwards, but a design boundary written into the prompt at the time.**
 
-Opening hours and prices are 180 days. Availability — whether something is open, whether it needs booking — is 90 days. Transit is 365 days. Safety is 90 days. Other is 365. Location and description never expire.
+**One constant is easy to get wrong:**
 
-"The opera house is at Circular Quay" does not stop being true because the page is three years old, but "admission is 45 dollars" must be downgraded past 180 days.
+```python
+USABLE_VERDICTS: frozenset[Verdict] = frozenset({
+    Verdict.SUPPORTED, Verdict.PARTIAL, Verdict.STALE
+})
+```
 
-The enum's docstring explains the classification in one line: it determines how volatile a claim is, and therefore how fast its evidence rots.
+**Stale is usable.** Its meaning is **usable with a currency caveat**, not withheld from the traveller. `unsupported`, `contradicted` and `no_evidence` are not usable.
+
+## Freshness windows differ by claim kind
+
+```python
+FRESHNESS_DAYS: dict[ClaimKind, int | None] = {
+    ClaimKind.HOURS:        180,
+    ClaimKind.PRICE:        180,
+    ClaimKind.AVAILABILITY:  90,
+    ClaimKind.TRANSIT:      365,
+    ClaimKind.SAFETY:        90,
+    ClaimKind.LOCATION:    None,   # ← never goes stale
+    ClaimKind.DESCRIPTION: None,   # ← never goes stale
+    ClaimKind.OTHER:        365,
+}
+```
+
+**"The Opera House is at Circular Quay" does not expire because the page is three years old, while "tickets are $45" must be downgraded past 180 days.**
+
+The enum's docstring says why the classification exists in one line: **it decides how volatile a claim is, and therefore how fast its evidence rots.**
 
 ## Why "always cite real sources" in the prompt is not enough
 
-A prompt is a request, not a constraint. The model may comply or may not, and you have no mechanism to know whether it did this time.
+**A prompt is a request, not a constraint.** The model may comply or not, **and you have no mechanism to know which happened this time.**
 
-Worse, it fails plausibly: a fabricated citation reads exactly like a real one — right format, right tone, even a convincing-looking URL.
+**Worse, it fails plausibly**: a fabricated citation **reads exactly like a real one** — right format, right register, even a convincing URL.
 
-So we do not ask. We validate in code after the answer comes back: the evidence ids it cited must genuinely be in that claim's evidence pack — a set-membership check, not a judgement call.
+**So we do not ask it. We validate in code after it answers**: the evidence id it cited must actually be in that claim's evidence bundle — **a set-membership check, not a judgement.**
 
-That last clause is the crux of this section and the single sentence most worth saying out loud from this note.
+**That last clause is the crux of this section and the single most important thing to say out loud.**
 
-## What the application code validates
+## What application code actually validates
 
-Two things, both deterministic.
+**Two things, both deterministic.**
 
-Citation membership: the evidence ids the model cited must be in that claim's evidence pack. One set lookup.
+**① Citation membership** — the cited evidence id must be in the claim's bundle. **One set lookup.**
 
-Freshness windows: today's date minus the evidence's publication date, compared against that claim type's window. The staleness check is a pure function, and its docstring states the date precedence — prefer the date the publisher declared, and fall back to the fetch time when there is none, because that is the last date the system actually observed the text and it is the most conservative deterministic fallback.
+**② The freshness window** — `today − the evidence's published date`, compared against the window for that claim kind. **The staleness check is a pure function**, and its docstring states the date precedence: **prefer the publisher's own declared date, and fall back to the fetch time**, because that is the **latest date at which the system actually observed the text — the most conservative deterministic fallback.**
 
-## What happens when evidence conflicts or expires
+## What happens when evidence conflicts or is old
 
-When sources conflict, the model returns partial. The prompt defines that case explicitly: the evidence establishes a weaker or incomplete part, or the supplied sources conflict.
+**Conflict** returns `partial`. The prompt defines it explicitly: **the evidence establishes only a weaker or incomplete part, or the supplied sources conflict with each other.**
 
-When evidence has expired, code returns stale, and the claim stays usable with a currency note attached.
+**Age** is judged `stale` by code, **still usable but annotated with its currency.**
 
-## The difference between "no evidence" and "unsupported"
+## The difference between `unsupported` and `no_evidence`
 
-This comes up often and gets confused.
+**A frequent question, and easily confused.**
 
-Unsupported means there is evidence but it does not address the claim. No evidence means there is none at all.
+- **`unsupported` means there is evidence and it does not address the claim** — **decided by the model**: it read the evidence and found it irrelevant.
+- **`no_evidence` means there is none at all** — **decided by code**: the bundle is empty, **so the model is never asked.**
 
-The first is the model's judgement: it read the evidence and said it is unrelated to the claim. The second is the code's: the evidence pack is empty, so the model is never asked.
-
-Their costs differ too — no evidence spends no model call at all. That sentence incidentally shows you thought about cost, and it is worth including.
+**The costs differ too: `no_evidence` spends zero model calls.** Mentioning that shows you thought about cost, and it is worth including.
 
 ## Why even "today's date" is injected
 
-The verification module's docstring says: the as-of date makes replay and freshness tests stable; it defaults to the current UTC date, never to a date inferred by the model.
+The verification module's docstring says: **`as_of` makes replay and freshness tests stable; it defaults to the current UTC date and never to a date the model inferred.**
 
-Injecting means the function does not ask the system for the time itself — the caller passes the date in.
+**Injected means the function does not ask the system what time it is; the caller passes the date in.**
 
-Two benefits. Test stability: without it, a case asserting that a price within thirty days is valid goes red on its own a few months later, which is a time-bomb test. And reproducible replay: rerunning the same run gives exactly the same verdicts.
+**Two benefits**: **stable tests** — without it, a case asserting "a price within thirty days is valid" **goes red on its own a few months later**, a time-bomb test; and **reproducible replays** — re-running the same run gives identical verdicts.
 
-Time here is a business input, not environmental noise — the freshness judgement consumes it directly. That is the same reasoning as [injecting the clock](/docs?section=periplus&item=scripted-seams).
+**Time here is a business input, not environmental noise** — the staleness rule consumes it directly. The same reasoning as [injecting the clock](/docs?section=periplus&item=scripted-seams).
 
-## Only a publisher-declared date counts
+## Date extraction only accepts publisher-declared dates
 
-The extraction module's docstring is the best quotation in this note: only a date the publisher declared counts; guessing one from the text would hand the freshness rules a number nobody stands behind, and a wrong date there means stale prices are scheduled as verified.
+The extraction module's docstring is **the best quote in this note**:
 
-Better no date at all — falling back to the conservative fetch time — than a guessed one, because the entire freshness rule is built on top of it.
+> Only a date the publisher declared counts; **guessing one out of the body text hands the freshness rule a number nobody stands behind**, and one wrong date there means **a stale price scheduled into an itinerary as if it had been verified.**
 
-Quoting that comment shows you understand that determinism has to be held all the way through, not checked once at the end. It is the same value as [the correct-if-slow index](/docs?section=periplus&item=pgvector-embeddings) in the pgvector note, and the two are stronger told together.
+**Rather no date — falling back to the conservative fetch time — than a guessed one, because the entire freshness rule is built on top of it.**
 
-## Wording to get right
-
-Three things. The core sentence is the resume's own, word for word: application code — not prompts — enforces citation membership and freshness windows. "A prompt is a request, not a constraint" explains in one line why prompts are not relied on. And "a guessed date would hand the freshness rule a number nobody stands behind" carries the date-extraction argument.
+**Being able to quote that shows you understand that determinism has to be defended all the way down, not checked once at the end.** The same value ordering as ["a correct, if slow, index"](/docs?section=periplus&item=pgvector-embeddings), **and the two are stronger told together.**
 
 ## The 30-second answer
 
-> The most common failure in an LLM system is a fabricated source: it says "according to the official site, admission is 45 dollars" and that sentence does not exist in the source at all. The usual approach is a prompt saying "always cite real sources" — but a prompt is a request, not a constraint. So we split the work in two: the research stage only produces claims bound to the source passages they came from, and a separate verification stage rules on them — and the two most important judgements in that ruling are not given to the model at all. There are six verdicts, and the model is only allowed to return four of them. "Stale evidence" and "no evidence at all" are computed by application code, and the prompt explicitly forbids the model from returning them, because whether something has expired is today's date minus the page's publication date — a deterministic computation, and handing it to a model only produces a plausible-sounding guess. The result is that a claim with no supporting quote never advances.
+> The most common failure of an LLM system is fabricating sources: it says "according to the official site, tickets are $45", and that sentence does not exist. The usual response is a prompt line saying "always cite real sources" — but a prompt is a request, not a constraint. So we split the work in two: the research stage only produces claims bound to their source passages, a separate verification stage rules on them, and the two most important judgements in that ruling are not given to the model at all. Concretely there are six verdicts and the model may return only four; stale and no_evidence are computed by application code, and there is a prompt line explicitly forbidding the model from returning them. Because staleness is "today minus the page's published date", a deterministic computation, and handing that to a model only buys a plausible-sounding guess. The result is that a claim with no supporting quote never advances.
 
 ## Self-check
 
-1. Can you say what a claim, evidence and a verdict are, and which stage produces each?
-2. Can you name the six verdicts and separate the four the model owns from the two code owns?
-3. Can you name the three usable verdicts and explain why stale counts as usable?
-4. Can you explain that freshness windows are per claim type and name the two that never expire?
-5. Can you explain why a prompt is a request rather than a constraint, and name the two things code validates?
-6. Can you separate unsupported from no evidence, including who decides and the cost difference?
-7. Can you explain the publisher-declared-date rule and what it protects?
+1. Can you say who produces each of claim, evidence and verdict?
+2. Can you name all six verdicts, and separate the model's four from the code's two?
+3. Can you name the three in `USABLE_VERDICTS`, and explain why `stale` is usable?
+4. Can you explain that freshness windows are per claim kind, and name the two that never expire?
+5. Can you explain why a prompt is a request and not a constraint, and name the two things code validates?
+6. Can you distinguish `unsupported` from `no_evidence`, including who decides and the cost difference?
+7. Can you state the publisher-declared-dates-only rule, and what it protects?

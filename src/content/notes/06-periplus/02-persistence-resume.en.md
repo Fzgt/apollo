@@ -9,94 +9,121 @@ section: Periplus
 >
 > **Six-stage LLM pipeline behind typed Pydantic stage contracts** filled by **schema-constrained JSON output**, with **run state and stage artifacts in PostgreSQL**: **a run that dies mid-pipeline resumes from the last completed stage**.
 
-This note shares the resume's first line with [① Six stages behind typed contracts](/docs?section=periplus&item=typed-contract). Per-run token and time budgets are not on the resume, but the section on budgets across a resume is still the most valuable part of this note.
+This note shares the resume's first line with [① Six stages behind typed contracts](/docs?section=periplus&item=typed-contract). The per-run token and time budget is not on the resume, but **the budget-on-replay section is still the most valuable part of this note.**
+
+## Terms, in one line each
+
+**Run** — one whole execution, from a brief through the six stages. **It has an id, a status, and it persists.**
+
+**Stage artifact** — the structured object a stage produces.
+
+**Attempt** — a stage may run more than once; each run of it is a numbered attempt.
+
+**Gate** — the check after a stage: **is the artifact structurally valid, and is it substantively empty?** Failing it means the stage did not pass.
+
+**Replay / resume** — continuing from after some completed stage.
+
+**Budget** — a run's four ceilings: **how many searches, how many pages fetched, how many tokens, how many seconds.**
+
+**Idempotent** — repeating it produces no additional effect.
+
+**Embedding** — a piece of text turned into a list of numbers, **where similar meanings give similar numbers.**
 
 ## What this line has to show
 
-On the surface it says "I built checkpoint recovery". What is actually worth something are three boundary judgements: what counts as a legal point to resume from, why the budget must not reset on resume, and why "unrecoverable" and "start over" are two different things.
+On the surface it is "I implemented resume". **What is actually valuable are three boundary judgements**:
+
+1. **what kind of artifact is a legal place to resume from;**
+2. **why the budget must not reset on replay;**
+3. **why "unrecoverable" and "start over" are different things.**
 
 ## The problem
 
-A run takes minutes and costs money; every stage is calling a model and fetching pages. If the process dies at stage four, rerunning throws away the money and time spent on the first three.
+One run takes minutes and costs money, with every stage calling models and fetching pages. **If the process dies in stage four, re-running throws away the money and time of the first three.**
 
-So the run state, each stage's artifacts and the retrieved evidence all go into PostgreSQL, and on restart the unfinished runs are picked up and continued.
+So run state, every stage's artifacts, and the retrieved evidence all live **in PostgreSQL**, and a restarted process picks up what was unfinished.
 
-## The resume boundary must be a gate-passed artifact
+## The resume boundary must be an artifact that passed its gate
 
-First, what a gate is: after each stage there is a check — is the artifact structurally valid, is it empty — and failing it means the stage did not pass.
+The artifact module's header is explicit: **everything a stage attempt produced is kept, whether or not it passed that stage's gate; a rejected or superseded attempt can still be pulled up and inspected — it just may never be the starting point for a replay.**
 
-The artifacts module's file header is explicit: every stage attempt's produced artifact is retained, whether or not it passed the stage's gate; a rejected or superseded attempt stays retrievable for inspection, it is simply never a valid replay boundary.
+**Keeping failed artifacts is for investigation; allowing a resume from one is a different question. Separating the two is the easiest half of this design to miss, and the sentence that most separates you when asked.**
 
-Keeping failed artifacts is for investigation. Allowing a resume from one is a different thing entirely. Separating those two is the half of this design people miss, and it is the sentence that creates distance when you are asked.
+## The budget does not reset on replay — the most valuable point here
 
-## The budget is not reset on resume, and this is the valuable part
+The budget module's header, quotable as it stands:
 
-First, what a budget is: a run has four ceilings — how many searches, how many pages fetched, how many tokens, how many seconds.
+```python
+"""
+Checking never happens inside an adapter's own ``run()`` call; nothing here can
+preempt a stage already in flight, only stop it from being counted as having
+passed, or stop the next attempt from starting.
 
-The budget module's file header reads: a budget is a ceiling for the whole run, replays included; a tracker built for a replay is seeded with everything the run already spent, not reset to zero; resuming a run repeatedly cannot be used to spend past a configured ceiling one stage at a time.
+A budget is a ceiling for the whole Run, replays included: a BudgetTracker built
+for a replay is seeded with everything the run already spent, not reset to zero.
+Resuming a run repeatedly cannot be used to spend past a configured ceiling one
+stage at a time.
+"""
+```
 
-That is a genuine security property. If the budget reset on resume, "make it crash repeatedly" becomes a way around the quota.
+**This is a genuine security property: if the budget reset on resume, "crash it repeatedly" would become a way around the quota.**
 
-Raising this yourself shows you thought about how the mechanism could be abused — which is a level above explaining how it works. That framing applies to any line about a mechanism.
+**Raising this unprompted shows you thought about how the mechanism could be abused — a level above explaining how it works. That applies to any bullet describing a mechanism.**
 
-The timing matters too. The budget check happens after a stage completes and before the next one starts, never interrupting a stage from inside. So it cannot preempt a stage in flight; it can only refuse to pass it, or refuse to let the next attempt begin.
+**The timing matters too.** The budget is checked **after a stage attempt completes and before the next one starts**, **never inside a stage.** So it **cannot preempt a stage in flight**; it can only refuse to count it as passed, or refuse to start the next attempt.
 
 ## Where it died decides how it recovers
 
-Three branches, each with a reason.
+**Three branches, each with a reason:**
 
-If it died before passing any gate, it is marked failed and not rerun. The comment's reasoning: a fresh start would silently pretend this attempt never happened.
+1. **Died without passing a single gate → marked failed, not re-run.** The comment's reason: **restarting would silently pretend the failed attempt never happened.**
+2. **All stages passed, died while recording success → marked succeeded directly**, rather than replaying a pipeline that already finished.
+3. **Died after some middle stage → resume from the next one.** The normal path.
 
-If every stage passed and it died while recording success, it is marked successful — rather than replaying a pipeline that already finished.
+**The first is the one worth telling: "unrecoverable" and "start over" are not the same.** Re-running makes the failed attempt **vanish from the record** — which is exactly what you need in order to investigate.
 
-If it died after some middle stage, it resumes from the next one. That is the normal path.
+## How stage four's death resumes after stage three
 
-The first branch is the one worth telling: unrecoverable and start-over are different things. Rerunning makes the failed attempt vanish from the record, and that record is exactly what you need when investigating.
+On startup, scan the database for **every run still marked running** — **that status is itself the signal**, because a normal end always writes a completion. Then walk `STAGE_ORDER` and **find the latest stage with an artifact that passed its gate, and start from the one after it.**
 
-## How stage four dying resumes after stage three
-
-On start-up the process scans the database for every run still marked as running — that state is itself the signal, because a normal ending always writes a completed record. Then it walks the stage order, finds the latest stage with a gate-passed artifact, and starts from the one after it.
-
-There is a placement question that looks bad if you get it wrong: the resume logic is not in the orchestrator, it is in the API layer's run store. The orchestrator only runs the pipeline from a given starting point; where the last run got to and whether it should continue is the persistence layer's job.
+**Getting the location wrong here looks bad: the resume logic is not in the orchestrator, it is in the API layer's run store.** The orchestrator only runs the pipeline **from a given starting point**; **where the last run got to, and whether it should continue, belong to the persistence layer.**
 
 ## Why run state cannot live only in memory
 
-Three reasons. The process dies — that is the premise of the whole mechanism. It has to scale horizontally, and another instance has to see the state. And the user has to be able to reload the page and see progress, because the frontend polls the database, not one process's memory.
+**Three reasons**: processes die, **which is the premise of the whole mechanism**; horizontal scaling requires **another instance to see the state**; and users refresh the page to check progress, **so the frontend polls the database, not one process's memory.**
 
 ## How the resumed stage stays idempotent
 
-Not by making the stage itself idempotent, but by keeping the boundary clean. It only resumes from gate-passed artifacts, so the input to the resumed stage is determined; and the rerun stage produces a new attempt number rather than overwriting the old one.
+**Not by making the stage itself idempotent, but by keeping the boundary clean.** Resume only happens from an artifact that passed its gate, **so the input is determined**; and the re-run stage produces **a new attempt number rather than overwriting the old one.**
 
-There is a fine detail worth telling: the crash may have happened mid-stage, so the stage being resumed may already have a failed attempt on record. The code fills in placeholder history first, so the orchestrator's attempt counter continues from there rather than colliding with a number already present in the artifact store.
+**One fine detail worth telling**: the crash may have happened **mid-stage**, so the stage being resumed **may already have attempt records that never passed their gate.** The code **fills in placeholder history** so the orchestrator's attempt counter continues from there **rather than colliding with a number that already exists in the artifact store.**
 
-Being able to tell that detail shows you actually handled dying mid-stage, not just dying between stages.
+**Being able to tell that shows you actually handled "died mid-stage", not just "died between stages".**
 
-## What is in the vector cache, and how it expires
+## What is in the embedding cache and how it expires
 
-It stores the fetched evidence passages and their vectors, so the same evidence is neither fetched nor embedded twice.
+It holds **fetched evidence passages and their embeddings**, so **the same evidence is not fetched twice or embedded twice.**
 
-An embedding turns a piece of text into a list of numbers such that similar meanings produce similar numbers — which turns "do I already have something that means roughly this?" into a question a database can answer.
+Expiry comes from the [freshness window](/docs?section=periplus&item=evidence-judgment): **the cache itself has no TTL; staleness is judged by date at the point of consumption.**
 
-Expiry runs through [the freshness windows](/docs?section=periplus&item=evidence-judgment): the cache itself has no TTL, and staleness is judged by date at the point of consumption.
+**Say that distinction unprompted: the cache does not decide freshness, it only avoids repeated work. Freshness is business meaning, and it belongs to the function that judges staleness.**
 
-That distinction is worth volunteering: the cache is not responsible for deciding what is fresh, only for not repeating work. Freshness is business semantics, and it belongs to the function that judges staleness.
+## The embedding cache is not part of this line
 
-## The vector cache is not part of this line
+pgvector, the cosine index and the local embedding model are their own resume line; the details live in [③ The pgvector evidence cache](/docs?section=periplus&item=pgvector-embeddings).
 
-pgvector, the cosine index and the local embedding model are their own resume line, and the details are all in [③ The pgvector evidence cache](/docs?section=periplus&item=pgvector-embeddings).
-
-For this line, all you need is the relationship: run state and stage artifacts go through the run persistence class, and the evidence cache goes through the evidence cache class — a different class, a different table, a different lifecycle. They share PostgreSQL, but their failure semantics are completely different: losing the resume data destroys the run, losing the evidence cache costs one extra page fetch.
+All this note needs is the relationship: **run state and stage artifacts go through the run-persistence class; the evidence cache goes through the evidence-cache class** — a different class, a different table, a different lifecycle. They share PostgreSQL, **but their failure semantics differ completely: losing resume data wastes the run, while losing the evidence cache just means fetching a page again.**
 
 ## The 30-second answer
 
-> A run takes minutes and costs money. If the process dies at stage four, rerunning throws away everything the first three stages spent. So the run state, each stage's artifacts and the retrieved evidence all live in PostgreSQL. On restart the process finds every run still marked as running and continues after the last stage that passed its gate. That qualifier matters: we keep failed artifacts too, for inspection, but a failed artifact is never a valid replay boundary. And the budget is a ceiling for the whole run — it is not reset on resume, it is seeded with what the run already spent, or repeatedly restarting would let you spend past the quota one stage at a time.
+> One run of the pipeline takes minutes and costs money. If the process dies in stage four, re-running throws away the first three. So run state, every stage's artifacts and the retrieved evidence all land in PostgreSQL. On restart the process scans for runs still marked running and continues after the last stage whose artifact passed its gate. The qualifier "passed its gate" is the point: we keep failed artifacts for inspection, but a failed artifact is never a legal resume boundary. And the budget is a ceiling for the whole run — a replay does not reset it, it is seeded with what the run already spent, because otherwise repeatedly crashing a run would let you spend past the quota one stage at a time.
 
 ## Self-check
 
 1. Can you explain why failed artifacts are kept but cannot be a resume point?
-2. Can you explain the non-resetting budget, and the abuse it prevents?
-3. Can you explain why the budget check sits between stages rather than inside one?
-4. Can you give the three crash branches, especially why the first is not rerun?
-5. Can you say that the resume logic lives in the persistence layer, not the orchestrator?
-6. Can you explain the placeholder history detail?
-7. Can you explain that the cache does not handle expiry, and say who does?
+2. Can you state the budget-not-reset rule, and the abuse it prevents?
+3. Can you say why the budget is checked between stages rather than inside one?
+4. Can you give the three crash branches, especially why the first is not re-run?
+5. Can you explain that resume logic lives in the persistence layer, not the orchestrator?
+6. Can you tell the placeholder-history detail, and that it handles "died mid-stage"?
+7. Can you explain that the cache does not own expiry, and who owns freshness?
