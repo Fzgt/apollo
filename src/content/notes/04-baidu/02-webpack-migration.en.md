@@ -9,124 +9,215 @@ section: Baidu
 >
 > Led a **Webpack 3-to-5 migration across 10+ incompatible packages**, **extracting vendor and runtime chunks** and **turning on persistent caching** — **bundle size down ~15%**, **local build times down 70% on warm builds**.
 
+## Terms, in one line each
+
+**Bundler** — browsers cannot run hundreds of source files importing each other. A bundler starts at an entry, follows the imports to collect the dependency graph, transforms everything into something browsers run, and merges it into a handful of files. **In its world everything is a module** — JS, CSS, images.
+
+**Loader** — a **per-file** transformer that turns a non-JS asset into a module.
+
+**Plugin** — hooks into the **build lifecycle** and acts on the whole build.
+
+**"What is the difference between a loader and a plugin" is a frequent question; answer in one line**: **a loader can only change the contents of one file; a plugin can add files, change the whole output, and decide how chunks are grouped.**
+
+**Chunk** — one output unit of bundled modules; **usually one chunk is one js file.**
+
+**Polyfill** — code that supplies a capability the environment lacks.
+
+**Tree shaking** — removing code that was imported but **never used**. **It relies on ES modules being statically analysable**: a named import shows which export you use without running anything, while **references decided at runtime cannot be shaken.**
+
+**Contenthash** — the hash in an output filename, **computed from the file's contents**. **Unchanged contents, unchanged hash, and the browser downloads nothing.** That mechanism is **long-term caching**.
+
+**Minify vs compress** — **minify strips whitespace and shortens names**; **gzip compresses in transit**. **They are not the same, and any size number must state raw, minified or gzipped.**
+
+**Cold build / warm build** — whether a usable cache exists. **The easiest thing to get wrong in this line.**
+
 ## What this line has to show
 
-There are five things in that sentence someone can dig into, and they are not equally hard. Ten-plus incompatible packages needs concrete cases — without a case the number is empty. Extracting vendor and runtime chunks buys cache hit rate, not size, and getting that backwards exposes you. Persistent caching has a trap: the cold build actually gets slower, and that is the easiest thing here to misstate. "Size down 15%" has three definitions — which files you count, which compression, which build mode — and each one can double or halve the number. And in "local build times down 70%", the word *local* is a precise qualifier, because CI does not get that win by default.
+The sentence carries **five things that can be probed**, and they are not equally hard:
 
-## Four terms, defined first
+1. **10+ incompatible packages** — you need concrete cases; **without one, the number is hollow.**
+2. **Extracting vendor and runtime chunks** — **it buys cache hit rate, not size; getting that backwards exposes you.**
+3. **Persistent caching** — the trap is that **the cold build gets slower.**
+4. **~15% size** — **three different units**, each of which can double or halve the number.
+5. **70% local build time** — **`local` is a precise qualifier**, because CI does not get this by default.
 
-**What a bundler does.** The browser cannot run hundreds of source files importing each other. A bundler starts from an entry point, follows the imports to collect the dependency graph, transforms everything into a form the browser can run, and merges it into a handful of files. In its world everything is a module — JavaScript, CSS, images. A loader is a file-level transformer that turns a non-JS asset into a module. A plugin hooks into the build lifecycle and acts on the build as a whole. A chunk is one output unit of bundled modules, usually one `.js` file.
+## The 10+ packages: talk in categories, not a list of names
 
-"What is the difference between a loader and a plugin" comes up constantly. One sentence: a loader can only change the contents of one file, a plugin can add files, rewrite the whole output, and decide how chunks are grouped.
+**Four categories beat ten package names.** The interviewer wants to hear that you understood where the breaking changes were, not that you have a good memory.
 
-**Polyfills, and why Webpack used to inject them.** A polyfill is working code that fills in a capability the environment lacks. Node has built-in modules like `crypto`, `path` and `buffer`; browsers do not. In Webpack 4 and earlier, importing `crypto` in browser code silently substituted a JavaScript reimplementation and bundled it. Webpack 5 stopped doing this, on the reasoning that most of the time you have simply reached a Node-only library by accident, and it has been quietly adding tens of kilobytes on your behalf.
+**Category one: plugins replaced by official ones.** `extract-text-webpack-plugin` → `mini-css-extract-plugin`, `CommonsChunkPlugin` → `SplitChunksPlugin`, `uglifyjs-webpack-plugin` → the built-in `TerserPlugin`. **Swap the package, rewrite the config: grunt work.**
 
-**Tree shaking.** Removing code that was imported but never used. It depends on the static structure of ES modules: a named import tells you which export is used without running anything, whereas a reference resolved at runtime cannot be shaken.
+**Category two: absorbed into built-in capability.** `file-loader` / `url-loader` / `raw-loader` were replaced by **Asset Modules**. **The most satisfying category — the dependency is deleted outright.**
 
-**Contenthash and long-term caching.** The hash in an output filename is computed from the file's contents. Contents unchanged, hash unchanged, and the browser serves from cache without downloading a byte. Contents changed, filename changed, and it downloads as a new file. That mechanism is long-term caching.
+**Category three: plugin APIs changed.** `tapable` went up a major version, and hook registration moved from `compiler.plugin('emit', fn)` to `compiler.hooks.emit.tap('Name', fn)`. **This is the time sink**, because what it hits is **in-house plugins and unmaintained niche ones** — the public ecosystem had long since caught up, but **internal plugins had no owner, no migration guide, and had to be fixed by reading their source.**
 
-## The incompatible packages: talk in categories, not a list of names
-
-Listing ten package names is worth less than explaining four categories. The interviewer wants to hear that you understood where the breaking changes were, not that you have a good memory.
-
-The first category is plugins replaced by official successors: the CSS extraction plugin, the common-chunk plugin and the minifier all got new implementations. Swap the package, rewrite the config — mechanical work.
-
-The second is capabilities absorbed into core: the file and URL loaders were replaced by Asset Modules. This is the satisfying category, because the dependency simply disappears.
-
-The third is plugins whose API changed, because the underlying hook library went up a major version and hook registration moved from an old method call to a hooks object with tap-style methods. This one eats the most time, because what it hits is in-house plugins and unmaintained niche ones. The official ecosystem had long since caught up; the plugins written inside the company had no owner and no upgrade guide, so the only option was reading the source and rewriting.
-
-The fourth is the removal of Node polyfills, and it is the one worth leading with.
+**Category four: Node polyfills removed. This is the one to lead with.**
 
 ## The lead case: Node polyfills removed
 
-After the upgrade it fails with "cannot resolve crypto", followed by a breaking-change note saying Webpack used to include polyfills for Node core modules by default and no longer does.
+Straight after the upgrade:
 
-At first glance that reads like a missing dependency. In fact Webpack deliberately stopped a behaviour you never knew existed. That is what makes the case memorable: the error and the cause do not match.
+```
+Module not found: Error: Can't resolve 'crypto' in '/src/utils'
 
-There are three ways to handle it, and being able to explain the trade-offs earns credit. Configure a fallback pointing at the browser implementation — fastest, but you have just added the size back. Configure the fallback as `false` — for when you have confirmed the browser never reaches that code, and this is where the size win is largest. Or replace the dependency — cleanest, and slowest.
+BREAKING CHANGE: webpack < 5 used to include polyfills for node.js core
+modules by default. This is no longer the case.
+```
 
-This case has an extra payoff: it is also the main source of the 15% size reduction. One change explains two numbers, and telling it that way makes it clear you actually lived through the migration.
+**At first glance it looks like a missing dependency; in fact Webpack stopped doing something you never knew it did.**
 
-## The backup case: the common-chunk plugin becoming SplitChunks
+Up to Webpack 4, importing `crypto` in browser code got **silently swapped for a JS reimplementation and shipped in your bundle.** Webpack 5 stopped, on the grounds that **most of the time you simply imported a Node-only library by accident and it quietly added tens of kilobytes for you.**
 
-This was not a rename, it was a change of mental model. The old plugin was imperative: you named the entries whose shared code should be extracted into a chunk called vendor, and if you wanted several layers you wrote them one at a time. The new plugin is declarative: you write rules — which modules belong to which group, at what priority, below what size not to split — and webpack does the grouping.
+**Three ways to handle it; explaining the trade-off scores:**
 
-So the migration was rewriting "I specify which chunks I want" into "I describe which modules should be split out".
+```js
+resolve: {
+  fallback: {
+    crypto: require.resolve('crypto-browserify'),  // ① fastest — puts the size back
+    path: false,                                    // ② confirmed unreachable — biggest win
+    // ③ replace the dependency — cleanest, slowest
+  },
+},
+```
 
-As for what "10+" counts: the defensible definition is packages, meaning entries added, removed or replaced in the `package.json` diff, because that is the only count with an objective basis.
+**Its extra value: it is also the main source of the 15% size reduction.** One change explaining two numbers, told together, sounds like someone who actually lived through the migration.
+
+## The backup case: CommonsChunkPlugin → SplitChunks
+
+**It is not a rename, it is a different mental model.**
+
+**The old plugin was imperative**: you name the entries whose shared code goes into a chunk called vendor, and each additional layer is written out by hand.
+
+**The new one is declarative**: you write rules — which modules go in which group, at what priority, below what size not to split — and **webpack groups them.**
+
+So the migration rewrites **"which chunks I want" into "what kind of module should be split out".**
+
+As for what "10+" counts, **use package count** — entries added, removed or replaced in the `package.json` diff — **because it is the only definition with an objective basis.**
 
 ## What SplitChunks actually buys
 
-Kill the common misconception first: it is not there to reduce size.
+**Kill the common misconception first: it is not a size reduction technique.**
 
-By default one entry becomes one bundle, and the problem is caching. React, lodash, antd and your business code all sit in one file. You change one line of business code, the whole bundle's contenthash changes, and users re-download all three libraries even though not one byte of them changed.
+By default one entry is one bundle, and **the problem is caching.** react, lodash, antd and your business code sit in one file, so **changing one line of business code changes the whole bundle's contenthash** and the user re-downloads all three libraries **even though not one byte of them changed.**
 
-After splitting, the vendor file rarely changes and the business file changes daily, so a business edit only changes the business hash.
+After splitting, the vendor part rarely changes and the business part changes daily, so **a business change only changes the business hash.**
 
-So the output of splitting is cache hit rate, not a smaller bundle. Total download on first visit is roughly unchanged — slightly larger, in fact, since each chunk carries its own wrapper code — and the entire benefit lands on subsequent visits. The one case where total size genuinely drops is deduplication.
+**So splitting yields cache hit rate, not smaller bundles.** First-visit download is roughly unchanged, or **slightly larger** because each chunk carries wrapper code; the win is on every visit after. **The only case that genuinely reduces total size is deduplication.**
 
-Three practices worth remembering. First, set `chunks` to `all`. The default only splits what came out of dynamic imports and ignores synchronous imports entirely — that one line is why most projects "configured splitChunks and saw no effect".
+**Three practices worth remembering:**
 
-Second, do not bundle every dependency into one giant vendor file. With a one-megabyte vendor bundle, upgrading any single dependency — even a tiny utility used once — changes the hash of the whole file and the user re-downloads a megabyte. The right approach is layering by rate of change: a framework layer that almost never moves, large libraries over a threshold standing alone, and everything else as shared code. That layering is exactly what Next.js does internally. One sentence: group by rate of change, so the stable and the volatile are never in the same file.
+```js
+optimization: {
+  splitChunks: {
+    chunks: 'all',              // ① the key line: the default only splits dynamic imports
+    cacheGroups: {
+      framework: { test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+                   name: 'framework', priority: 40 },        // ② layer by change frequency
+      lib:       { test: /[\\/]node_modules[\\/]/, minSize: 100_000,
+                   name: m => hashOf(m), priority: 30 },
+      commons:   { minChunks: 2, priority: 20 },
+    },
+  },
+  runtimeChunk: 'single',       // ③ runtime in its own file
+},
+```
 
-Third, extract the runtime into its own file. The runtime is a small piece of code webpack injects — the module registry, the module loader function, and the map from chunk to filename. That map is the point: when any chunk's hash changes, the map changes, and since the runtime is bundled into the entry chunk by default, changing any chunk also changes the entry's hash and the user re-downloads the entry too. Extracted, it is a few kilobytes of its own and chunk hash changes only touch it. That is what "runtime chunks" on the resume refers to.
+**① `chunks: 'all'`.** The default splits only what comes out of dynamic imports and **ignores synchronous imports entirely** — that single line is why most projects "configured splitChunks and saw no effect".
+
+**② Do not bundle every dependency into one big vendor.** With a 1 MB vendor file, **upgrading any dependency at all — even a helper used once — changes the whole file's hash and re-downloads 1 MB.** The right approach is **layering by change frequency**: the framework layer almost never changes, large libraries above a threshold stand alone, and the rest becomes shared code. **This is the layout Next.js uses internally.** In one line: **group by change frequency, so the stable and the volatile are not tied to the same file.**
+
+**③ Extract the runtime.** The runtime is a small piece of webpack's own code: the module registry, the module loading function, and **the chunk-to-filename map.** **The map is the point**: any chunk's hash changing changes the map, and **the runtime is bundled into the entry chunk by default**, so **changing any chunk changes the entry's hash and the user re-downloads the entry too.** Extracted, it is a few kilobytes on its own. **That is what `runtime chunks` on the resume means.**
 
 ## The precondition for long-term caching: deterministic module ids
 
-Miss this one and everything above is wasted.
+**Without this, everything above is wasted.**
 
-Webpack assigns each module an internal id, and Webpack 4 defaulted to auto-incrementing numbers. Insert a new dependency in the middle and every module after it shifts by one. Module ids are written into the output, so all output contents change, all contenthashes change, and every user's cache is invalidated at once — without you touching a single line of business code.
+Webpack numbers modules internally, and **Webpack 4 defaulted to incrementing integers.** **Insert a new dependency in the middle and every module id after it shifts by one.** Module ids are written into the output, so **every output's contents change, every contenthash changes, and the user's entire cache is invalidated at once** — **without a single line of business code changing.**
 
-Webpack 5 defaults to deterministic module ids: a short hash of the module path, so adding a module does not disturb any other module's id.
+Webpack 5 defaults to **`moduleIds: 'deterministic'`**, hashing the module path into a short id, **so adding a module does not move anyone else's id.**
 
-This example is worth telling, because it shows that hashed filenames are a necessary but not sufficient condition for long-term caching. If the module ids underneath are unstable, the hashes on top are a lie. It is also one of the wins you get for free from 3 to 5.
+This example is worth telling because it shows **"contenthash in the filename" is necessary but not sufficient: if the module ids underneath are unstable, the hash above them is a lie.** It is also one of the free wins of 3 → 5.
 
-There is a way to verify the caching strategy that is far better than reciting config: build once and record the output filenames, change one line of business code, build again, and diff the two lists. If splitting is done right, only the business chunk's filename should have changed; the framework and vendor chunks should be untouched. If everything changed, module ids are probably not deterministic. If the entry chunk changed too, the runtime was not extracted. If vendor changed, business code and dependencies landed in the same group. The value of this method is that it turns "long-term caching" from an abstract goal into something you can run, look at and screenshot.
+**Verifying the caching strategy beats listing config.** Build once and record the output filenames, change one line of business code, build again, **and diff the two filename lists.**
 
-Splitting can also go too far, and there are three constraints. There is a default cap on initial requests. Under HTTP/1.1 a domain gets six parallel connections, so twenty files just queue. And small files compress worse: gzip finds repetition using context, so splitting one hundred-kilobyte file into ten ten-kilobyte files produces a larger total after compression. That is why the minimum-size threshold exists.
+- Done well, **only the business chunk's filename should differ**; framework and vendor do not move.
+- **Everything changed** → module ids are not deterministic.
+- **The entry chunk changed too** → the runtime was not extracted.
+- **Vendor changed too** → business code and dependencies landed in the same group.
 
-## The 15%: how to measure, which definition, and where it came from
+**The value of this method is that it turns "long-term caching" from an abstract goal into something you can run, see and screenshot.**
 
-**Measuring.** A bundle analyzer draws a treemap where area is size and lets you drill into a specific package; by default it shows raw, minified and gzipped figures side by side. For scripted comparison, export the build stats as JSON. The crudest and most honest method is looking at the total size of the output directory — that is exactly the set of files the user downloads, with no room for interpretation. You can also put a size threshold in CI so a pull request goes red if the bundle grows past a percentage; raising that yourself earns real credit, because it shows you were thinking about how not to regress rather than about one optimisation.
+**Finer is not better; know three constraints**: there is a default cap on initial requests; **HTTP/1.1 allows six connections per host**, so twenty files just queue; and **small files compress worse** — gzip finds repetition through context, so splitting one 100 KB file into ten 10 KB files **totals more after compression.** That is why `minSize` exists.
 
-When comparing, both builds must be the same commit of business code, or you are measuring product changes rather than build tooling.
+## The 15%: how it was measured, in what unit, credited to what
 
-**Three definitions.** Which files you count is the first trap: sourcemaps are often larger than the JavaScript, and the user never downloads them, so the correct definition is only what the user actually downloads, sourcemaps excluded. Compression is the second: gzip eats part of the difference, so if what you removed was highly repetitive code, raw size may drop 15% while gzipped only drops 8%. Report the gzipped number, since that is what the user really downloads, but say which one you are reporting. Build mode is the third: only production numbers mean anything, since development mode neither minifies nor tree-shakes and can be several times larger. That question looks basic, but it is a filter.
+**How to measure.** `webpack-bundle-analyzer` draws a treemap where area is size and you can drill into individual packages; **it shows raw, minified and gzipped side by side.** For scripted comparison, export the `--json` stats. **The crudest and most solid method is the total size of the output directory** — exactly the files the user downloads, **with no room for interpretation.**
 
-**Attribution.** The largest share is probably the removed Node polyfills, tens of kilobytes at minimum. Improved tree shaking is a medium contribution. The updated built-in minifier and Asset Modules are small. Incidental dependency upgrades are unquantified.
+You can also **set a red line in CI with a tool like size-limit** so a PR fails if size grows past a threshold; **raising that unprompted scores well**, because it shows you thought about **not regressing**, not just optimising once.
 
-Note that SplitChunks is not in that list, and this is where the line is easiest to get caught. The resume sentence reads as though splitting produced the size drop, so if an interviewer follows that logic, correct it yourself: splitting bought cache hit rate, and the size came from the items above. Volunteering that correction proves you understand this better than anything else could.
+**Both builds must be the same commit of business code**, or you are measuring product changes instead of tooling changes.
 
-## The 70%: two definitions
+**Three units:**
 
-**Where the win comes from.** Turning on the filesystem cache stores each module's compiled intermediate result on disk, so next time unchanged modules are read straight back, skipping the whole loader chain — Babel, TypeScript, the expensive steps. Explaining invalidation earns credit: each module's cache key combines its content hash, the loader version hashes, the config hash and the hashes of its dependencies, and any of them changing is a miss. The config file itself is registered as a build dependency, so editing config invalidates everything.
+1. **Which files.** **Sourcemaps are often larger than the JS and the user never downloads them**, so the correct unit is **only what users actually download, excluding sourcemaps.**
+2. **Compression.** **gzip absorbs part of the difference** — if what you removed was highly repetitive code, a 15% raw reduction **may be only 8 points gzipped.** Reporting gzipped is preferable (it is real download weight), **but you must say which one you are reporting.**
+3. **Build mode.** **Only production numbers mean anything**; development does not minify or tree-shake and can be several times larger.
 
-**Definition one: the cold build gets slower.** The first build writes the cache and runs in minutes; the second reads it and runs in tens of seconds. So "down 70%" necessarily refers to warm builds, and the cold build may be slower than before the upgrade — it pays the extra cost of serialising intermediate results to disk.
+**It looks like a basic question. It is a filtering question.**
 
-An interviewer only has to ask "what about the first build?" and not having an answer shows you never understood the cache. Volunteering it earns credit instead: the cold build did get slightly slower, and the win is on every warm build after it; in a day of development you build dozens of times, so it is a good trade.
+**Attribution.** The largest share is probably **removing the Node polyfills**, tens of kilobytes upward. **Better tree shaking** is medium. **A newer built-in Terser and Asset Modules** are small. Incidental dependency upgrades are uncertain.
 
-**Definition two: *local* is a precise qualifier.** Persistent caching does not work on CI by default, because CI starts from a fresh container every time, the cache directory does not exist, and every build is cold — no 70%, and in fact slightly slower than before. To make it work you have to explicitly persist the cache directory as a CI cache artifact. Being able to explain that layer shows you did not just copy a config block out of the docs; *local* on the resume is not filler, it is an accurate qualifier.
+**Note that SplitChunks is not in that list — this is where the line is easiest to get caught.** The resume sentence reads as though splitting produced the size reduction, so if an interviewer follows that logic, **correct it yourself: splitting bought cache hit rate; the size came from the items above. Volunteering that correction proves comprehension better than anything else.**
 
-**Measuring.** The most honest method is wrapping the whole build command in `time`, which measures exactly the period from hitting enter to being free again. To find out what is slow, use a build speed measurement plugin: it prints how long each loader and each plugin took. That is the correct workflow for build performance — measure who is slow, then optimise that. Copying a pile of config first is guessing, not optimising. Running the build with progress and profiling flags also prints per-stage timings, and for genuinely strange slowness — a loader doing catastrophic regex backtracking, say — a CPU profile and a flame graph will find it.
+## The 70%: two qualifiers
 
-Report the sample and the machine. Run three to five times and take the median, discarding the first, because OS page cache and disk warm-up distort it. For the machine, give core count, memory and especially the disk — persistent caching is disk I/O, and on a spinning disk the win is noticeably smaller.
+**Where the win comes from.**
 
-**A more honest comparison.** Comparing "Webpack 3 with no cache" against "Webpack 5 with cache" is strictly comparing two things at once: the upgrade itself, plus the cache. Webpack 3 has no persistent cache, so every build is effectively cold. Webpack 5 without the cache is at one level, cold and warm alike, and faster than 3. Webpack 5 with the cache is slightly slower cold and much faster warm. The 70% runs from "every Webpack 3 build" to "a warm Webpack 5 build", where one segment is Webpack 5's own performance work and the other is the cache. If someone asks how much came from which, being able to lay out those three levels wins the exchange — and even answering "we never separated them; I attribute most of it to the cache" is far better than having nothing.
+```js
+cache: {
+  type: 'filesystem',                           // intermediate results to disk
+  buildDependencies: { config: [__filename] },  // config is a build dependency too
+},
+```
 
-## The resume sentence has its causes mismatched — know it first
+Each module's **compiled intermediate result is stored on disk**, and unchanged modules are read back, **skipping the whole loader chain** — Babel transpilation, TS compilation, the expensive parts.
 
-The dash lumps two actions and two results together, but the real mapping is different. Extracting vendor and runtime chunks bought cache hit rate, a result the sentence never states. Turning on persistent caching bought build time — that one lines up. And the 15% actually came from the dropped Node polyfills and better tree shaking, two things the sentence does not mention.
+**Explaining invalidation scores**: a module's cache key combines **content hash + loader version hash + config hash + dependency module hashes**, and **any one changing is a miss.**
 
-The suggested rewrite pairs each action with its own result and folds in the cold/warm qualifier:
+**Qualifier one: the cold build gets slower.** The first build writes the cache and runs in **minutes**; the second reads it and runs in **tens of seconds**. **So 70% necessarily means warm builds, and the cold build may be slower than before the upgrade** — you pay to **serialise intermediate results to disk.**
 
-> Led a Webpack 3-to-5 migration across 10+ incompatible packages: split vendor and runtime into separately-hashed chunks so a business change no longer invalidates them, dropped the automatic Node polyfills, and turned on the filesystem cache — bundle size down ~15%, warm local builds down 70%.
+**One question — "and the first build?" — separates understanding from copying. Volunteering it scores**: the cold build did get slightly slower, and the win is on every warm build after; a normal day has dozens of builds, so the trade is clearly worth it.
+
+**Qualifier two: `local` is precise.** **Persistent caching does not apply in CI by default**, because CI starts from a fresh container with no cache directory, so **every build is cold** — no 70%, and slightly slower than before. **Making it work requires explicitly caching that directory as a CI artefact.**
+
+**Being able to explain that shows you did not just copy config out of the docs; `local` on the resume is not filler, it is an accurate qualifier.**
+
+**How to measure.** The most solid is `time` around the whole build command — **the real interval between pressing enter and being able to do something else.** To find out what is slow, use `speed-measure-webpack-plugin`, which reports time per loader and per plugin. **That is the correct workflow for build speed: measure who is slow, then optimise that. Copying a pile of config up front is guessing, not optimising.** `--progress --profile` also prints per-stage timings. For weird slowness — a loader backtracking in a regex — take a CPU profile and read the flame graph.
+
+**State the sample and the machine**: run three to five times and take the median, **discarding the first** (OS page cache and disk warm-up distort it). Give CPU cores and RAM, **and especially the disk — persistent caching is disk I/O, and the win shrinks noticeably on a spinning disk.**
+
+**A more honest framing.** Comparing "webpack 3 without cache" to "webpack 5 with cache" is **comparing two things at once**: the upgrade plus the cache. Webpack 3 had no persistent cache, so every build was cold; webpack 5 without caching is the same cold and warm, somewhat faster than 3; webpack 5 with caching is slightly slower cold and much faster warm. **The 70% spans "every webpack 3 build" to "a warm webpack 5 build"**, one part of which is webpack 5's own performance work and the other the cache.
+
+Asked "how much came from the upgrade and how much from the cache", **laying out those three tiers wins the exchange**; and even "I did not separate them at the time; I attribute it mainly to the cache" beats having no answer.
+
+## The resume sentence mis-pairs cause and effect — know it first
+
+The dash ties two actions to two results loosely, but **the real pairing is**:
+
+- **Splitting vendor and runtime** → **cache hit rate** (a result the sentence never states)
+- **Persistent caching** → **build time** (this one lines up)
+- **The 15%** → really from **polyfill removal and better tree shaking** (actions the sentence never mentions)
+
+The recommended rewrite pairs each action with its own result and folds in the cold/warm qualifier:
+
+> Led a Webpack 3-to-5 migration across 10+ incompatible packages: **split vendor and runtime into separately-hashed chunks so a business change no longer invalidates them**, **dropped the automatic Node polyfills**, and **turned on the filesystem cache** — bundle size down ~15%, **warm** local builds down 70%.
 
 ## Self-check
 
-1. Can you state the division of labour between a loader and a plugin?
-2. Can you name the four categories of incompatibility and expand the Node polyfill one into a full case?
-3. Can you explain that SplitChunks buys cache hit rate rather than size?
+1. Can you state the division of labour between loaders and plugins?
+2. Can you give the four incompatibility categories, and expand the Node polyfill one into a full case (error text plus three fixes)?
+3. Can you explain that SplitChunks buys cache hit rate, not size?
 4. Can you explain why deterministic module ids are a precondition for long-term caching?
 5. Can you name the three variables in a size figure and say which one to report?
-6. Can you volunteer that cold builds got slower, and that CI does not get the win by default?
-7. Can you point out the mismatched causes in the resume sentence and offer the rewrite?
+6. Can you volunteer that the cold build got slower and that CI does not get the win by default?
+7. Can you point out the resume sentence's mis-pairing and offer the rewrite?
