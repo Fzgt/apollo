@@ -23,6 +23,7 @@ export const UI = {
     plan: { en: 'Plan', zh: '计划' } satisfies Text,
     notes: { en: 'Notes', zh: '资料' } satisfies Text,
     questions: { en: 'Questions', zh: '题库' } satisfies Text,
+    fetch: { en: 'Fetch', zh: 'Fetch' } satisfies Text,
     applications: { en: 'Applications', zh: '投递' } satisfies Text,
     blog: { en: 'Blog', zh: '博客' } satisfies Text,
     words: { en: 'Words', zh: '生词' } satisfies Text,

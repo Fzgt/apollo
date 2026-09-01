@@ -9,6 +9,7 @@ import {
   Map,
   Mic2,
   Microscope,
+  PawPrint,
   Radio,
   Repeat,
   Workflow,
@@ -41,6 +42,7 @@ const ICONS: Record<string, ReactNode> = {
   'gamepad-2': <Gamepad2 className="w-4 h-4" />,
   wrench: <Wrench className="w-4 h-4" />,
   'mic-2': <Mic2 className="w-4 h-4" />,
+  'paw-print': <PawPrint className="w-4 h-4" />,
   repeat: <Repeat className="w-4 h-4" />,
   'file-text': <FileText className="w-4 h-4" />,
 };
@@ -62,6 +64,7 @@ const SECTION_TITLES_EN: Record<string, string> = {
   mock: 'Mock interviews',
   cheatsheet: 'Cheat sheet',
   interview: 'General interview',
+  jd: 'The JD',
   course: 'Course and older notes',
 };
 
