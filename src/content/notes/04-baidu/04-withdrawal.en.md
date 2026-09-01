@@ -9,267 +9,132 @@ section: Baidu
 >
 > Built the **withdrawal client** on a path **peaking above 2,000 QPS**: **request locking** drops in-flight duplicates, **client-generated idempotency keys survive reloads**, and **uncertain outcomes surface as failures, never successes**.
 
-## What this bullet is about
+## What this line has to show
 
-⭐ **In one line: what a front end can and cannot guarantee on a money path.**
+In one sentence: what a client can and cannot guarantee on a money path.
 
-**The easiest way to wreck this bullet is to tell it as "my client-side lock held up 2,000 QPS".** That sentence does not survive one follow-up — hit F12, call the endpoint directly, and you are past it.
+The way to ruin this line is to tell it as "my client-side lock held up two thousand QPS". That does not survive one follow-up — open the devtools and call the endpoint directly and you are past it.
 
-⭐ **Its real value is that you draw the line yourself: the client reduces useless load, the backend provides correctness.** Without that sentence this bullet is a liability.
+Its real value is that you draw the boundary yourself: the client reduces useless load, the backend provides correctness. Without that sentence, this line is a liability.
 
-## The 30-second version
+## Define idempotent first
 
-> This is the withdrawal entry point during a promotion, and at peak the whole path reached a couple of thousand QPS. **The front end's job here is narrow but well defined: stop invalid duplicate requests before they are sent, and always err towards "failed" when the outcome is uncertain.**
->
-> Three things concretely: **lock a given withdrawal for the window between sending the request and receiving the response**, so hammering the button produces no second request; **generate the idempotency key on the client and store it in sessionStorage**, so that if the user reloads and retries the backend still recognises it as the same withdrawal; and **treat timeouts and dropped connections as failures**, pointing the user at their withdrawal history, never showing success.
->
-> ⭐ **But I am clear that a client-side lock does not survive a second device, a second tab or a reload — real correctness comes from the backend's idempotency key and database constraints. The client reduces useless load; it does not provide a guarantee.**
+Idempotent means running the same operation once and running it N times leave the system in the same final state. "Set the balance to one hundred" is idempotent — do it any number of times and it is one hundred. "Subtract fifty from the balance" is not — do it twice and a hundred is gone.
 
-## 1. Define "idempotent" first; the word is used throughout
+A withdrawal is naturally the second kind. So it needs a layer around it that turns "execute again" into "recognise this as a repeat and do not execute".
 
-⭐ **Idempotent = performing the same operation once and N times leaves the system in the same final state.**
+## Debounce, throttle and a request lock are three different things
 
-- `set the balance to 100` → **idempotent** (any number of times gives 100)
-- `subtract 50 from the balance` → ⚠️ **not idempotent** (twice takes 100)
+Debounce fires once, some milliseconds after the triggering stops — right for a search box or a resize. Throttle fires at most once per interval, evenly — right for scroll and mouse move. A request lock fires immediately on the first call and blocks everything until the response returns — right for submissions.
 
-**A withdrawal is inherently the second kind.** So a layer has to be wrapped around it that ⭐ **turns "execute again" into "recognise the repeat and do not execute".**
+Why the withdrawal button cannot use debounce: "only after you stop" means a user who clicks a hundred times gets one request, a few hundred milliseconds after the last click. On the first click nothing happens at all, so it feels unresponsive and they click more. The behaviour is the exact opposite of the intent.
 
-## 2. Debounce vs throttle vs a request lock (commonly confused; keep them apart)
+A submission wants leading-edge execution plus a lock, not debounce's trailing edge.
 
-| | Behaviour | Where it fits |
-|---|---|---|
-| **Debounce** | Many triggers, **executes once n ms after they stop** | Search-box typing, resize |
-| **Throttle** | **At most once every n ms**, evenly | scroll, mousemove |
-| ⭐ **Request lock** | **Executes immediately the first time, then blocks everything until the response returns** | Submit-style actions |
+## Two versions of the request lock
 
-⭐ **Why a withdrawal button must not be debounced**: "takes effect after you stop" means the user clicks 100 times and only the last one fires a request 300 ms later. **Nothing happens on the first click, the user concludes it is unresponsive, and clicks more** — the exact opposite of the intent.
+The naive version is a boolean: if a request is in flight, return and do nothing; otherwise set the flag, send the request, and clear the flag in a `finally`.
 
-> **A submit action wants "run immediately, then lock" (leading edge + lock), not debounce's "run only the last one" (trailing edge).**
+The `finally` is the point. If you only clear the flag on the success path, one failure locks the button forever and the user can never withdraw again. That is the most common bug in this pattern.
 
-## 3. Two versions of the request lock, read line by line
+The parameter-keyed version uses a map from the order id to the promise currently in flight. A second call does not get rejected; it gets handed the same promise. The caller awaits it and receives the result exactly as usual, without knowing it was deduplicated — so no caller needs a special case. When the request settles, the entry is deleted, and the next click is a genuinely new request.
 
-**The naive version:**
+Using a map instead of a boolean moves the lock's granularity from the whole button down to one order, so two different withdrawals no longer block each other.
 
-```js
-let inFlight = false;                    // is a request currently in flight
-async function withdraw() {
-  if (inFlight) return;                  // in flight -> do nothing
-  inFlight = true;                       // take the lock
-  try { ... } finally { inFlight = false; }   // ⭐ finally: release on success and on failure
-}
-```
+This pattern is called request deduplication, and it is what React Query and SWR do internally. Naming that shows you know you are reproducing a general pattern rather than improvising.
 
-⭐ **That `finally` is the important line**: releasing only in the success branch means **the button is permanently locked after a single failure** and the user can never withdraw again.
+## Idempotency keys: the most valuable thing the client does
 
-**The per-argument version** (locks one withdrawal, allows different ones concurrently):
+The client-side lock cannot cover three cases, because the map only lives in this page's memory: automatic retries after a network timeout, the user acting from another device or another tab, and clicking again after a reload — a reload wipes that memory and the lock with it.
 
-```js
-const inFlightMap = new Map();           // key = this withdrawal's id, value = the in-flight promise
-async function withdraw(orderId) {
-  if (inFlightMap.has(orderId))
-    return inFlightMap.get(orderId);     // ⭐ not a rejection: hand back the same promise
-  const promise = api.withdraw(orderId);
-  inFlightMap.set(orderId, promise);
-  try { return await promise; }
-  finally { inFlightMap.delete(orderId); }
-}
-```
+So the real guarantee has to come from backend idempotency: each withdrawal request carries a random string unique to that operation, the backend stores the strings it has processed, and a repeat of the same string returns the previous result without debiting again.
 
-**Line by line:**
+The client's half of that is essential, in three parts. Generate the key on page entry, not on click — generated on click, two clicks are two different keys and the backend sees two different withdrawals. Store it in `sessionStorage`, so a reload keeps the same key; otherwise a retry after a reload looks like a brand new withdrawal to the backend. That is what "survive reloads" means on the resume. And send it with every call.
 
-- A `Map` rather than a boolean → ⭐ **lock granularity drops from "the whole button" to "each individual order"**, so two different withdrawals do not block each other
-- ⭐ `return inFlightMap.get(orderId)` → the second call **receives the first call's promise**. The caller awaits it and still gets a result; **it never knows it was deduplicated**, so no special-casing is needed in calling code
-- `finally { delete }` → the lock is released when the request finishes, so the next click is a fresh request
+## When the outcome is uncertain, always say failure
 
-⭐ **This pattern is called request deduplication, and it is what React Query and SWR do internally.** Saying so shows you know you are reproducing a general pattern rather than improvising.
+Default to failure and only show success on explicit success. The name for this is defensive fallback.
 
-## 4. The idempotency key: the most valuable thing the front end can do
+On explicit failure — a business error code, or a 4xx or 5xx — show the error and allow a retry. On explicit success, show success. When the outcome is uncertain — a timeout, a dropped connection, a request that went out with no response — treat it as a failure, but word it carefully: say "network problem, please check your withdrawal history shortly" rather than "it failed", because the backend may well have processed it.
 
-**A client-side lock cannot cover three things** (because that `Map` lives only in this page's memory):
+Why uncertainty tips toward failure: the two ways of being wrong have asymmetric costs. Wrongly showing failure sends the user to retry, and the retry is covered by the idempotency key so nothing is debited twice — the cost is one wasted round trip. Wrongly showing success when the money never moved means the user believes they withdrew and the money never arrives — that is a complaint, an escalation and an incident.
 
-1. **Automatic retries** after a network timeout
-2. The user acting **on another device or in another tab**
-3. ⭐ **Clicking again after a reload** — a reload zeroes that memory and the lock is gone
+Asymmetric cost is the crux of this section, and it is the general principle behind error handling on any money path.
 
-**So the real guarantee has to come from backend idempotency**: every withdrawal request carries an **idempotency key** (a random string unique to this operation), the backend stores the keys it has processed, and **the same key arriving again returns the previous result instead of debiting again.**
+## What 2,000 QPS is, and who measured it
 
-**The front end's half of that is essential:**
+**Attribution: this number is not the client's.** QPS is a backend metric. The client does not absorb QPS, it contributes to it — every user click contributes one. The client cannot see site-wide requests per second; that lives in the gateway and in backend monitoring.
 
-| Practice | Why |
-|---|---|
-| **Generate the key early** (on page entry, not on click) | Generating it on click means **two clicks are two different keys, and the backend sees two different withdrawals** |
-| ⭐ **Store it in sessionStorage** | **It is still the same key after a reload** — otherwise a retry after a reload looks like a new withdrawal to the backend. **This is what `survive reloads` on the resume means** |
-| Send it with every call | |
+Knowing the figure from a backend colleague is entirely normal information flow on a team. But you have to be able to separate what you know from what you did.
 
-## 5. Defensive fallback: the error-handling principle for money
+The current resume wording is safe: it describes the scale of the path, while the lock and the idempotency key are each written as their own action. The scale is still there without claiming your lock absorbed it.
 
-⭐ **Default to failure; show success only on an explicit success** (the practice is called **defensive fallback**).
+**QPS is computed, not measured.** What the monitoring system actually stores is a monotonically increasing counter, and QPS is that counter's slope over a window: the count at the end minus the count at the start, divided by the window length.
 
-| Outcome | How it is handled |
-|---|---|
-| **Explicit failure** (4xx/5xx, a business error code) | Show the error and allow a retry |
-| ⭐ **Uncertain** (timeout, dropped connection, sent with no response) | **Treat as failure**, but word it as "network problem, please check your withdrawal history shortly" — ⚠️ **do not say "it failed" outright** (the backend may already have processed it) |
-| **Explicit success** (2xx plus a business success code) | Show success |
+So the window size decides the number you see. The same traffic can come out as two thousand over a one-second window, six hundred over a minute, three hundred over five minutes. The wider the window, the flatter the peak — so "peak 2,000 QPS" without a window says nothing.
 
-⭐ **Why "uncertain" leans towards failure — because the two ways of being wrong do not cost the same:**
+Peak and sustained are also far apart: two thousand for three seconds and two thousand for half an hour are entirely different loads on a database. The resume now says peak explicitly.
 
-- **Wrongly showing failure** → the user retries → **the retry is covered by the idempotency key, so nothing is debited twice** → the cost is one wasted round trip
-- **Wrongly showing success** → the money never arrives → **the user believes they withdrew and no money comes** → complaints, escalations, an incident
+**Monitoring or load testing — the meanings differ completely.** Monitoring means it really happened: the gateway logs, collection, a time-series store, a dashboard curve. The correct phrasing is "monitoring showed two thousand-plus at the campaign peak". Load testing means it was verified to withstand: a tool generates traffic and ramps it up. The correct phrasing is "load testing verified it holds two thousand-plus".
 
-⭐ **"Asymmetric cost" is the point of this section, and it is the general principle behind all front-end error handling on money paths.**
+Never blur those. Claiming monitoring when it was a load test inflates the business scale; the reverse understates your own work.
 
-## 6. ⭐ What 2,000 QPS is and who measured it (settle this with yourself first)
+A few load-testing concepts show you have really seen one. Ramping means increasing QPS in steps rather than opening at full load. The knee, or saturation point, is where QPS is still climbing but p99 latency spikes and the error rate rises — that is the real capacity, because capacity is not how much you can push in, it is the maximum you can push in without it breaking. A complete load-test conclusion is not "it holds 2,000 QPS", it is "at 2,000, p99 was 120 ms with a zero error rate; pushing to 2,600, p99 rose to 800 ms". And load tests in production must write to shadow tables, especially on a money path where real financial data cannot be polluted.
 
-### Attribution: this number does not belong to the front end
+If you cannot remember, use the safe form: that is the backend's figure, I remember it as the campaign peak, and I would need to confirm whether it came from monitoring or from a load-test report. "I would need to confirm" is always safer than inventing an answer.
 
-⭐ **QPS is a backend metric. The front end does not "absorb" QPS, it contributes to it** — each user click contributes 1. **The front end cannot see the site's requests per second; that lives in gateway and backend monitoring.**
+## What the backend did to hold it
 
-**Learning the number from a backend colleague is entirely legitimate**; that is normal information flow on a team. ⭐ **But you must be able to separate what you know from what you did.**
+This section is what upgrades "I heard" into "I understand".
 
-> **The current resume phrasing is safe**: `on a path peaking above 2,000 QPS` states only **the scale of the path**, with the lock and the idempotency key each written as their own action — **the scale is still there without claiming your lock is what held it.** (The original read `sustained 2,000+ peak QPS through request locking and defensive fallbacks`, which grammatically attributed "held up" to two front-end mechanisms; that has been changed.)
+At the edge: rate limiting with a token bucket or leaky bucket — better to reject some traffic than to fall over entirely; queues or a captcha to shave the peak at campaign start; circuit breaking and degradation when things go bad.
 
-### QPS is computed, not measured
+At the application layer: stay stateless so capacity scales linearly with machines. One easily missed point here — QPS is a cluster metric, not a per-machine one. Twenty machines sharing 2,000 QPS is a hundred each.
 
-⭐ **What a monitoring system actually stores is a monotonically increasing counter, and QPS is the slope of that counter over a time window:**
+The data layer is the real bottleneck. A withdrawal is a write, and caching does not help writes. The usual tools are sharding by a hash of the user id and splitting reads from writes. There is also the hot-account problem: if every withdrawal debits the same pooled account, every transaction contends for the same row lock and sharding does not save you — the account itself has to be split into buckets.
 
-```
-QPS = (counter at window end - counter at window start) / window length
-```
+Consistency comes from two things written at the data layer: a unique index on the idempotency key, so a duplicate request simply violates a constraint; and the balance invariant written into the `WHERE` clause of the update, with success decided by how many rows were affected.
 
-⭐ **So the window size directly determines the number you see:**
+Why you cannot read-then-write: there is a window between the read and the write, and at 2,000 QPS two concurrent requests can both read "not present" and both insert. A unique index and a single update statement are atomic — that window does not exist.
 
-| Window | "Peak QPS" computed from the same traffic |
-|---|---|
-| 1 second | Perhaps 2000 |
-| 1 minute | Perhaps only 600 |
-| 5 minutes | Perhaps only 300 |
+Mention the asynchrony too: a withdrawal is usually not completed synchronously. It validates, writes a pending order and returns, and the actual payout goes through a queue. So the 2,000 QPS is the rate of submissions, not the rate of payouts, and those two numbers can be far apart.
 
-⭐ **The larger the window, the flatter the peak is smoothed. So "peak of 2,000 QPS" without a window says nothing.**
+Putting invariants in the data layer instead of an application-level `if` is the same pattern as the Stripe lifetime-grant protection, the unique index on the Beyz email path, and the type constraints in BioMap. Four examples from three projects — strung together, that is a ready-made answer to the cross-project follow-up.
 
-**`peak` and `sustained` are very different**: 2,000 for three seconds and 2,000 held for thirty minutes **are not remotely the same load on a database**. ⭐ **You have to know which one you are claiming** — the resume now says peak explicitly.
+## What to say if "zero financial loss" comes up
 
-### Monitoring or load testing: two sources, wildly different meanings
+The resume once said "without a single dollar of financial loss". It has been removed, and the reason is worth knowing: it is a negative claim, requiring proof that no financial loss ever occurred, and you cannot enumerate everything that did not happen.
 
-| | **Monitoring** | **Load testing** |
-|---|---|---|
-| Meaning | ⭐ **It really happened** | ⭐ **It was verified as survivable** |
-| Where it comes from | The gateway logs → collection → a time-series database → a dashboard curve | A tool generates traffic against the system, ramping up |
-| Correct phrasing | "Monitoring showed 2,000+ at the promotion's peak" | "Load testing verified it holds 2,000+" |
+The only thing that could support it is reconciliation, and reconciliation lives in finance, not on any engineering dashboard: the withdrawal ledger is compared line by line against the payment channel's file delivered the next day, keyed by the channel's transaction id, and discrepancies enter an exception process to be re-submitted, refunded or recovered. So the accurate meaning of "zero loss" is that every reconciliation discrepancy was cleared and there was no net loss.
 
-⚠️ **Never blur the two** — saying monitoring when it was a load test inflates the business volume; the reverse undersells your own work.
+The defence is layered, and saying so earns credit. Layer one is the client — request lock, idempotency key, error fallback — which reduces useless repeats. Layer two is the gateway and application — rate limiting, validation, risk control — which blocks abnormal traffic. Layer three is the database — the unique index, the balance invariant, transactions — and that is where correctness actually comes from. Layer four is the asynchronous state machine, where an order only accepts legal transitions, blocking reordering and replay. Layer five is reconciliation, which finds and repairs.
 
-**A few load-testing concepts; being able to name them proves you have seen one:**
+The key insight: the first four layers try to stop it happening, and the fifth catches and repairs what happened anyway. Real "zero loss" rests on layer five, not on the first four being perfect — anyone who has worked on payments knows they cannot be perfect, because networks flap, channels time out, and people write bugs.
 
-- **Ramping up**: raise QPS in steps rather than opening at full rate
-- ⭐ **The knee, or capacity / saturation point**: the point where QPS is still climbing but **P99 latency starts spiking and the error rate starts rising** is the real capacity. **Capacity is not "how much you can push in", it is "the most you can push in without it breaking"**
-- ⭐ **What a complete load-test conclusion sounds like**: not "it holds 2,000 QPS", but "at 2,000, P99 latency was 120 ms with a 0 error rate; pushing on to 2600, P99 rose to 800 ms"
-- **Shadow tables / traffic tagging**: load testing in production must write test traffic to shadow tables. ⭐ **On a money path especially, real financial data must not be polluted**
+Admitting you were only layer one is more credible than claiming you delivered layer five.
 
-> ⚠️ **If you cannot remember, use the safe phrasing**: "That figure came from the backend team; I remember it as the peak during the promotion, but I would need to check whether it was monitoring or a load-test report." — ⭐ **"I would need to check" is always safer than inventing an answer.**
+## The split, for follow-ups
 
-## 7. What the backend did to hold it (telling this upgrades you from hearsay to understanding)
+Can a user bypass the client lock? Yes, easily — open the devtools and call the endpoint. So the client lock only reduces useless requests; correctness comes from the backend idempotency key, the unique index, database transactions and the balance invariant.
 
-| Layer | What it does |
-|---|---|
-| **Edge** | **Rate limiting** (token bucket / leaky bucket — better to reject some than to collapse entirely), **queueing or a captcha to shave the peak**, **circuit breaking and graceful degradation** |
-| **Application** | Stateless → **adding machines scales it linearly**. ⭐ **QPS is a cluster metric, not a per-machine one** — 20 machines sharing 2,000 QPS is 100 each |
-| ⭐ **Data (the real bottleneck)** | **A withdrawal is a write, and caching does not save writes.** Shard by a hash of the user id, split reads from writes; ⭐ **the hot-account problem** — if every withdrawal debits the same pooled account, **every transaction contends for the same row lock and sharding does not help**, so the account has to be split into buckets |
-| **Consistency** | The idempotency key gets a **unique index**; the balance invariant goes **into the SQL WHERE clause** |
-| ⭐ **Made asynchronous** | A withdrawal usually is not completed synchronously — validate, write a "processing" order, return, and **do the actual payout through an async queue**. **So that 2,000 QPS is the rate of submitted requests, not of completed payouts, and the two can differ enormously** |
+Did you measure the 2,000 QPS? No — that is the scale of the whole path from backend monitoring. The client does not absorb QPS, it contributes to it.
 
-### Two data-layer patterns worth memorising on their own
+How was zero financial loss guaranteed? That is a reconciliation result, not something I measured. The defence has five layers and the client is only the first.
 
-```sql
--- ① the idempotency key gets a unique index, so a duplicate violates the constraint outright
-INSERT INTO withdraw_order (idempotency_key, user_id, amount, ...) VALUES (...);
+What else can the client do? Disable the button when there is no quota, and queue or gate with a captcha at campaign start — but those are experience improvements, not correctness guarantees.
 
--- ② the balance invariant lives in the WHERE clause; success is decided by rows affected
-UPDATE account SET balance = balance - ?
-WHERE user_id = ? AND balance >= ?;
-```
+Close with one sentence: the client reduces useless load, the backend provides correctness.
 
-⭐ **Why you cannot "read then write"**: there is a window between the read and the write, and **at 2,000 QPS two concurrent requests can both read "does not exist" and both insert.** A database unique index and a single UPDATE are atomic; **there is no such window.**
+## The 30-second answer
 
-> ⭐ **The same pattern as [the lifetime-purchase protection in Stripe](/docs?section=beyz&item=stripe-billing), [the unique index on the Beyz mailer](/docs?section=beyz&item=service-cicd) and [the type constraint in BioMap](/docs?section=biomap&item=tanstack-query): put the invariant in the data layer, not in an `if` in application code.** Four examples across three projects — **strung together they are a ready-made answer to [the cross-project follow-ups](/docs?section=cheatsheet&item=crosscut).**
+> This was a withdrawal entry point during a campaign, and at peak the whole path was above two thousand QPS. The client's job there is narrow but clear: keep useless duplicates from being sent at all, and always err toward failure when the outcome is uncertain. Three things concretely. The same withdrawal is locked for the window between sending the request and receiving the response, so hammering the button cannot produce a second request. The idempotency key is generated on the client and stored in sessionStorage, so if the user reloads and retries, the backend still recognises it as the same withdrawal. And timeouts and dropped connections are always surfaced as failures pointing the user at their withdrawal history — never as success. But I am clear that the client lock does not cover other devices, other tabs or reload retries. The real correctness comes from the backend's idempotency key and the database constraints; the client reduces useless load, it does not provide the guarantee.
 
-## 8. How to answer about "zero financial loss" (cut from the resume, but the topic finds you anyway)
+## Self-check
 
-**The original line contained `without a single dollar of financial loss`; it has been removed.** The reason is worth knowing:
-
-⭐ **It is a negative claim — proving "no instance of financial loss ever occurred". You cannot enumerate everything that did not happen.**
-
-⭐ **The only thing that can support it is reconciliation, and reconciliation lives on the finance side, not on any engineering dashboard:**
-
-```
-withdrawal records in the business database  ↕ matched line by line on the channel's transaction id  ↕  the payment channel's reconciliation file (delivered T+1)
-                → discrepancies enter the exceptions process: re-issue, refund, claw back
-```
-
-**So the accurate meaning of "zero financial loss" is: every reconciliation discrepancy was resolved and there was no net loss.**
-
-### ⭐ The defences against loss are layered (saying this earns a lot)
-
-| Layer | What it does | Its nature |
-|---|---|---|
-| 1. **Front end** | Request lock, idempotency key, error fallbacks | Reduces useless repeats |
-| 2. Gateway / application | Rate limiting, parameter validation, risk control | Blocks abnormal traffic |
-| 3. **Database** | Unique index on the idempotency key, balance invariant, transactions | ⭐ **The real source of correctness** |
-| 4. Async state machine | Orders only permit legal state transitions | Prevents reordering and replay |
-| 5. ⭐ **Reconciliation** | Line-by-line matching T+1, discrepancies into the exceptions process | **Detects and repairs** |
-
-⭐ **The key insight: the first four layers make it not happen; the fifth catches and repairs what happens anyway. Real zero-loss rests on that fifth layer, not on the first four being perfect** — anyone who works on payments knows the first four cannot be perfect: networks jitter, channels time out, people write bugs.
-
-> ⭐ **Admitting you were only the first layer is more credible than claiming you delivered the fifth.**
-
-## 9. The division-of-labour table for follow-ups (say it all in one breath)
-
-| Question | How to answer |
-|---|---|
-| **What if a user bypasses the client lock?** | ⭐ **They can, and it is easy** — call the endpoint straight from F12. So the client lock only reduces useless requests; **correctness rests on the backend idempotency key, unique index, database transaction and balance invariant** |
-| **Did you measure the 2,000 QPS?** | No, that is the whole path's volume from backend monitoring. **The front end does not absorb QPS, it contributes to it** |
-| **How was zero loss guaranteed?** | **That is a reconciliation result, not something I measured.** The defences are five layers deep and the front end is only the first |
-| **What else can the front end do?** | Rate limiting (disable the button when there is no quota), queueing or a captcha to shave the peak at the moment a promotion opens — ⚠️ **but these are experience improvements, not correctness guarantees** |
-
-⭐ **The closing sentence: the client reduces useless load; the backend provides correctness.**
-
-## Glossary
-
-| 中文 | English |
-|---|---|
-| 提现 | **withdrawal** |
-| 在途请求 | **in-flight request** (*drops in-flight duplicates*) |
-| 请求锁 | **request locking** |
-| 请求去重 | **request deduplication** |
-| 首次立即执行 | **leading edge** ↔ trailing edge |
-| 幂等 / 幂等键 | **idempotent · idempotency key** |
-| 刷新后仍有效 | **survive reloads** (the resume's own phrase) |
-| 兜底 / 防御式处理 | **defensive fallback** |
-| 结果不确定 | **uncertain outcome** |
-| 代价不对称 | **asymmetric cost** |
-| 唯一索引 | **unique index** |
-| 业务不变量 | **business invariant** |
-| 事务 | **transaction** |
-| 限流 | **rate limiting** (**token bucket**, **leaky bucket**) |
-| 削峰 | **shed / smooth the peak** |
-| 熔断 | **circuit breaker** |
-| 降级 | **degrade gracefully** |
-| 水平扩容 | **scale horizontally** |
-| 分库分表 | **sharding** |
-| 读写分离 | **read/write splitting** |
-| 热点账户 | **hot row / hot account** (**row-lock contention**) |
-| 异步化 | **move it off the request path** |
-| 峰值 ↔ 持续 | **peak ↔ sustained** |
-| 统计窗口 | **the window** (*rate over a 1-minute window*) |
-| 压测 | **load testing** |
-| 梯度加压 | **ramp up** |
-| 影子库 | **shadow table / shadow traffic** |
-| 对账 | **reconciliation** (*reconciliation found no discrepancies*) |
-| 差错 / 差异 | **discrepancy** |
-| 单边账 | **unmatched record** |
-| 资损 | **financial loss** |
-
-> ⭐ **The three easiest to get wrong**:
->
-> 1. The closing sentence for the whole bullet: **"The client reduces useless load; correctness comes from the backend."** Memorise it
-> 2. "The front end does not absorb QPS, it contributes to it" — **the client doesn't absorb QPS, it contributes to it**
-> 3. "Zero loss is a reconciliation result" — **that's a reconciliation result, not something I measured**
+1. Can you define idempotent and explain why a withdrawal is not?
+2. Can you separate debounce, throttle and a request lock, and say why debounce is wrong here?
+3. Can you say what the `finally` unlock and the map-based deduplication each solve?
+4. Can you explain why the idempotency key is generated on entry and stored in `sessionStorage`?
+5. Can you state the asymmetric cost and why uncertainty tips toward failure?
+6. Can you explain QPS as a slope over a window, and distinguish monitoring from load testing?
+7. Can you name the five layers of loss prevention and explain why the real backstop is the fifth?

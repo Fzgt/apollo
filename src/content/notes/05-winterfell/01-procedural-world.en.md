@@ -11,147 +11,71 @@ section: WinterFell
 
 ## What this line has to show
 
-Three things, one sentence each: **twenty scenes** is how the world is arranged, **generated from distance** is where that content comes from, and **a fresh seed per run** is why two runs differ. You cannot hand-build a world at this size, so all of it is a function of z.
+Three things, one sentence each. Twenty scenes is how the world is arranged. Generation from distance travelled is where that content comes from. A fresh seed each run is why two runs differ. Hand-placing content cannot reach this scale, so everything is a function of distance.
 
-## Layer one: answer these without thinking
+## Scenes and levels are not the same axis
 
-### 1. What are the "twenty scenes"? Are they the same as levels?
+These are two independent progress axes. Both advance every eighteen hundred world units, and they mean entirely different things.
 
-No. They are **two separate progress axes**, both stepping every 1800 world units:
+A level only controls the palette and the speed. There are six of them, they cycle, and the speed keeps rising, which is what makes a run endless. A scene controls what stands beside the track — Neon City, Beacon Coast, Abyss Tunnel, Iron Harbor, The Watchers, Aurora Canyon, through to the twentieth, The Terminus.
 
-```ts
-// levels.ts — colour and speed only, six of them, cycling
-export const LEVELS: Level[] = [
-  { name: 'Signal',  neon: '#00e5ff', accent: '#ffe066', fog: '#04121a' },
-  { name: 'Vapour',  neon: '#ff3ea5', accent: '#67ffe0', fog: '#170618' },
-  // Circuit / Ember / Toxic / Nova
-];
-export const LEVEL_DISTANCE = 1800;
-export const levelAt = (distance: number) =>
-  Math.floor(Math.abs(distance) / LEVEL_DISTANCE);
-```
+The crucial difference is that scenes do not cycle. The index is clamped to the last one, so past the final scene the world stays in its afterglow rather than looping back to the first. Levels cycle so the run can be endless; scenes do not, so that arriving at the end means something. That sentence is the design intent behind both axes, and it is the answer to "why does one loop and the other not".
 
-```ts
-// scenes.ts — what stands beside the track, twenty of them, no loop
-export const SCENE_DISTANCE = 1800;
+## What "generated from how far you have travelled" means
 
-/** No loop: everything past the finale stays the finale's afterglow. */
-export const sceneAt = (z: number): SceneSpec =>
-  SCENES[Math.min(SCENES.length - 1, Math.floor(Math.abs(z) / SCENE_DISTANCE))];
-```
+It means almost everything in the world is a function of distance, and there are no authored level files.
 
-- **Level = colour and speed.** Six of them, cycling, getting faster, which is what makes the run endless.
-- **Scene = what stands beside the track**: Neon City, Beacon Coast, Abyss Tunnel, Iron Harbor, The Watchers, Aurora Canyon … up to the twentieth, The Terminus.
+The scenery is rebuilt in world tiles: crossing a boundary discards the tile behind and builds the next one ahead according to whichever scene that stretch belongs to. The static parts collapse into a handful of draw calls, and the living things — fish, whales, jellyfish, airships, pacing war machines, turbine rotors, lighthouse beams — are small instanced meshes animated per frame.
 
-The difference is in that last line: **scenes do not loop.** `Math.min` pins the index at the last one, so past the finale the world stays in its afterglow instead of wrapping back to Neon City. **Levels cycle so the run can be endless; scenes do not, so arriving at the end means something.**
+Obstacle generation goes further. It used to be four named formations — scatter, gates, slalom, pillars — swapping every two thousand units. The reason they were scrapped is in a code comment, in one line: every formation is a surprise exactly once.
 
-### 2. What does "generated on the fly from how far you have traveled" actually mean?
+Now there are no formations, only three continuous functions sampled at a fixed depth interval. The first is the lane, the route guaranteed to be passable, whose sway never exceeds how far the craft can move sideways at that speed. The second is pressure, how dense that stretch is. The third is the low-versus-tall balance, deciding whether the stretch is wide low slabs you can see over or narrow tall towers you have to go around.
 
-It means almost everything in the world is a **function of world z**. There are no level files laid out in advance.
+All three are smooth noise at different periods, so they drift in and out of phase and no stretch resembles the one before it. And none of the three knows where the section boundaries are, which is why the seams disappear. That is the part worth saying: the seams were not patched out, they never formed, because no function knows a boundary exists.
 
-**The scenery** (`Scenery.tsx`) is rebuilt per world tile: crossing a boundary drops the kilometre behind you and builds the next one ahead, in whatever scene owns that stretch. Static pieces merge down to a handful of draw calls. Anything alive — fish, whales, jellyfish, airships, pacing war machines, turbine rotors, lighthouse beams — is a small instanced mesh animated per frame.
+## What "a fresh seed each run" solves
 
-**The obstacles** (`generateObstacles.ts`) go further. The old version had four named formations — scatter, gates, slalom, pillars — one per 2000-unit section. The comment says why they were removed:
+Being a function of distance means every run is the same route. That was a real defect in the earlier version, and the comment states it plainly: the blocks did move between runs, because each one is placed with an unseeded roll, but the shape did not — the lane crossed the field at the same distance, the knots sat in the same slices, the density peaked in the same places. A player who dies twice in the same sector is meeting the same sector.
 
-> *"Every formation is a surprise exactly once."*
+The fix is to hang the entire field on a single integer, drawn once when the module loads — which is once per run, since restarting reloads the page. That seed is folded into the hash function every noise stream shares, so one place reseeds the lane, the pressure, the low/tall mix, the railings and the events all at once.
 
-So there are no formations now, only **three continuous functions**, sampled every `SLICE_DEPTH` units:
+Why fold it in with XOR rather than addition: XOR is a bijection, so different seeds stay different after folding and several streams cannot accidentally be pulled into the same phase. That question comes up occasionally, and answering it shows you knew what you were doing.
 
-- **the lane**: the guaranteed way through, sweeping no faster than the craft can move sideways at the speed that stretch is flown at
-- **pressure**: how much of the field is occupied here
-- **the low/tall balance**: whether this stretch is broad low blocks you look over, or narrow tall ones you look past
+## Is a new seed enough
 
-All three are **smooth noise with different periods**, so they drift in and out of phase and no stretch resembles the one before it. And **none of them knows where a section boundary is, so the seams disappear.**
+No, and this is the layer worth telling. The comment puts it precisely: two draws from the same distribution look alike from inside the cockpit, because the thing the eye reports is the distribution.
 
-### 3. What problem does "a fresh seed each run" solve?
+A new seed only changes which blocks you get this run. It does not change what kind of route this is. A shuffled deck is still the same deck.
 
-**If everything is a function of z, every run is the same route.** That was a real flaw in the earlier version, and the comment is blunt about it:
+So a handful of constants become the run's personality, each rolled once from the run seed and held for the whole route. The periods decide how long one style persists, varying by about forty per cent either way — some runs change their mind every few hundred units, others hold one mood for most of a sector. The mix decides whether this route is wide slabs or thin towers. The corridor decides whether this run's lane runs generally wide or generally narrow. The railing fraction decides how much of the field walls along the lane rather than scattering around it.
 
-> *"The blocks moved between runs, because each one is placed with an unseeded roll, but the shape did not: the lane crossed the field at the same z, the knots sat in the same slices, the density peaked in the same places. **A player who dies twice in the same sector is meeting the same sector.**"*
+The distinction between personality and arrangement is the actual technical point of this line. When someone asks "why is a new random seed not enough", that is the answer.
 
-The fix: the whole field hangs off **one integer**, drawn once when the module loads — that is once per run, because restarting reloads the page.
+## Does the fairness guarantee still hold with a seed
 
-```ts
-let routeSeed = (Math.random() * 0xffffffff) | 0;
+Yes, and that is precisely why a reseeding entry point exists.
 
-/** Deterministic 0..1 from two integers, and this run's seed. */
-const hash2 = (a: number, b: number) => {
-  let h = Math.imul(a ^ 0x9e3779b9, 0x85ebca6b);
-  h = Math.imul(h ^ Math.imul((b ^ routeSeed) + 0x165667b1, 0x27d4eb2f), 0xc2b2ae35);
-  h ^= h >>> 15;
-  h = Math.imul(h, 0x85ebca6b);
-  h ^= h >>> 13;
-  return (h >>> 0) / 4294967296;
-};
-```
+The game never calls it — restarting reloads the page and the module draws its own seed on the way up. It exists so the fairness sweep can walk many routes rather than many rolls of the dice on one route. The conclusion from that sweep is in the level solvability note.
 
-The seed is folded into **the one hash every noise stream is built from**, so a single place reseeds the lane, the pressure, the low/tall balance, the railing and the events together.
+Note what it has to clear: everything memoised by distance has to be reset with it. The lane samples were walked out from the start line, and the cached spreads are read from those samples, so leaving them in place explains a new route with the old route's data. Being able to state that detail shows you actually wrote the function.
 
-**Why XOR:** XOR is one-to-one, so **seeds that differ still differ** after folding. It cannot accidentally pull the streams into phase with each other.
+## Background
 
-### 4. Is changing the seed enough?
+**Why not author levels by hand.** Twenty scenes plus endless distance means hand-placement costs grow linearly, while a player only ever sees one stretch per run. Generation costs a constant, and it guarantees continuity at the seams — hand-authored boundaries are always hard cuts. The cost is less control, which is exactly why the fairness sweep exists as a regression check.
 
-No, and this is the part worth saying out loud. From the comment:
+**Why the noise streams use different periods.** Streams sharing a period peak together, and the world turns into a rhythm of very dense and very empty. Offset periods drift in and out of phase, so the combined shape does not repeat — this is the standard way to get "no discernible pattern" out of very few parameters.
 
-> *"Two draws from the same distribution look alike from inside the cockpit, because the thing the eye reports is the distribution."*
-
-A new seed only changes **which blocks this run got**. It does not change **what kind of route this is**. A shuffled deck is still the same deck.
-
-So a handful of constants that used to be the route's personality become **this run's personality**, each one roll off the run seed, held for the whole route:
-
-- **the periods**: how long one character lasts, ±40% — one run changes its mind every few hundred units, another commits to a mood for most of a sector
-- **the mix**: whether this route is slabs you look over or spires you look past
-- **the corridor**: where between the two lane widths this run generally sits
-- **the railing**: how much of the route is walled along the lane rather than scattered around it
-
-That split — arrangement versus personality — is the real engineering point of this bullet.
-
-### 5. Does the fairness guarantee still hold once the seed varies?
-
-Yes, and that is exactly why a reseed entry point exists:
-
-```ts
-/**
- * The game never calls this — a restart reloads the page and the module picks
- * its own seed on the way up. It exists so the fairness sweep can walk many
- * routes rather than many rolls of the dice on one route.
- */
-export const reseedRoute = (seed?: number) => {
-  routeSeed = (seed ?? Math.random() * 0xffffffff) | 0;
-  laneSamples.length = 1;
-  laneDir = 1;
-  laneHold = 0;
-  spreads.clear();
-};
-```
-
-The game never calls it. It exists so the fairness sweep can walk **many routes** instead of rolling the dice many times on one route — see [④ Checking the level generator](/docs?section=winterfell&item=level-fairness) for what the sweep concluded.
-
-Note the last four lines: **everything memoised off z has to be cleared with it.** The lane's samples are a walk from the start line and the cached spreads are read off those samples. Skip the reset and you explain the new route with the old route's data.
-
-## Layer two: extra background
-
-### Why not hand-build levels?
-
-Twenty scenes over endless distance means hand-placement cost grows linearly, while a player sees only one slice of it per run. Generating from functions is constant cost, and it guarantees the **seams are continuous** — a hand-built boundary is always a hard cut. The cost is less control, which is exactly why the fairness sweep exists as a regression test.
-
-### Why do the noise streams need different periods?
-
-Streams on the same period peak together, and the world turns into a beat: crowded, empty, crowded, empty. Offset periods drift in and out of phase, so the combined shape does not repeat. It is the standard way to get something that looks unpatterned out of very few parameters.
-
-### What does that `Math.min` cap cost?
-
-Past the twentieth scene the world stops changing. That is deliberate — it "stays in its afterglow" — but it means the back half of a very long run is visually static, with only the level palette still cycling. Adding more change means either more scenes, or letting scenes loop, which throws away the idea of an ending.
+**What clamping the scene index costs.** Past the twentieth scene the world stops changing. That is deliberate, but it means the back half of a long run is visually static, with only the level palette still cycling. To keep introducing variety you would either add scenes or let scenes cycle — and cycling gives up the idea of an ending.
 
 ## The 30-second answer
 
-> It is a racing game in the browser: you fly a craft through fields of neon obstacles. The world is not hand-built levels, it is a function of distance. Every 1800 units you enter a new scene, twenty in total, and past the twentieth it does not loop — the world stays in the finale's afterglow. Colour and speed are a separate axis, six palettes cycling and getting faster. The obstacle field has no preset formations; three smooth noise streams on different periods decide it: the guaranteed lane through, how dense this stretch is, and whether it is broad low blocks or narrow tall ones. Because all of that is a function of z, the first version gave every run the same route — so I hung the whole field on one seed drawn once per run, XORed into the hash all the noise streams share. A new seed alone only changes which blocks you get, so a few constants became the run's personality too: how long a mood lasts, slabs versus spires, corridor width, how much is walled. Two runs are now different routes, not the same deck shuffled.
+> It is a racing game in the browser: you fly a craft through fields of neon obstacles. The world is not hand-authored levels, it is a function of distance — a new scene every eighteen hundred units, twenty of them, and past the twentieth it does not loop; the world stays in the finale's afterglow. The palette and speed are a separate axis: six of them, cycling, getting faster. The obstacle field has no preset formations; it is decided by three smooth-noise functions at different periods — the lane that is guaranteed passable, how dense the stretch is, and whether it is wide low slabs or narrow tall towers. Because everything was a function of distance, the first version handed every player the same route, so I hung the whole field on a seed drawn once per run and folded it with XOR into the hash all the noise streams share. A new seed alone only changes the arrangement of blocks, so a few more constants become the run's personality — period length, the slab-versus-tower mix, corridor width, how much of it walls along the lane — so two runs are different routes rather than one deck shuffled twice.
 
 ## Self-check
 
 1. Can you explain that levels and scenes are two axes, and why one cycles and the other does not?
 2. Can you name the three continuous functions that decide the obstacle field?
-3. Can you explain why the four named formations were removed (*a surprise exactly once*)?
-4. Can you say why the seed is XORed into the hash rather than added?
-5. Can you explain arrangement versus personality, and why a new seed alone is not enough?
-6. Can you say why `reseedRoute` must clear the lane samples and the cached spreads?
+3. Can you explain why the four named formations were scrapped?
+4. Can you say why the seed is folded in with XOR rather than addition?
+5. Can you explain the difference between arrangement and personality, and why a new seed alone is not enough?
+6. Can you say why reseeding must clear the lane samples and the cached spreads?

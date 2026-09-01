@@ -9,270 +9,134 @@ section: WinterFell
 >
 > **Cut draw calls from 129 to 76** by collapsing each obstacle field into **two instanced meshes**, **measured frame by frame in a headless Chromium harness**: **the cost is that off-screen obstacles can no longer be skipped one by one**.
 
-> ℹ️ **"Triangles submitted up 2.6×" is not on the resume**; the cost clause is written in plain language instead. You still need the 2.6× figure ready — it is the key link in "why a reduction in draw calls comes with a cost to declare".
+The figure "triangles submitted up 2.6×" is not on the resume; the cost is written there in plain language instead. You still need the 2.6× ready, because it is the key link in why a drop in draw calls has to be reported with a cost attached.
 
-## What this bullet is about
+## What this line has to show
 
-⭐ **Of the twenty numbers on the resume, nineteen say "this got better". This bullet contains one that says "this got worse" — and that is exactly what earns credit, because it proves you report costs and not only wins.**
+Of the twenty numbers on the resume, nineteen say something got better. This line contains one that says something got worse — and that is exactly what earns credit, because it proves you report costs and not only wins.
 
-**The bullet writes the mechanism of the trade-off into the sentence itself** (`one bounding volume per mesh being the price of...`). **An interviewer reading that line starts paying attention, because almost every resume reports only the upside.**
+The line carries its own trade-off inside the sentence. An interviewer reading it sits up, because almost every resume reports only the upside.
 
-## 1. What a draw call is, and why it is the bottleneck
+## What a draw call is, and why it is the bottleneck
 
-**A draw call is the CPU telling the GPU once: "draw this thing".**
+A draw call is the CPU telling the GPU, once, to draw something.
 
-**The key point: its cost sits mostly on the CPU side, not the GPU.** Each command means the graphics driver validating state, possibly switching shaders/textures/vertex buffers, and packing the command into a queue.
+The important part is that its cost mostly falls on the CPU, not the GPU. Every command means the graphics driver validates state, possibly switches shaders, textures and vertex buffers, packages the command and queues it.
 
-**The classic bottleneck looks like this:**
+A typical bottleneck looks like this: five hundred blocks in the scene, one command each, five hundred CPU-to-GPU submissions per frame, the CPU unable to keep up, the GPU idling, the frame rate limited by the CPU while GPU utilisation stays low.
 
-```
-500 blocks in the scene, one draw command each
-  → 500 CPU → GPU submissions per frame
-    → the CPU cannot keep up and the GPU sits waiting
-      → the frame rate is pinned by the CPU while GPU utilisation is low
-```
+This condition has a name: draw-call bound. It is easy to recognise — halve the polygon count and the frame rate does not move, because the bottleneck was never the GPU's arithmetic.
 
-> **This situation has a name: draw-call bound. Its signature is that halving your model's triangle count changes the frame rate not at all** — because the bottleneck was never the GPU's arithmetic.
+## Instancing: one command, ten thousand objects
 
-## 2. Instancing: one command draws ten thousand
+If those five hundred blocks share a geometry and a material and differ only in position, rotation and scale, there is no reason to issue five hundred commands. Upload the geometry once, pack the five hundred transform matrices into an array, and issue one command telling the GPU to draw that geometry five hundred times, using the i-th matrix on the i-th pass.
 
-**If 500 blocks share one geometry and one material and differ only in position, rotation and scale, there is no reason to issue 500 commands.** Instead:
+In three.js this is an instanced mesh.
 
-1. Upload the geometry once
-2. Pack the 500 **transform matrices** into an array and upload that
-3. **Issue one** draw command telling the GPU "draw this geometry 500 times, using array element i on pass i"
+So "collapsing each obstacle field into two instanced meshes" means each section went from dozens of independent objects down to two. Why two and not one — because instancing requires a shared geometry and material, and the two roughly correspond to two appearances. Be ready to say what those two are. Both meshes share one set of transform data, so the positions for a batch are computed once and uploaded once.
 
-**In three.js this is an `InstancedMesh`.**
+## The measurement trap: the two backends count different things
 
-**So "collapsing each obstacle field into two instanced meshes sharing one matrix set" means:**
+This is the most substantial part of the line.
 
-- Each section held dozens of independent objects → collapsed into **2**
-- **Why two and not one**: instancing requires the same geometry and the same material. The two roughly correspond to two visual kinds — **in an interview you should be able to say which two**
-- **Sharing one matrix set**: both meshes read the same transform data, so a batch of obstacles' positions are **computed once and uploaded once**
+On the WebGL renderer, the counter field means "draw calls this frame". On the WebGPU renderer, the field of the same name means "how many times the render function has been called since startup" — a monotonically increasing total — and its per-frame draw call count lives in a different field. On top of that, WebGPU renders asynchronously, so its automatic per-frame reset may not have happened before you read.
 
-## 3. ⚠️ The measurement trap: the same counter means different things on the two backends
+Three traps stacked. The fix has three steps: turn off the automatic reset, read the WebGPU field first and fall back to the WebGL field, and reset manually after sampling. Then every read is exactly one frame's worth, and the two backends become comparable.
 
-**This is the most valuable part of the bullet.**
+Without knowing this, the "draw call count" you measure under WebGPU is a number climbing from zero into the tens of thousands — and you might well believe it.
 
-From the comment in `PerfProbe.tsx:11-21`:
+Being able to say "I found that the identically named field means different things on the two backends" is the dividing line between having actually measured and having copied a snippet. It is worth saying out loud in the interview.
 
-> - **On the WebGL renderer, `info.render.calls` is "draw commands this frame"**
-> - **On the WebGPU renderer the identically named field is "how many times the render function has been called since startup"** — a monotonically increasing total; its per-frame draw commands live in **a different field**, `drawCalls`
-> - **And WebGPU renders asynchronously**, so its automatic per-frame reset **may not have happened before you read the value**
+## How the experiment was designed
 
-**Three traps stacked. The fix (`:37-44` and `:74`):**
+Four scenarios, a two-by-two controlled experiment: rendering backend crossed with the instancing switch. WebGPU with instancing, WebGPU without, WebGL with, WebGL without.
 
-```js
-info.autoReset = false;                              // ① turn off the automatic reset
-// ...read...
-drawCalls: render.drawCalls ?? render.calls ?? 0,    // ② prefer the WebGPU field
-// ...
-info.reset?.();                                      // ③ reset by hand after sampling
-```
+Three flags, each worth explaining. The first mounts the performance probe, and it only mounts with that flag, so normal visits carry no overhead. The second makes the craft immortal — otherwise the sampling window is cut short by a crash, and every sample covers a different duration and a different stretch of track. The third disables instancing for the control group.
 
-> ⭐ **Turn off the automatic reset and reset it yourself after sampling** — that way every read is exactly one frame's worth, **and the two backends become comparable.**
->
-> **Without knowing this trap, the "draw call count" you measure under WebGPU is a number climbing from 0 into the tens of thousands, and you might well believe it.**
->
-> **Being able to say "I found that the identically named field means different things on the two backends" is the dividing line between having really measured something and having copied a snippet.**
+The immortality flag is the key design decision: it pins the sampling window as a variable. Without it, the two groups sample different stretches of track and the difference between them is contaminated by the difference in scenery.
 
-## 4. How the experiment was designed
+Sampling runs a headless browser through Playwright, samples each scenario for a fixed number of seconds, records one entry per frame from the probe, and reports statistics at the end. The 129 to 76 is the mean per-frame draw call count across the sampling window.
 
-`bench/run.mjs:32-40` defines **four scenarios**:
+## Why report draw calls rather than frame rate
 
-```js
-{ name: 'WebGPU + instancing',    flags: 'perf=1&immortal=1' },
-{ name: 'WebGPU, no instancing',  flags: 'perf=1&immortal=1&instancing=off' },
-{ name: 'WebGL + instancing',     flags: 'perf=1&immortal=1&renderer=webgl' },
-{ name: 'WebGL, no instancing',   flags: 'perf=1&immortal=1&renderer=webgl&instancing=off' },
-```
+The measurement script has a check: if a scenario's median frame rate exceeds a hundred and fifteen, it appends a warning to the report saying those scenarios are sitting at the compositor's roughly hundred-and-twenty frame cap, that FPS cannot separate them, and that draw calls and triangles should be compared instead.
 
-**A 2×2 controlled experiment**: rendering backend × instancing on or off.
+That is not filtering data, it is annotating the report. The logic: the frame rate metric has saturated, it reads a hundred and twenty before and after, and it shows no difference at all — which does not mean there is no difference, only that the GPU still has headroom and the bottleneck has not been reached.
 
-**Each of the three flags has a purpose, and all three are worth explaining:**
+That is precisely why this line reports draw calls rather than frame rate. When someone asks why you did not report an FPS improvement, this is the answer — reporting a saturated metric is fooling yourself.
 
-| Flag | What it does |
-|---|---|
-| `perf=1` | Mounts the performance probe. **It mounts only with this parameter, so normal visits pay nothing** |
-| ⭐ `immortal=1` | **The craft cannot die** — otherwise a crash cuts the sampling window short and **every run samples a different duration and a different stretch of track** |
-| `instancing=off` | Turns instancing off for the control group |
+There is a related warning: in a headless browser WebGL often falls back to software rasterisation, the CPU imitating a GPU. So in that environment draw call and triangle counts are trustworthy, because they are CPU-side counters of what the renderer submitted and do not depend on a real GPU existing, while frame times and frame rates are not trustworthy.
 
-> ⭐ **`immortal=1` is the crucial design decision**: it holds the sampling window constant. **Without it the two groups sample different stretches of the track, and the difference you measure has scene differences mixed into it.**
+Volunteering that earns real credit: it shows you know where your measurement environment's boundary is and only draw conclusions inside it.
 
-**How sampling works**: playwright launches a headless browser, each scenario is sampled for a fixed number of seconds, the probe records one entry **per frame**, and statistics are taken at the end.
+## Point by point, for an audit
 
-**129 → 76 reports the mean draw commands per frame across the sampling window.**
+The probe is a component I wrote, sampling once per frame, mounted only with the performance flag. Same machine, same headless browser, same resolution, sampling window pinned by the immortality flag, and the four scenarios differ only by switch. What is reported is the mean per-frame value across the sampling window. Reproduction is starting the dev server and running the bench script, which needs Playwright. Attribution: my probe, my experiment, my run.
 
-## 5. What that `fps.p50 > 115` condition is for
+Record the exact command, the resolution and the sampling duration before running — those three affect the result, especially the resolution, which decides whether the GPU is genuinely loaded.
 
-```js
-// bench/run.mjs:123-131
-const capped = ok.filter(r => r.report.fps.p50 > 115);
-if (capped.length) {
-  console.log(`> Note: ${capped.length}/${ok.length} scenarios sit at the compositor's
-    frame cap (~120 fps), so FPS does not separate them — the GPU still has headroom
-    at this resolution. Compare draw calls and triangles instead...`);
-}
-```
+## First, what frustum culling is
 
-**This does not filter data; it adds a warning to the report.**
+The frustum is the truncated pyramid of space the camera can see, between the near and far planes. Frustum culling is deciding, before rendering, whether an object is inside that frustum, and skipping it entirely — not even submitting it — when it is not.
 
-**The logic**: if a scenario's **median frame rate exceeds 115**, it is **pinned against the display compositor's 120 fps cap**. **At that point frame rate as a metric has saturated** — it reads 120 before and after the optimisation and shows no difference at all, **which does not mean there is no difference, only that the GPU still has headroom and the bottleneck has not been reached.**
+three.js does this per object by default: each frame it walks the scene, intersects each object's bounding volume — a sphere or box large enough to contain it, used for a cheap approximate test — against the frustum, and skips anything that does not intersect.
 
-> ⭐ **So that line of code is saying: "at this resolution frame rate can no longer separate these four scenarios; look at draw calls and triangles instead."**
->
-> **Which is exactly why this bullet reports draw calls rather than frame rate.** Asked "why not report an FPS improvement", the answer is right here — **reporting a metric that has saturated is fooling yourself.**
+It is an excellent trade: one cheap sphere test saves an entire object's vertex processing. In this game it is especially good, because the track is long, fog limits visibility to about six hundred units, and at any moment the vast majority of obstacles are outside the view.
 
-**There is a related warning too** (`:146-153`): in a headless browser WebGL often degrades to **software rendering** (the CPU emulating a GPU). That warning draws the line:
+## Why instancing kills frustum culling
 
-| Metric | Trustworthy in a headless environment |
-|---|---|
-| **Draw calls / triangles** | ✅ **Yes** — **they are CPU-side counters** (the renderer recording what it submitted), independent of whether a real GPU exists |
-| **Frame time / frame rate** | ❌ **No** |
+This is the heart of the trade-off.
 
-> **Volunteering this earns a lot**: it shows you know **where your measurement environment's boundaries are** and only draw conclusions inside them.
+Before, the scene held N independent objects and culling was decided per object, so nothing outside the view was submitted at all. After, the scene holds two instanced meshes, the whole section shares one bounding volume, and as soon as a single instance is in view the entire batch is submitted.
 
-## 6. Point by point, against "what will be audited"
+One sentence: culling happens per scene object, and instancing merged N objects into one.
 
-| Question | Answer |
-|---|---|
-| **Which probe** | `src/utils/PerfProbe.tsx`, sampling once per frame, **mounted only under `?perf=1`** |
-| **Same scene, same device?** | ✅ One machine, one headless browser, one resolution, **`immortal=1` fixing the sampling window**; the four scenarios differ only by flags |
-| **Which statistic is reported** | The **per-frame mean** across the sampling window |
-| **Reproducible?** | ✅ Start the dev server and run `node bench/run.mjs`; playwright required |
-| **Attribution** | **Your own probe, your own experiment, your own runs** |
+So with eighty blocks in a section and the player able to see the front ten, before the change seventy were culled and ten submitted; after the change the bounding volume intersects the frustum and all eighty are submitted. The GPU runs the vertex shader for all seventy invisible instances and discards them at clipping. Work done, nothing added to the picture.
 
-⚠️ **One suggestion**: before running, write down **the exact command, resolution and sampling duration** — those three affect the result, **the resolution most of all** (it decides whether the GPU is genuinely saturated).
+That is why submitted triangles rose 2.6×, in absolute terms from roughly twenty-six thousand to roughly sixty-nine thousand. Always be able to give the absolute numbers alongside the ratio; being unable to answer "up to what?" makes it look like you memorised a multiple.
 
----
+Note that *submitted* is precise: what rose is the triangles submitted to the GPU, not triangles visible on screen. The image is identical. Stress that, or it sounds like the visual quality changed.
 
-## 7. First, what frustum culling is
+## So why is the trade still worth it
 
-**The frustum is the truncated pyramid of space the camera can see.**
+This is a mandatory question: draw calls down forty per cent, triangles up a hundred and sixty per cent — on what grounds is that an optimisation?
 
-```
-        camera
-         /\
-        /  \        ← the frustum: between the near and far planes
-       /____\          only things in here can appear on screen
-```
+The answer is that the two costs are fundamentally different resources. Draw call cost falls on the CPU — driver state validation, command packaging, submission — largely serial and bounded by driver overhead, and when it is the bottleneck the CPU is pinned while the GPU idles. Vertex processing cost falls on the GPU — the vertex shader, massively parallel across thousands of cores — and when it is the bottleneck the GPU is pinned while the CPU idles.
 
-**Frustum culling means deciding, before rendering, whether an object is inside the frustum, and skipping it entirely — not even submitting it — when it is not.**
+If the bottleneck is the CPU, then issuing fifty-three fewer commands is CPU time directly saved, while submitting 1.6× more triangles spends GPU headroom.
 
-**three.js does this per object by default**: each frame it walks the scene, intersects each object's **bounding volume** (a sphere or box large enough to contain it, used for a cheap rough test) against the frustum, and **skips it when they do not intersect.**
+Spending a non-bottleneck resource to buy back a bottleneck one is the entire reason this trade is worth it. And the frame-rate saturation warning above is the evidence that the headroom exists: all four scenarios sit at the compositor cap, and the measurement script itself says the GPU still has room at that resolution.
 
-> **It is an extremely good trade**: one cheap sphere intersection test saves the whole object's vertex processing.
->
-> **In this game especially** — the track is long, fog limits visibility to about six hundred units, and **at any instant the vast majority of obstacles are out of view.**
+## But the conclusion has a precondition — say it yourself
 
-## 8. ⭐ Why instancing kills frustum culling
+Change the scenario — higher resolution, heavier shaders, more post-processing — and once the GPU becomes the bottleneck, the trade inverts and loses.
 
-**This is the heart of the trade-off.**
+The right response then is chunked instancing: not one instanced mesh per section, but the section split spatially into blocks with one mesh each, buying back part of the culling granularity.
 
-| | Objects in the scene | Culling granularity |
-|---|---|---|
-| **Before**: N independent objects | N | ✅ **Each block tested individually** — nothing out of view is submitted |
-| **After**: 2 instanced meshes | 2 | ⚠️ **The whole section shares one bounding volume** — if a single instance is in view, **the entire batch is submitted** |
+Being able to say "here is when my optimisation is wrong" is more persuasive than explaining why it is right. That sentence applies to every performance line you will ever write.
 
-> ⭐ **The key: culling happens per scene object, and instancing merged N objects into 1.**
+## The honest answer on frame rate
 
-**So:**
+This measurement cannot show it, because the frame rate saturated. All four scenarios had a median above a hundred and fifteen, sitting at the compositor's roughly hundred-and-twenty cap, and FPS cannot separate them.
 
-```
-a section holds 80 blocks and the player can see only the nearest 10
-  before: 70 are culled and only 10 blocks' triangles are submitted
-  after:  the bounding volume intersects the frustum → all 80 are submitted
-```
+The correct statement: this measurement did not show a frame rate improvement, because at that resolution all four scenarios sat at the compositor cap. To see the draw call reduction turn into frame rate, you would raise the resolution and load the GPU toward being the bottleneck — and the measurement script itself suggests rerunning with a larger window.
 
-**The GPU runs the vertex shader for all 70 invisible instances and then throws them away at the clipping stage. The work happened; nothing was added to the picture.**
+Do not insist the frame rate improved. The data does not support it, and the measurement script wrote that fact into its own report — an interviewer only has to open the code to see the note.
 
-**That is why the triangles submitted go up 2.6×.**
+## What this line is really worth
 
-> ⭐ **Note how precisely the word `submitted` is used** — what went up is **the triangles submitted to the GPU**, **not triangles on screen. The image is identical.** Stress this in an interview, or it sounds like the visuals changed.
+The win is draw calls from 129 to 76. The cost is 2.6× more submitted triangles. The mechanism is one bounding volume per mesh, which is the price of losing per-instance frustum culling.
 
-**The absolute numbers**: **26,230 → 69,112** (69112 ÷ 26230 = 2.635, i.e. 2.6×). **When quoting a ratio, be ready to quote the absolutes too** — being asked "up to what?" and having no answer makes it look like you memorised a multiplier.
+An interviewer reading that sits up, because almost every resume reports only the upside. A candidate who measured both sides of a trade-off and can explain the mechanism raises the credibility of every other number at the same time.
 
-## 9. So why is the trade still worth it
+You can point at it directly: I deliberately put the cost on the line, because reporting only the draw call reduction would be incomplete — it was bought with triangles.
 
-**This is a must-answer: draw calls down 41%, triangles up 160% — on what basis is that an optimisation?**
+## Self-check
 
-**The answer is that the two costs are of entirely different natures:**
-
-| | Draw calls | Vertex processing |
-|---|---|---|
-| **Where the cost lands** | **The CPU** — driver state validation, command packing, submission | **The GPU** — the vertex shader, massively parallel |
-| **Parallelisable?** | Essentially serial, limited by driver overhead | **Extremely parallel**, thousands of cores at once |
-| **What it looks like as a bottleneck** | CPU saturated, GPU idle | GPU saturated, CPU idle |
-
-**If the bottleneck is the CPU:**
-
-- 53 fewer draw calls = **CPU time saved directly**
-- 1.6× more triangles submitted = **spending the GPU's spare capacity**
-
-> ⭐ **Spend a non-bottleneck resource to buy back a bottleneck resource — that is the entire reason this trade pays.**
-
-**And the `fps.p50 > 115` note in section 5 is precisely the evidence that "the GPU has headroom"**: all four scenarios are pinned at the compositor's 120 cap, and **the measurement script itself says "the GPU still has headroom at this resolution".**
-
-## 10. ⚠️ But the conclusion has a precondition, and you must volunteer it
-
-> **Change the scene — higher resolution, more complex shaders, heavier post-processing — so that the GPU becomes the bottleneck, and this trade goes the other way and loses.**
->
-> **The right move then is chunked instancing**: not one instanced mesh per section, but **the section cut into spatial chunks with one mesh each** — **buying back some culling granularity.**
-
-> ⭐ **Being able to say "here is when my optimisation is wrong" is more persuasive than explaining why it is right.**
-
-## 11. The real frame-rate impact — the honest answer
-
-**This measurement cannot show it, because frame rate saturated.**
-
-All four scenarios have a median frame rate above 115, pinned at the compositor's roughly 120 cap, **so frame rate cannot separate them.**
-
-**So the correct statement is:**
-
-> "This measurement could not show a frame-rate improvement, **because at that resolution all four scenarios sit at the compositor's frame cap.** To see the draw-call reduction convert into frame rate you would raise the resolution and push the GPU towards being the bottleneck — the note in the measurement script suggests re-running with a larger window for exactly that reason."
-
-> ⚠️ **Do not insist the frame rate improved.** The data does not support it, **and the measurement script writes that fact into its own report** — the interviewer only has to open the code to see the note.
-
-## 12. What this bullet is really worth
-
-```
-draw calls down from 129 to 76        ← the win
-triangles submitted up 2.6×            ← the cost
-one bounding volume per mesh being     ← the mechanism of the cost
-the price of losing per-instance
-frustum culling
-```
-
-> ⭐ **An interviewer reading that starts paying attention**, because almost every resume reports only the upside. **A candidate who measured both sides of a trade-off and explained the mechanism raises the credibility of every other number at the same time.**
->
-> **You can point it out directly when telling it**: "I deliberately put the cost on this line, because reporting only the draw-call reduction would be incomplete — **it was bought with triangles.**"
-
-## Glossary
-
-| 中文 | English |
-|---|---|
-| 绘制命令 | **draw call** |
-| 受绘制命令限制 | **draw-call bound** (cf. *GPU-bound* / *CPU-bound*) |
-| 实例化渲染 | **instancing · InstancedMesh** |
-| 变换矩阵 | **transform matrix** (*sharing one matrix set*) |
-| 合批 | **batching** (*collapsed into two meshes*) |
-| 视锥 | **frustum** |
-| 视锥剔除 | **frustum culling** (*per-instance frustum culling*) |
-| 包围体 / 包围盒 | **bounding volume · bounding box** |
-| 剔除粒度 | **culling granularity** |
-| 提交的三角形 | **triangles submitted** (⚠️ not more triangles on screen) |
-| 顶点着色器 | **vertex shader** |
-| 裁剪阶段 | **clipping** |
-| 富余产能 | **headroom** (*the GPU still has headroom*) |
-| 帧率上限 / 饱和 | **frame cap · saturated** (*FPS does not separate them*) |
-| 软件光栅化 | **software rasterisation** |
-| 无头测量装置 | **headless harness** |
-| 受控实验 | **controlled experiment** (2×2 = *a two-by-two*) |
-| 采样窗口 | **sampling window** |
-| 分块实例化 | **chunked instancing** |
-
-> ⭐ **The three easiest to get wrong**:
->
-> 1. "Trading a non-bottleneck resource for a bottleneck one" is **we spent GPU headroom to buy back CPU time** — the entire reason the trade pays
-> 2. "Triangles went up" must be **submitted**, followed by **the image is identical**, or it sounds like the visuals changed
-> 3. "Frame rate cannot separate the four scenarios" is **FPS is saturated at the compositor cap, so it can't separate them**
+1. Can you explain that draw call cost falls mostly on the CPU, and name the symptom of being draw-call bound?
+2. Can you explain why instancing requires a shared geometry and material, and why there are two meshes?
+3. Can you explain the trap where the two backends count different things, and the three-step fix?
+4. Can you say which variable the immortality flag pins?
+5. Can you explain why draw calls are reported instead of frame rate?
+6. Can you explain why instancing kills per-instance culling, and give both the ratio and the absolute numbers?
+7. Can you say when this trade would invert, and name chunked instancing as the remedy?

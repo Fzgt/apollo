@@ -9,252 +9,114 @@ section: Baidu
 >
 > Built a **virtualized React feed** serving **5M+ daily page views** on a custom **useVirtualList** hook over **IntersectionObserver**: **live DOM nodes stay near 100 at any scroll depth**, scroll **from 30 to a stable 60 FPS**.
 
-## What this bullet is about
+## What this line has to show
 
-**In one line: an infinite-scroll feed grows its DOM forever, and once it reaches a few hundred nodes the frame rate collapses.**
+Virtualized lists are a solved problem with libraries available, so "I built a virtualized list" is worth nothing on its own. What this line is worth is that you can account for all three numbers, and that their natures are completely different. Five million page views is the environment I worked in, not my result, and the number comes off an analytics report. A hundred nodes is my result, measured by me in DevTools. Thirty to sixty frames is also my result, also measured by me.
 
-⭐ **But the real value of this bullet is not "I built a virtual list" — there are libraries for that. It is that you can account for all three numbers: 5M PV is not your achievement, it is your environment; ~100 nodes is something you measured yourself; 60 FPS is three optimisations stacked.**
+Blur those three together and you will be caught. Sort out the attribution first, then talk about the technique.
 
-**The three numbers are of completely different kinds, and blurring them gets you caught:**
+## First, why more nodes means dropped frames
 
-| Number | Kind | Who measured it |
-|---|---|---|
-| **5M+ daily PV** | **Scale credential** | The analytics system — **you only read the report** |
-| **DOM nodes ~100** | **Optimisation result** | **You**, with DevTools |
-| **30 → 60 FPS** | **Optimisation result** | **You**, with DevTools |
+The browser walks five steps to render a frame, and that pipeline is the foundation under every frontend performance problem. First it runs your JavaScript; that cost scales with code. Then it recalculates style — which CSS rules apply to each node — and that cost scales with node count. Then layout, also called reflow, computes each node's position and size; that also scales with node count, and it is the most expensive step. Then paint turns nodes into pixels, scaling with pixel area. Then compositing stitches the layers together for the GPU, scaling with layer count.
 
-## The 30-second version
+Layout is expensive because one node's position affects the position of every node after it, so the cost grows linearly with the total number of nodes.
 
-> This is a feed page, on the order of five million page views a day. **The problem is that infinite scroll makes the DOM grow without limit** — ten screens is over two hundred rows, and after a while it is five hundred or more, at which point scrolling drops straight to thirty frames per second.
->
-> The key realisation: **the user can only see about a dozen rows at once; the rest merely need to pretend to exist**. So I wrote a `useVirtualList` that renders only the visible range plus a few rows of buffer above and below, with an outer container stretched to the full height to keep the scrollbar honest, and each row positioned with `transform: translateY`.
->
-> ⭐ **The real win is not "how many nodes went away", it is that the complexity class changed** — before, DOM count grew with the number of rows loaded, O(n); after, it grows only with viewport height and is independent of the data, **so the user can scroll ten thousand rows and the DOM still holds the same twenty-odd nodes**. Scrolling went back to a stable 60 fps.
+That is why five hundred nodes drops frames. It is not that nodes consume memory. It is that every single frame recomputes layout for all five hundred.
 
-## 1. ⭐ First, why more nodes means slower
+## Why it lands exactly on 30
 
-**The browser goes through five steps to render each frame** — this pipeline is the foundation under every front-end performance problem:
+This number is not made up, and being able to explain it noticeably raises your credibility.
 
-| Step | What it does | What its cost scales with |
-|---|---|---|
-| **JS** | Runs your code and mutates the DOM | Amount of code |
-| **Style** | Works out which CSS rules finally apply to each node | ⭐ **Node count** |
-| **Layout** (reflow) | Computes each node's **position and size** | ⭐ **Node count** (the most expensive step) |
-| **Paint** | Draws each node into pixels | Pixel area |
-| **Composite** | Assembles the painted layers and hands them to the GPU | Layer count |
+The display refreshes on a fixed cadence — 60 Hz means once every 16.67 milliseconds — and the browser has to hand over the frame before the next refresh. When a frame misses that deadline it is not delivered slightly late; it waits for the following refresh. So the real interval jumps from 16.67 ms to 33.3 ms, which is exactly 30 FPS.
 
-**"Reflow" = recomputing the geometry of every node.** It is expensive because ⭐ **one node's position affects the position of every node after it**, so the cost scales linearly with total node count.
+Dropping frames is not a smooth slowdown. It is a staircase: sixty, or thirty, with jitter in between.
 
-⭐ **That is why 500 nodes drop frames**: not because "nodes use memory", but because **every single frame's Layout has to walk all 500 of them.**
+## The two layers of a virtualized list
 
-## 2. ⭐ Why it lands on exactly "30" (that number is not a guess)
+The naive idea is to render only the ten visible rows, but then the scrollbar disappears — the page is only ten rows tall, so the browser believes that is all the content there is.
 
-**Saying this out loud raises your credibility noticeably.**
+So it splits into two layers. The outer one is a container stretched to the full height, total rows times row height, and its only job is to keep the scrollbar honest; it is usually called a spacer. The inner layer is the dozen or so rows actually rendered, each absolutely positioned and moved into place with a vertical transform.
 
-A display refreshes on a fixed cadence (vsync; at 60 Hz that is once every 16.67 ms). The browser has to hand over the frame **before the next vsync**.
+One sentence to remember it: the outer layer pretends to be ten thousand rows tall, the inner layer only draws the dozen you can see.
 
-⭐ **Once a frame misses, it is not delivered "slightly late" — it waits for the next vsync.** So the actual frame interval jumps from 16.67 ms to **33.3 ms**, which is exactly **30 FPS**.
+## Why transform and not top
 
-```
-frame under 16.67 ms         → 60 FPS
-frame 16.67 – 33.3 ms        → drops to 30 FPS (not 45, not 50)
-frame 33.3 – 50 ms           → drops to 20 FPS
-```
+This one is worth memorising. Changing `top`, `left`, `width` or `height` triggers layout, paint and composite — the whole pipeline, the most expensive path. Changing background colour or box shadow triggers paint and composite. Changing `transform` or `opacity` only triggers compositing: the GPU moves an already-painted layer and the CPU barely participates.
 
-⭐ **So "30 FPS" is a harmonic of 60, the typical steady state when frames are being dropped.** It says each frame at the time cost between 16.67 and 33.3 ms — over budget, but not by much.
+The reason is that changing `top` changes where the element sits in document flow, which affects other elements, so layout must run again. Changing `transform` moves a picture that has already been painted; in document flow the element never moved, so nothing else is affected and the browser can hand the translation straight to the GPU.
 
-**It also answers "why does it land back on exactly 60": push each frame back under 16.67 ms and it returns to 60 automatically, with no intermediate state.**
+## Where "about 100" comes from
 
-> **60 FPS = a 16.67 ms budget per frame, and the browser spends part of that itself, so what is really left for your JS is around 10 ms.**
+The number of rendered rows follows a formula: viewport height divided by row height rounded up, plus twice the overscan, plus one. With typical mobile values — a 600 viewport, 80-tall rows, an overscan of 3 — that is 8 plus 6 plus 1, roughly fifteen rows.
 
-## 3. The two layers of a virtual list (the spacer is the point)
+Note that this is rows, not nodes. One feed card is an outer container, an image wrapper, the image itself, a duration badge, a right column, a title, a footer, an author and a play count — eight or nine elements at minimum. Fifteen rows times eight or nine elements is about a hundred and ten, and that is the hundred on the resume.
 
-**The naive idea — "just render the visible ten" — has an immediate problem: the scrollbar disappears**, because the page only contains ten rows' worth of height and the browser believes that is all there is.
+Overscan is a trade-off, not something to minimise. At zero or one you get fewer nodes, but during fast scrolling the new rows have not mounted yet and the user sees blank space — the blank flash. At five to ten scrolling is smooth, but the node count and the memory come back. So "around a hundred" is itself the product of that trade-off. When someone asks why you did not set overscan to zero for fewer nodes, the answer is the blank flash.
 
-**So it splits into two layers:**
+## How the three numbers are measured
 
-```
-outer container (stretched to the full height: row count × row height)  ← ⭐ purely to fool the scrollbar; called the spacer
-  └── each inner row (position: absolute + transform: translateY(that row's offset))
-```
+**DOM node count.** The fastest and crudest way is to query every element on the page and count, but that counts the whole page and only counts elements, not text nodes. More accurate is counting the direct children of the list container. The best way is DevTools' Performance Monitor, which has a live curve literally labelled DOM Nodes: scroll while watching that line, and before the optimisation it climbs monotonically, after it is flat. A flat line is more convincing than any number — if you want to demo this live to an interviewer, use that. You can also take a heap snapshot in the Memory panel and search for detached nodes, to confirm scrolled-past rows are genuinely collected.
 
-⭐ **The outer layer's job is to pretend to be ten thousand rows tall; the inner layer's job is to draw only the ten you can see.**
+There is a measurement discrepancy you must raise yourself: querying all elements counts only element nodes, while DevTools' DOM Nodes counts every node including text and comments. On the same page those two can differ by almost a factor of two. The hundred on the resume is the element count inside the list container.
 
-### Why `transform` and not `top` (memorise this)
+**Frame rate.** For a quick qualitative check, the live FPS overlay in the Rendering panel takes thirty seconds. The strongest evidence is a Performance recording: the FPS band at the top marks dropped frames in red, the Frames track shows each frame's real duration, and the Main track shows what the main thread was doing during the bad frames. Layouts per second and style recalcs per second in the Performance Monitor prove directly that the layout stage was being hammered. You can also count frames yourself with `requestAnimationFrame`, which has the advantage of running on a real device in real conditions — but it lives on the main thread too, so when the main thread is saturated it is delayed as well, and the number reads optimistic under load. A more useful lens than FPS is watching long tasks with `PerformanceObserver`: any single task holding the main thread for more than fifty milliseconds is a long task, one of them costs three frames, and it points straight at the code that blocked.
 
-| What you change | Which steps it triggers |
-|---|---|
-| `top` / `left` / `width` / `height` | ⚠️ **Layout → Paint → Composite** (the whole pipeline, most expensive) |
-| `background-color` / `box-shadow` | Paint → Composite |
-| ⭐ `transform` / `opacity` | **Composite only** (the GPU moves the layer; the CPU barely participates) |
+The best evidence puts node count, layout time and frame rate in the same Performance recording. That is a causal chain, rather than three isolated numbers.
 
-**Why**: changing `top` changes where the element sits in the document flow, **which affects other elements** → reflow required. ⭐ **Changing `transform` moves an already-painted image somewhere else; in the document flow it never moved** → it affects nobody, so the browser can hand the translation straight to the GPU.
+**A frame rate is meaningless without the device and the scenario.** Say which machine it was measured on — the same page holds sixty on a flagship and struggles to hold thirty on a budget phone. If you used DevTools CPU throttling to simulate a slow device, say so; that is standard lab practice and saying it earns credit. Say whether it was a slow steady scroll or a fast fling — fast scrolling is the stress test, a slow scroll may never drop a frame at all. And say how deep you were when you measured: that pre-optimisation thirty was certainly measured after the list had accumulated hundreds of rows, because at twenty or thirty rows rendering everything is fine.
 
-## 4. "~100" was calculated, not invented
+## How to defend the word "stable"
 
-**How many rows get rendered is a definite formula:**
+"A stable 60 FPS" is a stronger claim than "60 FPS" — it promises there is no variance. And frame rate is a metric you cannot meaningfully average: a steady thirty feels dull but even, while bouncing between ten and sixty for the same average of thirty feels obviously broken.
 
-```
-rows rendered = ceil(viewport height / item height) + overscan × 2 + 1
-```
+The jank users perceive comes from frame-time variance, not from the mean. That is why modern performance work looks at frame-duration percentiles, long-task counts and dropped-frame counts, and looks at INP in the field.
 
-Substituting typical mobile values (viewport 600, item height 80, overscan 3): `ceil(600/80) = 8`, then `8 + 3×2 + 1 = 15` — **fourteen or fifteen rows**.
+So the answer for "stable" is: during the scroll, the Performance recording shows no red dropped-frame markers and no frame over 16.67 ms in the Frames track — it does not mean the average reached sixty. Defining stable as "no long frames" rather than "a high average" is both accurate and professional.
 
-⭐ **Note that this is rows, not nodes.** Multiply by the nodes per card to reach the 100 on the resume: one feed card (outer div + image container + `img` + duration badge + right column + title + footer + author + play count) is **eight or nine elements at minimum**, so `14 × 8 ≈ 110`.
+## Which changes actually raised the frame rate
 
-### overscan is a trade-off; smaller is not better
+First, DOM went from five hundred-plus to a constant hundred or so, taking layout time from roughly ten milliseconds down to under one. The evidence is layouts per second in the Performance Monitor.
 
-`overscan` (the **buffer**) means rendering a few extra rows above and below the visible range:
+Second, `transform` replaced `top`, so positioning only composites — the GPU does it and the main thread is untouched. Paint events drop visibly in the recording.
 
-| overscan | DOM count | On fast scroll |
-|---|---|---|
-| Small (0–1) | Fewer | ⚠️ **Blank flash** — the new rows have not mounted yet and the user sees empty space |
-| Large (5–10) | More | Smooth, but the DOM and memory come back |
+Third, the scroll listener was made passive, which tells the browser you will not call `preventDefault`, so it can start scrolling immediately instead of waiting for your JavaScript. In the recording the scroll handler stops blocking compositing.
 
-⭐ **So "around one hundred" is itself the product of that trade-off.** When asked "why not set overscan to 0 and cut the node count further", the answer is the blank flash.
+Fourth, `IntersectionObserver` replaced scroll events plus reading element geometry. Reading a geometric property in JavaScript forces the browser to run layout synchronously so it can give you an accurate answer — that is forced synchronous layout, also called layout thrashing. `IntersectionObserver` lets the browser compute this asynchronously on its own schedule and notify you, which sidesteps the whole thing.
 
-## 5. How the three numbers were measured (this section is the important one)
+The fourth one deserves emphasis because the warning is not your inference — the browser reports it. DevTools puts a yellow triangle on the main thread track saying forced reflow is a likely performance bottleneck. "Before the change DevTools was constantly reporting forced reflow, and after moving to IntersectionObserver the warning disappeared" is concrete evidence you can produce.
 
-### DOM node count
+## 5M PV is the environment, not the result
 
-| Method | Note |
-|---|---|
-| `document.querySelectorAll('*').length` | Fastest and crudest — **it counts the whole page**, and **only Elements, not text nodes** |
-| `document.querySelector('#feed-list').children.length` | Counts only the items inside the list container: **accurate** |
-| ⭐ **DevTools → Performance Monitor** | There is a live line labelled **DOM Nodes**. **Watch it while you scroll: before, it climbs monotonically; after, it is a flat line** |
-| Memory panel heap snapshot | Verifies **that reclamation actually happens** — search `Detached` to see whether scrolled-past rows were really removed |
+The same virtualized list on a personal blog and on a feed serving five million daily page views mean completely different things as engineering. That number is my working environment, not my achievement. The resume uses `serving`, which is correct: it describes carrying the load without claiming to have created it. Do not upgrade it to "brought" or "grew" when speaking either.
 
-⭐ **"A flat line" is more convincing than any number. If you want to demo it live to an interviewer, use the Performance Monitor.**
+Sort out the quantities first. Page views count every load, so one person refreshing ten times is ten. Unique visitors count that person once. Daily active users also count once. Impressions are a different thing entirely — one page load can produce dozens.
 
-> ⚠️ **The two tools count different things, and you must say which before quoting a number**: `querySelectorAll('*')` **counts Elements only**; DevTools' `DOM Nodes` **counts all Nodes, including text nodes and comments**. **On the same page the two can differ by nearly a factor of two.** The 100 on the resume is **the Element count inside the list container.**
+Here is where you can be caught: a feed scrolls dozens of items per load, so when page views are five million, impressions might be fifty million or more. If the number in your memory is actually impressions, then "page views" is the wrong term and the figure is inflated tenfold.
 
-### FPS
+The number is also not measured, it is instrumented. No browser API can tell you how many times a page was opened today. The only way is to send a record on each load, aggregate the logs in a warehouse, and have BI report daily page views. The frontend only owns the first hop; the five million was read off a report, not computed by me — and that must be said, because it decides how the attribution is written. Internal products use internal instrumentation and internal dashboards, not the public analytics product. If you cannot remember what the internal platform was called, say "internal instrumentation and a BI dashboard" — inventing a system name and getting it wrong is far worse than not knowing.
 
-| Tool | Use |
-|---|---|
-| **Rendering → Frame Rendering Stats** | A live overlay in the top-left corner; **a qualitative check you can finish in thirty seconds** |
-| ⭐ **A Performance panel recording** | **The most convincing evidence** — the FPS strip at the top (red = dropped frames), the Frames track (actual duration of each frame), the Main track (what the main thread was doing during the dropped frames) |
-| **Performance Monitor** | `CPU usage` / `Layouts per sec` / `Style recalcs per sec` — **direct proof that the layout stage is what is being hammered** |
-| Counting frames yourself with `requestAnimationFrame` | Runs **on a real device in real conditions**. ⚠️ **But it is on the main thread too, so when the main thread is saturated it is delayed as well, which makes the number optimistic under heavy load** |
-| `PerformanceObserver` watching long tasks | **A single task holding the main thread for more than 50 ms is a long task, and one of them means three consecutive dropped frames.** This lens is more useful than FPS — **it points straight at the code that stalled** |
+One extra fact worth having: page views are structurally undercounted. Ad blockers block the analytics domain, users who bounce immediately leave before the SDK loads, and network calls fail. So real traffic is generally at or above the reported number, which makes the plus sign in "5M+" reasonable.
 
-⭐ **DOM node count, layout time and frame rate should all appear in the same Performance recording — that is a complete causal chain rather than three isolated numbers.**
+The correct attribution is "the feed I owned served five million-plus daily page views", not "I brought five million page views". The better answer translates scale into engineering constraints: at that volume a dropped frame affects millions of users, so changes ship behind a staged rollout and with performance monitoring — which is also why we did not simply pull in a third-party virtualization library and instead wrote a hook we controlled. That turns the number from a boast into the basis of a technical decision.
 
-### ⚠️ An FPS number is meaningless without the device and the scenario
+## Why write it rather than use a library
 
-| What to state | Why |
-|---|---|
-| ⭐ **Which machine it was measured on** | The same page is a solid 60 on a flagship and struggles to hold 30 on a budget phone. **If you used DevTools CPU throttling (4×/6× slowdown) to simulate a low-end device, say so** — it is the standard lab technique and saying it earns you points |
-| **Slow steady scroll or a fast fling** | **Fast scrolling is the stress test**; a slow scroll may not drop a single frame |
-| ⭐ **At what scroll depth** | **That pre-optimisation 30 FPS was certainly measured after the list had accumulated a few hundred rows** — with only twenty or thirty rows loaded, even rendering all of them is fine |
+Honestly: at the time it was more a team constraint than a technical judgement. Bringing in a third-party library meant going through an approval process, and the requirement was well bounded with a fixed card structure. The cost of writing it is that dynamic heights, keyboard navigation and accessibility are all edges you have to cover yourself, and a mature library has already covered them. Today I would reach for TanStack Virtual first, unless its API blocked a customisation I actually needed.
 
-### ⭐ How to defend the word `stable`
+Volunteering "today I would use the library" is far more credible than insisting hand-rolling was better.
 
-`a stable 60 FPS` is **a stronger claim than "60 FPS"**: it promises there is no variance. And ⭐ **FPS is a metric you cannot simply average**:
+One honest addition: the cards in this feed do not have uniform heights — some carry a cover image, some do not — so the visible count itself floats with scroll position. That is the second source of the "near" in "near 100". The standard handling for dynamic heights is an estimated height corrected by `ResizeObserver` measurements, or an offset table with a binary search.
 
-| | How it feels |
-|---|---|
-| A steady 30 | A bit heavy, but **even** |
-| Bouncing between 10 and 60, averaging 30 | ⚠️ **Obviously janky** |
+## The 30-second answer
 
-⭐ **What users perceive as "laggy" comes from frame-time variance, not from mean frame rate.** So modern performance work looks at **frame-duration percentiles (p95/p99), long-task counts and dropped-frame counts**, and **INP** in the field.
-
-> ⭐ **How to answer**: "By stable I mean that in the Performance recording of the scroll there are no red dropped-frame markers and no frame in the Frames track exceeds 16.67 ms — **not that the average reached 60**." **Defining `stable` as "no long frames" rather than "a high average" is both accurate and sounds professional.**
-
-## 6. ⭐ Quantified attribution: which steps actually raised the frame rate
-
-**This is the hardest-edged part of the bullet — every line has matching evidence in DevTools:**
-
-| # | What was done | Why it got faster | Where to see it in DevTools |
-|---|---|---|---|
-| 1 | **DOM from 500+ to a constant ~100** | Layout time from ~10 ms to ~0.5 ms | `Layouts/sec` in the Performance Monitor |
-| 2 | **`transform` instead of `top`** | Composite only, done by the GPU, no main-thread pressure | Paint events drop noticeably in a recording |
-| 3 | **`passive: true` on scroll** | Tells the browser "I will not call `preventDefault()`", so **it can start scrolling immediately instead of waiting for the JS to finish** | The scroll handler no longer blocks compositing in a recording |
-| 4 | ⭐ **IntersectionObserver instead of scroll + `getBoundingClientRect()`** | The latter **forces a synchronous layout** on every scroll event | ⭐ **DevTools flags it for you** — a yellow triangle on the Main track plus `Forced reflow is a likely performance bottleneck` |
-
-**Item 4 deserves its own explanation**: ⭐ **a "forced synchronous layout" (also called layout thrashing) is when your JS reads a geometry property (say `getBoundingClientRect()`) and the browser, to give you an accurate answer, is forced to run Layout synchronously right then.** `IntersectionObserver` lets the browser compute this asynchronously on its own schedule and notify you, **which sidesteps that step entirely**.
-
-⭐ **And that warning is not something you inferred, it is the browser's own report** — "before the change DevTools was continuously reporting forced reflow, and after switching to IntersectionObserver the warning disappeared" is concrete evidence you can produce.
-
-## 7. 5M PV: it is the environment, not the achievement
-
-⭐ **That number is not your achievement, it is your working environment.** The same virtual list on a personal blog and on a feed doing five million page views a day mean completely different things as engineering.
-
-**The resume uses `serving` correctly** — it describes carrying the load, it does not claim to have produced it. ⚠️ **Do not say brought or grew when speaking either.**
-
-### What PV means, and how it differs from the neighbouring metrics
-
-| Metric | One person opening it 10 times counts as |
-|---|---|
-| **PV** (page views) | **10** |
-| **UV** (unique visitors) | 1 |
-| **DAU** (daily active users) | 1 |
-| **Impressions** | ⚠️ One page load can produce **dozens** |
-
-⭐ **The easiest place to get caught**: one load of a feed scrolls dozens of items past the user, **so at 5M page views the impression count could be 50 million or more**. If the number you remember was actually impressions, **`page views` is the wrong term and the figure is inflated tenfold**.
-
-### Where it comes from: it is not measured, it is instrumented
-
-⭐ **No front-end API can tell you how many times a page was opened today.** The only way is to send a record to the server on each open and have the back end aggregate:
-
-```
-user opens the page → analytics SDK reports → log server → warehouse / stream aggregation → BI report gives daily PV
-```
-
-⭐ **You (the front end) own only the first segment. 5M was read off a report, not computed by you — and you must say so, because it determines how the attribution is phrased.**
-
-**Internal products used internal instrumentation and a BI dashboard, not the public Baidu Analytics product.** ⚠️ **If you cannot remember what the internal platform was called, say "internal instrumentation and a BI dashboard" — never invent a system name; being caught inventing one is far worse than not remembering.**
-
-**Why PV is inherently undercounted**: ad blockers block analytics domains, users who bounce instantly leave before the SDK loads, and network requests fail. ⭐ **So real traffic is generally ≥ the PV in the report — writing `5M+` with the plus sign on a resume is legitimate.**
-
-### How to phrase ownership
-
-- ✅ "The feed I owned **served** 5M+ daily page views"
-- ❌ "I **brought in** 5M+ page views"
-
-⭐ **The better answer translates the scale into an engineering constraint**: "At that volume one dropped frame affects millions of users, so any change has to be rolled out gradually and has to have performance monitoring. **That is also why we did not just pull in a third-party virtual list library and instead wrote a hook we controlled.**" — **which turns the number from bragging into the basis of a technical decision.**
-
-## 8. Why write it yourself instead of using a library (expected follow-up)
-
-> "Honestly: **at the time it was more a team constraint than a technical judgement** — bringing in a third-party library required an evaluation process, while this requirement had clear edges and a fixed item structure. **The cost of writing it yourself is that dynamic heights, keyboard navigation and accessibility are all corners you have to fill in, whereas a mature library has handled them.** If I did it today I would start with TanStack Virtual, unless its API blocked some customisation I needed."
-
-⭐ **Volunteering "I would pick a library now" is far more credible than insisting "hand-rolled was better".**
-
-**One honest addition**: this feed's cards **were not a uniform height to begin with** (some carry a cover image, some do not), so `visibleCount` itself floats with scroll position — ⭐ **that is the second source of the `near` in `near 100`**. The standard treatment for dynamic heights is "estimated height + `ResizeObserver` correction" or "an offset table + binary search".
-
-## Glossary
-
-| 中文 | English |
-|---|---|
-| 虚拟列表 | **virtualized list** (*a virtualized React feed*) |
-| 信息流 | **feed** |
-| 无限滚动 | **infinite scroll** |
-| 视口 | **viewport** |
-| 渲染流水线 | **the rendering pipeline** |
-| 重排 | **layout / reflow** |
-| 重绘 | **paint / repaint** |
-| 合成 | **compositing** |
-| 强制同步布局 | **forced synchronous layout · layout thrashing** |
-| 掉帧 | **dropped frames** |
-| 长帧 | **long frame** |
-| 帧预算 | **frame budget** (*16.67 ms per frame*) |
-| 长任务 | **long task** |
-| 主线程 | **main thread** |
-| 撑高度的占位容器 | **spacer** |
-| 缓冲条数 | **overscan** |
-| 白闪 | **blank flash** |
-| 存活节点 | **live DOM nodes** |
-| 节点 ↔ 元素 | **node ↔ element** (⚠️ node includes text nodes; the two can differ by nearly 2×) |
-| 分离节点（泄漏） | **detached DOM nodes** |
-| 降速模拟 | **CPU throttling** (*4× slowdown*) |
-| 快速甩动 | **fling / flick scroll** |
-| 方差 | **variance** (*jank comes from frame-time variance*) |
-| 卡顿 | **jank** |
-| 埋点 / 上报 | **instrumentation · report** |
-| 曝光量 | **impressions** (⚠️ do not confuse with page views) |
-
-> ⭐ **The three easiest to get wrong**:
->
-> 1. "The complexity class changed" is **DOM count stopped growing with the data and became a function of viewport height** — more convincing than saying "O(n) to O(1)"
-> 2. Define "a stable 60 fps" as **no frame over 16.67 ms**, not "the average was 60"
-> 3. "Carrying 5M PV" uses **serving**; ⚠️ never `brought` or `grew`
+> This is a feed page at roughly five million daily page views. The problem is that infinite scroll grows the DOM without bound — ten screens in you have two hundred rows, and further in you are past five hundred and scrolling drops to thirty frames. The key insight is that the user can only see about a dozen rows at once, and the rest only need to appear to exist. So I wrote a `useVirtualList` that renders the visible window plus a few rows of buffer above and below, keeps the scrollbar honest with an outer container stretched to the full height, and positions each row with a vertical transform. The real win is not that there are fewer nodes, it is that the complexity changed class: before, DOM count grew with the number of loaded rows; after, it only grows with viewport height and is independent of the data. Ten thousand rows in, it is still the same twenty-odd nodes. Scrolling went back to a stable sixty.
+
+## Self-check
+
+1. Can you state the nature and the source of each of the three numbers?
+2. Can you walk the five-step rendering pipeline and explain why layout scales with node count?
+3. Can you explain why dropped frames land on thirty as a step rather than degrading smoothly?
+4. Can you state the formula for rendered rows and explain why overscan cannot be zero?
+5. Can you define "stable" as no long frames rather than a high average?
+6. Can you give the four attributions and explain forced synchronous layout?
+7. Can you separate page views, unique visitors, daily active users and impressions, and explain that page views are instrumented rather than measured?

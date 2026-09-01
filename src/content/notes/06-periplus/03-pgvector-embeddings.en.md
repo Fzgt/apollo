@@ -11,133 +11,74 @@ section: Periplus
 
 ## What this line has to show
 
-In one sentence: **the same piece of evidence is never fetched twice and never embedded twice**, and **the embedding itself costs no money and no network**. The cache is hit by meaning, not by URL.
+In one sentence: the same evidence is never fetched twice or embedded twice, and embedding costs no money and touches no network. The cache hits on meaning, not on URL.
 
-## Layer one: answer these without thinking
+## What the cache key is, and why not the URL
 
-### 1. What is the cache keyed on? Why not the URL?
+It hits on embedding similarity. The same fact is scattered across different sites, different URLs and different titles; a URL key only prevents refetching the identical page, and does nothing about "I already have this passage".
 
-On **embedding similarity**. The same fact is spread across different sites, different URLs and different titles. A URL key only catches "I fetched this exact page before". It cannot catch "I already have this passage".
+An embedding turns text into a list of numbers such that similar meanings produce similar numbers. That turns "do I have anything that means roughly this?" into a question a database can answer.
 
-**What an embedding is**: a piece of text turned into a list of numbers, where **text with similar meaning gets similar numbers**. That turns "do I already have something that means roughly this?" into a question a database can answer.
+The table stores a canonical key, the URL, the title, the text, the source kind, the published date, the fetch time, the query that found it, and a 384-dimension vector column. 384 is the embedding model's output dimension, and the vector column type itself comes from pgvector.
 
-The table (`postgres_evidence.py`):
+## What "generated locally" means and why it matters
 
-```sql
-CREATE TABLE IF NOT EXISTS evidence_cache (
-    canonical_key TEXT PRIMARY KEY,
-    url          TEXT NOT NULL,
-    title        TEXT,
-    text         TEXT NOT NULL,
-    source_kind  TEXT NOT NULL,
-    published_at DATE,
-    fetched_at   TIMESTAMPTZ NOT NULL,
-    query        TEXT,
-    embedding    vector(384) NOT NULL,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
+The model is a small one — roughly eighty megabytes, 384 dimensions — running on CPU through sentence-transformers, calling no paid embedding API.
 
-**`vector(384)`** is the column type pgvector adds, and 384 is MiniLM's output size.
+This line and [the scripted seams line](/docs?section=periplus&item=scripted-seams) are two sides of the same position: the whole system runs with no API keys and no network. If embeddings required a network call, that claim would be false.
 
-### 2. What does "locally by MiniLM" mean, and why does it matter?
+There is a cost angle too: the research stage may fetch dozens of pages, every one of which needs an embedding. On an API that means paying, on every run, to find out that you might already have it.
 
-The model is `all-MiniLM-L6-v2`, running **on CPU, about 80MB, 384 dimensions**, through sentence-transformers. **No paid embedding API is called.**
+## What the query looks like, and where cosine comes in
 
-This is the same position as [④ the scripted seams](/docs?section=periplus&item=scripted-seams), seen from another side: **the whole system runs with no API keys and no network.** If embeddings needed a network call, that sentence would not be true.
+The query takes the single nearest row, then converts the distance to a similarity in application code and applies a threshold, defaulting to 0.90. pgvector supplies a cosine distance operator, used for both the ordering and the value.
 
-There is a cost angle too. The research stage may fetch dozens of pages, and every one needs an embedding. On a paid API, every run pays to find out it might already have the answer.
+Why cosine rather than Euclidean: cosine is the conventional choice for semantic similarity, and it is insensitive to vector magnitude — two passages with the same meaning but different lengths are still judged close.
 
-### 3. What does the query look like? Where is the "cosine" part?
+Why apply a threshold rather than taking the nearest: taking the nearest always returns a row, even when the closest thing in the database is entirely unrelated. The threshold is the step that turns "nearest neighbour" into "close enough", and without it a wrong cache entry gets passed off as evidence. That is the sentence to lead with here, because it is a correctness problem rather than a performance one.
 
-```sql
-SELECT url, title, text, source_kind, published_at, fetched_at,
-       embedding <=> %s AS distance
-FROM evidence_cache
-ORDER BY embedding <=> %s
-LIMIT 1
-```
+## What ivfflat and the list count are
 
-**`<=>` is pgvector's cosine distance operator.** It takes the nearest row, then Python converts and applies the threshold:
+ivfflat is an approximate nearest neighbour index: it partitions the vector space into clusters and a query scans only the nearest few instead of comparing against the whole table. The index is built with a hundred lists.
 
-```python
-similarity = 1.0 - distance
-if similarity < self.similarity_threshold:   # default 0.90
-    return None
-```
+Answer honestly on where that number came from: a hundred is a common starting point, the code records no tuning rationale, and if asked, say it is the default and was never measured.
 
-**Why cosine rather than Euclidean distance**: cosine is the usual choice for semantic similarity, and it **ignores vector length** — two passages that mean the same thing but differ in length still come out close.
+Why ivfflat rather than HNSW is also unrecorded in the code. A good answer: my understanding is that ivfflat builds quickly and uses little memory, which suits a write-heavy cache of moderate size, while HNSW queries faster but builds slowly and consumes more memory — and be clear that this is a trade-off, not a settled conclusion.
 
-**Why the 0.90 threshold instead of just taking the nearest**: `ORDER BY ... LIMIT 1` always returns a row, even when the closest thing in the table is completely unrelated. **The threshold is the step that turns "nearest neighbour" into "close enough"** — without it, the cache would hand back wrong evidence.
+Saying "I do not know" applies especially well at these two points, because they are verifiable implementation details, and an invented reason collapses under one follow-up.
 
-### 4. What are `ivfflat` and `lists = 100`?
+## What happens on an empty database
 
-```sql
-CREATE INDEX IF NOT EXISTS evidence_cache_embedding_idx
-    ON evidence_cache USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
-```
+This is the best detail in the line, and the comment states it directly: ivfflat needs training data to build useful lists; an empty or near-empty table — every fresh database — just gets a single-list index, which degrades to a full scan until enough rows accumulate. That is a correct, if slow, index — never a wrong answer.
 
-ivfflat is an **approximate nearest neighbour (ANN) index**: it splits the vector space into clusters and only scans the nearest few at query time, instead of comparing against every row.
+Slow rather than wrong is the same value ordering as [never guessing a date](/docs?section=periplus&item=evidence-judgment) in the evidence line. Told together the two are far more convincing than either alone.
 
-| Question | Answer |
-|---|---|
-| **Where does `lists = 100` come from** | It splits the space into 100 clusters. It is the dial between "fast to query" and "finds everything", and 100 is a common starting point. ⚠️ **The code gives no tuning rationale — say plainly that it is a default and was never measured** |
-| **Why ivfflat and not HNSW** | ⚠️ **The code gives no reason.** My understanding: ivfflat builds fast and uses little memory, which suits a write-heavy cache of moderate size; HNSW queries faster but builds slowly and costs memory. **Present it as a trade-off, not a settled answer** |
+## What happens when the database goes down
 
-### 5. What happens on an empty database?
+The cache is best-effort as a whole: when embedding fails or the database errors, it returns "no similar match" instead of raising. The comment says it plainly — a cache outage must degrade, never crash a run.
 
-This is the best detail in the bullet, and the comment says it outright (`postgres_evidence.py:70-72`):
+So a wobble in PostgreSQL costs one extra page fetch, not the run.
 
-> *"ivfflat needs training data to build useful lists; an empty or near-empty table (every fresh database) just gets a single-list index, which degrades to a full scan until enough rows accumulate. **That is a correct, if slow, index — never a wrong answer.**"*
+The connection pool is also configured to ping a connection before handing it out and replace it if it is dead. The reasoning: since the caller already swallows exceptions anyway, paying for a doomed round trip and then missing is worse than pinging first.
 
-On an empty table, ivfflat gets a single-list index, which is a full scan — **slow, but never wrong**.
+## Background
 
-> ⭐ **"Slow beats wrong"** is the same value as [⑥ "no date beats a guessed date"](/docs?section=periplus&item=evidence-judgment). Telling both together is far stronger than telling either alone.
+**How the cache expires.** It does not have a TTL. Expiry is judged by date at the point of consumption, through [the freshness windows](/docs?section=periplus&item=evidence-judgment). That distinction is worth volunteering: the cache does not decide what is fresh, it only avoids repeating work. Freshness is business semantics and belongs to the function that judges staleness.
 
-### 6. What happens if the database goes down?
+**Why only the first two thousand characters are embedded.** Two reasons, both in the comments: the embedding model only attends to roughly its first couple of hundred tokens, so feeding it more does not change its judgement; and storing every fetched page's full text indefinitely would make this the largest table in the database while buying no matching benefit. Twenty-four thousand characters of body text are stored for downstream use, and only the first two thousand are embedded — two limits serving two different purposes, so do not conflate them.
 
-**The whole cache is best-effort**: if embedding fails or the database errors, it returns "no match" instead of raising.
-
-```python
-except Exception:  # a cache outage must degrade, never crash a run
-    return None
-```
-
-So **a wobble in PostgreSQL costs one repeated page fetch, not the run.** The pool also sets `check=AsyncConnectionPool.check_connection`, which pings a connection before handing it out and replaces it if the ping fails — since the caller already swallows errors, a dead connection would have been silently lost anyway, and a ping costs less than a doomed round trip plus a wasted miss.
-
-## Layer two: extra background
-
-### How does the cache expire?
-
-**It does not.** Freshness is decided when the evidence is consumed, by the date windows in [⑥ evidence and judgment](/docs?section=periplus&item=evidence-judgment).
-
-> ⭐ **Worth raising yourself**: the cache does not decide whether something is fresh, only whether work can be skipped. **Freshness is business meaning, and it belongs to the function that judges expiry.**
-
-### Why embed only the first 2,000 characters?
-
-```python
-MAX_REPRESENTATIVE_CHARS = 2_000
-MAX_STORED_CHARS = 24_000
-```
-
-Two reasons, both in the comment: **MiniLM only attends to roughly the first 256 tokens anyway**, so feeding it more changes nothing; and **storing the full text of every fetched page forever would make this the largest table in the database for no matching benefit**.
-
-The 24,000 characters are the body text downstream stages read. The 2,000 are what gets embedded. **Two limits for two different purposes** — do not describe them as one.
-
-### Why one shared instance for the whole process?
-
-The comment is direct: **the cache's value comes entirely from being consulted across many runs, not from being rebuilt per run.** `open`/`close` bracket the pool's lifetime, and one instance lives for the process.
+**Why one instance for the whole process.** The comment is blunt about it: this cache's value comes entirely from being queried by many runs, not from being rebuilt once per run. Open and close bracket the connection pool's lifetime, and one instance lives for the process.
 
 ## The 30-second answer
 
-> The research stage fetches a lot of pages, and the same fact often sits under several different URLs — so the evidence cache is hit by meaning, not by URL. Every piece of evidence is stored with a 384-dimension vector, produced by `all-MiniLM-L6-v2` locally on CPU, with no paid embedding API. That is what lets the whole system run with no keys and no network. The lookup uses pgvector's cosine distance operator to take the nearest row, then applies a 0.90 similarity threshold — because LIMIT 1 always returns something, and the threshold is what turns "nearest neighbour" into "close enough". The index is ivfflat on cosine with 100 lists. On a fresh database it degrades to a full scan, and I like the comment for it: that is a correct, if slow, index — never a wrong answer. The whole cache is best-effort: if the database has a problem it reports a miss, which costs one extra fetch and never the run.
+> The research stage fetches a lot of pages, and the same fact is usually scattered across different URLs, so the evidence cache does not hit on URL — it hits on meaning. Each passage stores a 384-dimension embedding computed by a small model on local CPU, with no paid API involved, which is what lets the whole system run without keys and without network. The query uses pgvector's cosine distance operator to take the nearest row, then applies a 0.90 similarity threshold, because taking the nearest always returns a row and the threshold is the step that turns "nearest neighbour" into "close enough". The index is ivfflat cosine with a hundred lists. On an empty database it degrades to a full scan, and I like the comment there: that is a correct, if slow, index — never a wrong answer. The whole cache is best-effort, so a database problem is treated as a miss, costing one extra page fetch rather than the run.
 
 ## Self-check
 
-1. Can you explain why the cache is keyed on meaning rather than URL?
-2. Can you say what `<=>` is, and why a similarity threshold is still needed on top of it?
-3. Can you give cosine's advantage over Euclidean distance (insensitive to length)?
-4. Can you admit plainly that `lists = 100` and ivfflat are defaults with no measurement behind them?
-5. Can you quote the empty-database line and connect it to the freshness rule?
-6. Can you keep the 2,000-character (embedding) and 24,000-character (stored text) limits apart?
-7. Can you explain that the cache does not expire, and who owns freshness instead?
+1. Can you explain why it hits on meaning rather than URL?
+2. Can you explain the cosine distance operator, and why a similarity threshold is still required?
+3. Can you state cosine's advantage over Euclidean distance?
+4. Can you admit honestly that the list count and index type are defaults with no measurement behind them?
+5. Can you quote the "correct, if slow, index" line and connect it to the freshness rule?
+6. Can you separate the two-thousand-character embedding limit from the twenty-four-thousand-character storage limit?
+7. Can you explain that the cache does not handle expiry, and say who does?

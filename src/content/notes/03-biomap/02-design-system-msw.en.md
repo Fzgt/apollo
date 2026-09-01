@@ -1,9 +1,9 @@
 ---
-title: "② Design system: behaviour, styles, display, mocks"
+title: "② The design system: behaviour, styles, display, mocks"
 section: BioMap
 ---
 
-# ② Design system: behaviour, styles, display, mocks
+# ② The design system: behaviour, styles, display, mocks
 
 > **Resume line**
 >
@@ -11,104 +11,64 @@ section: BioMap
 
 ## What this line has to show
 
-A design system is not "we wrapped a Button". It splits a component into four jobs that do not overlap: interaction behaviour, visual variants, standalone display, and data. Each job has one source of truth, so styles and types are never written twice.
+The value of a design system is not "we wrapped a Button". It is that a component is split into four non-overlapping concerns — interaction behaviour, visual variants, isolated display, and the data environment — each with a single source of truth, so the styles and the types are never maintained twice. This line names four tools, so when you talk about it, give each one its own job and chain them together. Do not just recite four names side by side.
 
-## Layer one: answer these without thinking
+## What each tool owns
 
-### 1. What does each of the four tools do?
+**Radix UI owns behaviour.** It gives you unstyled interaction primitives: focus management, keyboard handling, close on Escape, ARIA roles and states. What it looks like is entirely yours.
 
-- **Radix UI**: unstyled interaction primitives. Focus handling, keyboard, Esc to close, ARIA roles and state.
-- **CVA** (class-variance-authority): keeps all visual variants in one config, and derives the TypeScript props from that config.
-- **Storybook**: shows every state of a component on its own, outside any business page.
-- **MSW**: intercepts real network requests, so pages and tests share the same mock handlers.
+**CVA owns the style contract.** `class-variance-authority` puts the visual variants in one config and derives the component's TypeScript props straight from that config.
 
-The chain is: **behaviour → style contract → state catalogue → data**.
+**Storybook owns display.** Every state of a component runs on its own, without first navigating to some page and manufacturing some particular condition.
 
-### 2. What does "variants typed off the styles" mean?
+**MSW owns the data environment.** It intercepts real requests at the network layer, so the app and the tests share one set of mock handlers.
 
-First define the allowed style branches with `cva`, then derive the props from that same definition with `VariantProps`:
+Chained: behaviour, then the style contract, then the state catalogue, then the data environment. Memorise that chain — it is the answer to "how do these four relate".
 
-```tsx
-const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors disabled:opacity-50',
-  {
-    variants: {
-      variant: {
-        default:     'bg-primary text-primary-foreground hover:bg-primary/90',
-        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-        outline:     'border border-input bg-background hover:bg-accent',
-        secondary:   'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        ghost:       'hover:bg-accent hover:text-accent-foreground',
-        link:        'text-primary underline-offset-4 hover:underline',
-      },
-      size: {
-        default: 'h-9 px-4 py-2',
-        sm:      'h-8 rounded-md px-3 text-xs',
-        lg:      'h-10 rounded-md px-8',
-        icon:    'size-9',
-      },
-    },
-    defaultVariants: { variant: 'default', size: 'default' },
-  },
-);
+## What "variants typed off the styles" means
 
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
-  VariantProps<typeof buttonVariants>;
-```
+First `cva` defines the allowed style branches — say six variants (default, destructive, outline, secondary, ghost, link), four sizes (default, sm, lg, icon), each mapping to a class string, plus a set of defaults. Then `VariantProps`, the helper type cva ships, generates the component's props from that same definition.
 
-`VariantProps<typeof buttonVariants>` turns `variant` into `'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'`. Add a style branch and callers get a new valid value straight away. Remove one and every old use turns red.
+So the `variant` prop's type *is* the union of those six strings. Add a style branch and callers automatically get a new legal value; remove one and every old usage fails to compile.
 
-**There is only one copy of that type.** No hand-written union sitting next to the styles, slowly drifting out of date.
+The point is that there is only one copy of this type. There is no hand-written union sitting beside the styles, slowly drifting out of sync — and that drift is the most common way a design system rots.
 
-One limit worth saying out loud: this only checks TypeScript callers. A string arriving from an API or JSON still needs a runtime check.
+State the boundary out loud too: this only covers TypeScript callers. A runtime string arriving from an API or a JSON blob still has to be validated, because the type system does not exist at runtime.
 
-### 3. Why use Radix instead of writing Dialog and Dropdown yourself?
+## Why Radix instead of writing Dialog and Dropdown myself
 
-Drawing the box was never the hard part. The hard part is trapping focus inside the dialog, closing on Esc, keeping Tab from walking into the background, arrow-key navigation in a menu, keeping `aria-expanded` and `aria-controls` in sync, and layering nested overlays. Radix ships that as primitives. I only add the visuals and the product rules, instead of rebuilding accessibility details and probably getting them wrong.
+Drawing an overlay was never the hard part. The hard part is trapping focus inside the dialog, closing on Escape, keeping Tab from wandering into the background, arrow-key navigation between menu items, keeping `aria-expanded` and `aria-controls` in sync, and getting the layering right for nested overlays.
 
-### 4. What does Storybook solve for a team?
+These are accessibility details: fiddly to implement, and easy to get wrong without noticing. Radix ships them as primitives, so I only own the visuals and the product rules instead of reimplementing all of that — most likely worse.
 
-Default, disabled, loading, every size and variant — you can see them all without first walking into some page and setting up that exact state. Design and engineering look at the same running state. When something breaks, you can tell straight away whether the component broke or the page integration broke.
+## What Storybook solves for the team
 
-### 5. Why does MSW belong in this line?
+Default, disabled, loading, every size and every variant are visible without navigating to a business page and manufacturing a state first. Design and engineering look at the same runnable list of states and can point at them in review.
 
-It is the base layer that lets the other three run on their own. The browser worker and the test server share one set of `handlers`, and the handlers sit on one in-memory data model:
+It has a second use when something breaks: it separates "the component is broken" from "the page integration is broken". If the component is fine in Storybook, the problem is on the page side.
 
-```ts
-// mocks/handlers.ts — one set of handlers
-export const handlers = [...postsHandlers, ...commentsHandlers];
+## Why MSW belongs in this line
 
-// mocks/browser.ts — development
-export const worker = setupWorker(...handlers);
+It is the substrate that lets the other three run independently. The browser worker and the test server share one set of handlers, and those handlers sit on the same in-memory data model.
 
-// mocks/server.ts — tests
-export const server = setupServer(...handlers);
-```
+So the app and the tests see exactly the same API shape. You never end up with one set of fake data in development and a different set in tests, quietly diverging. And the frontend does not have to wait for the backend: when the real API lands you turn the mocks off, and no page code changes.
 
-Pages and tests then see exactly the same API shape. You never end up with one set of fake data for development and a different one for tests. It also means the frontend does not wait for the backend: when the real API lands you switch the mock off, and no page code changes.
+## Background
 
-## Layer two: extra background
+**What `asChild` costs.** `asChild` merges Radix's behaviour and props onto the child element you pass instead of wrapping another DOM node. The cost is that the child must forward its props and forward its ref, or the behaviour silently stops working. And once you swap the underlying element — a `button` for an `a` — whether the semantics and keyboard behaviour are still correct is the caller's problem.
 
-### What does Radix's `asChild` cost?
+**MSW versus just mocking a function.** MSW intercepts at the network boundary, so the app still runs its production request code — URL, method, payload and response handling are all verified along with it. Replacing the client function is easier but skips the real integration path, so when the API signature changes the test stays green. That is the most dangerous kind of green.
 
-`asChild` merges Radix's behaviour and props into the child you pass, instead of adding another DOM layer. The cost: your child component must pass props through and must use `forwardRef`, or the behaviour silently stops working. And once you swap the underlying element (a button for a link, say), keeping the semantics and keyboard behaviour correct is your job, not Radix's.
-
-### How is MSW different from just mocking a function?
-
-MSW intercepts at the network boundary, so the app still runs the request code it uses in production. URL, method, payload and response handling all get exercised. Replacing a client function is easier, but it skips the real path — change the API signature and the test stays green.
-
-### How do you stop a design system turning into a component graveyard?
-
-Only take in things that repeat and whose contract is stable. A component that serves one feature stays inside that feature until there is a second and third use. Every shared component needs clear variants, clear states and a clear way out — rather than absorbing every page detail in the name of consistency.
+**How to stop a design system becoming a component graveyard.** Only take in things that recur *and* have a stable contract. A component serving one feature stays inside that feature until a second and third use actually appear. Every shared component needs clear variants, clear states and a clear escape hatch, rather than absorbing every page's details in the name of consistency.
 
 ## The 30-second answer
 
-> I split the design system into four jobs. Radix gives unstyled interaction primitives and owns focus, keyboard and ARIA. CVA keeps every visual variant in one config, and the component props are derived from that config with `VariantProps`, so styles and types have a single source. Storybook shows each state on its own, away from business pages. Underneath, MSW intercepts requests at the network layer, and the browser and the tests share the same handlers — so components can be built, reviewed and tested without waiting for the backend. Add a variant and the styles and the types move together.
+> I split the design system into four responsibilities. Radix provides unstyled interaction primitives and owns focus, keyboard and ARIA. CVA keeps the visual variants in one config, and the component's props are derived from that config, so the styles and the types have a single source of truth. Storybook shows every state on its own, outside any business page. Underneath, MSW intercepts at the network layer so the browser and the tests share one set of handlers — components can be built, reviewed and tested without waiting for the backend. When someone adds a variant, the styles and the types move together and nothing is missed.
 
 ## Self-check
 
-1. Can you say in one sentence what Radix, CVA, Storybook and MSW each own?
-2. Can you explain which duplicated definition `VariantProps` removes?
-3. Can you say what `asChild` requires around prop forwarding and refs?
-4. Can you explain what MSW checks that mocking a function does not?
-5. Can you explain why variant types are not runtime validation?
+1. Can you state each of Radix, CVA, Storybook and MSW's job in one sentence?
+2. Can you explain which duplicate definition `VariantProps` removes?
+3. Can you say what `asChild` requires of prop forwarding and refs?
+4. Can you explain why intercepting at the network layer verifies more than mocking a function?
+5. Can you explain why a variant type is not runtime validation?

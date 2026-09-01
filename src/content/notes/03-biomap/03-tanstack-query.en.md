@@ -11,129 +11,70 @@ section: BioMap
 
 ## What this line has to show
 
-Three tiers on their own are worth nothing. What matters is that four paths — list, detail, prefetch and invalidation — all reuse **the same query identity**. One resource is always described by the same key and the same query function. That is the only reason the cache can be hit reliably.
+Three tiers are worth nothing on their own; anyone can split code into three files. What is worth something is that four paths — the list, the detail page, the prefetch and the invalidation — reuse one query identity. The same resource is always described by the same key and the same query function, which is the only way a cache hit becomes reliable. So the weight of this line sits on how the middle tier locks that identity down, not on "I made three layers".
 
-## Layer one: answer these without thinking
+## Why not fetch in useEffect
 
-### 1. Why not just fetch in `useEffect`?
+API data is server state, not component state. It has an async lifecycle, it is cached, it goes stale, it needs deduplication across concurrent callers, and it needs re-syncing when the window regains focus.
 
-API data is **server state**, not component state. It has an async lifecycle, caching, staleness, deduplication of parallel requests, and re-syncing when the window regains focus. `useEffect` can send a request, but then every page rewrites loading, error, cancellation and race handling by hand — each one slightly differently — and the same data ends up in different versions on different pages. TanStack Query pulls all of that into one cache.
+`useEffect` can certainly fire a request, but it forces every page to rewrite loading, error, cancellation and race handling — each page slightly differently. You end up with different versions of the same data on different screens and no way to say which one is right. TanStack Query pulls all of that into one cache.
 
-### 2. What does each tier do?
+## What the three tiers do
 
-```ts
-// Tier 1: API function — HTTP only, knows nothing about React
-export const getPost = (slug: string): Promise<Post> => {
-  return api.get(`/api/posts/${slug}`);
-};
+The first tier is the API function. It only does HTTP: give it a slug, get a promise. It knows nothing about React.
 
-// Tier 2: queryOptions factory — binds key and query function into one identity
-export const getPostQueryOptions = (slug: string) => {
-  return queryOptions({
-    queryKey: ['posts', slug],
-    queryFn: () => getPost(slug),
-    enabled: !!slug,
-  });
-};
+The second tier is the `queryOptions` factory. It binds the query key and the query function together into the resource's one identity, and it is also where defaults like `enabled` live.
 
-// Tier 3: typed hook — what components use
-type UsePostOptions = {
-  slug: string;
-  queryConfig?: QueryConfig<typeof getPostQueryOptions>;
-};
+The third tier is a typed hook for components. It spreads the factory's result into `useQuery` and lets the caller layer config on top.
 
-export const usePost = ({ slug, queryConfig }: UsePostOptions) => {
-  return useQuery({
-    ...getPostQueryOptions(slug),
-    ...queryConfig,
-  });
-};
-```
+The part actually worth talking about is the config type that third tier uses. It is the factory's return type with `queryKey` and `queryFn` omitted. So a caller can tune `enabled`, `select`, `staleTime` — behaviour — but has no way to quietly swap the resource identity on one page.
 
-The important piece is the `QueryConfig` type:
+That is the sentence to memorise. It turns "everyone remembers to use the same key" from a discipline into something that cannot be done wrong.
 
-```ts
-export type QueryConfig<T extends (...args: never[]) => unknown> = Omit<
-  ReturnType<T>,
-  'queryKey' | 'queryFn'
->;
-```
+## Why the key must have one source
 
-It **removes** `queryKey` and `queryFn` from what a caller can configure. A page can still change behaviour — `enabled`, `select`, `staleTime` — but it **cannot quietly swap out the identity of the resource**. That is the one sentence to say about the three tiers.
+The cache identifies data by key. If the card prefetch writes `['posts', slug]` and the detail page hand-writes `['post', slug]`, or the two put parameters in a different order, those are two unrelated caches: the prefetch appears to succeed and the detail page still fetches from scratch, with no error anywhere.
 
-### 3. Why must the key have a single source?
+The reverse is worse. Same key, different response — because a filter parameter that affects the result was left out — serves the wrong data. So the key is derived from the business identity, includes every parameter that changes the response, and is built in exactly one place: the factory.
 
-The cache finds data by key. If the card prefetches with `['posts', slug]` and the detail page hand-writes `['post', slug]`, or puts the arguments in a different order, those are two unrelated caches. The prefetch looks like it worked, and the detail page still fetches from scratch.
+## What hover prefetch actually does
 
-The opposite mistake also hurts: the same key with a different response — for example leaving out a filter that changes the result — mixes data together. So build the key from the business identity, include every argument that changes the response, and generate it in one place: the factory.
+Hovering a card triggers a prefetch using options from that same factory. Between the mouse settling and the actual click there is usually two to five hundred milliseconds, and that window is spent pulling the data into the cache.
 
-### 4. What actually happens on hover prefetch?
+When the user clicks, the route changes and the detail page mounts and calls the hook, the key matches exactly and the data is still fresh, so the component reads the cache instead of firing a second request on mount.
 
-```tsx
-<article
-  onMouseEnter={() => queryClient.prefetchQuery(getPostQueryOptions(post.slug))}
-  onClick={() => navigate(paths.post.getHref(post.slug))}
->
-```
+That is precisely what "with no request at all" means: no second request on the detail page. It does not promise zero network in all cases — if the user clicks faster than the prefetch, if the prefetch failed, or if the data has gone stale, it goes to the network. Volunteer those three cases; it reads far better than being caught on them.
 
-Between the mouse landing on a card and the actual click there is usually 200–500ms. That window is used to pull the data into the cache. When the user clicks, the route changes and the detail page calls `usePost(slug)`, the key matches exactly and the data is still fresh — so the component **reads the cache and sends no second request for the mount**.
+## Does prefetchQuery always fetch
 
-That is what "with no request at all" means on the resume: **the detail page does not send a second request**. It is not a promise of zero network in every case. If the user clicks faster than the prefetch, if the prefetch fails, or if the data has gone stale, there is still a request. Say this yourself in the interview — better than being caught on it.
+No. It respects `staleTime`. The project sets a global `staleTime` of sixty seconds, turns off refetch on window focus and turns off automatic retries, so if the cached copy is under a minute old, hovering again does not refetch.
 
-### 5. Does `prefetchQuery` always fetch?
+The value of this question is that it separates "I configured a prefetch" from "I know when the prefetch actually happens".
 
-No. It checks `staleTime` to decide whether what it already has is fresh enough. The global config:
+## Why mutations only invalidate
 
-```ts
-export const queryConfig = {
-  queries: {
-    refetchOnWindowFocus: false,
-    retry: false,
-    staleTime: 1000 * 60,   // fresh for 60 seconds
-  },
-} satisfies DefaultOptions;
-```
+After a mutation succeeds, the cache is invalidated by resource prefix rather than hand-synced page by page.
 
-If the cached copy is under 60 seconds old, hovering again does not refetch.
+Invalidation says "this group of cached data can no longer be trusted", and the currently active queries re-sync themselves. Writing to the cache by hand only works when the response shape is fully determined, and it is very easy to miss a derived list — and the list you miss keeps showing stale data until the user reloads. Invalidation is more conservative and much harder to get wrong.
 
-### 6. Why does a mutation only invalidate instead of updating every page?
+## Background
 
-```ts
-onSuccess: () => {
-  queryClient.invalidateQueries({ queryKey: ['comments', postId] });
-},
-```
+**`staleTime` versus `gcTime`.** `staleTime` is about freshness: how long the data is trusted without refetching. `gcTime` is about retention: how long the cached entry survives in memory once nothing is observing it. One decides whether to refetch, the other decides when to collect. In v4 `gcTime` was called `cacheTime`; v5 renamed it. Just recognise the old name if it comes up.
 
-`invalidate` says "this group of cached data can no longer be trusted", and the queries currently in use re-sync by the normal rules. Writing the cache by hand (`setQueryData`) only fits cases where you know the exact response shape, and it is easy to miss a derived list. Invalidation is the safer default and much harder to get wrong.
+**Why keys are hierarchical.** A layered key can be hit exactly for one post and also handled in bulk by prefix — invalidating everything under `posts` is one call. A flat string key cannot do that.
 
-## Layer two: extra background
+**Invalidate versus refetch.** Invalidate marks the data stale and lets active state and config decide whether a request actually goes out; refetch commands one query to run again now. After a mutation, saying "the old data is no longer valid" is easier to maintain than imperative refreshes scattered around.
 
-### `staleTime` versus `gcTime`
-
-`staleTime` is about **freshness**: how long the data counts as current, so no refetch is needed. `gcTime` is about **retention**: how long a cache entry stays in memory after no component is watching it any more. One decides whether to fetch again, the other decides when it gets collected.
-
-> In v4 `gcTime` was called `cacheTime`. It was renamed in v5. Just recognise the old name if they use it.
-
-### Why should query keys be layered?
-
-A layered key can be matched exactly, as `['posts', slug]`, or by prefix: `invalidateQueries({ queryKey: ['posts'] })` marks every posts query stale at once. A flat string key cannot do that.
-
-### `invalidate` versus `refetch`
-
-`invalidate` marks the data stale first, and whether a request actually goes out depends on what is active and how it is configured. `refetch` orders one query to run again right now. After a mutation, saying "the old data expired" is easier to maintain than issuing refresh commands all over the app.
-
-### Does prefetching waste bandwidth?
-
-Yes, sometimes. Users hover over things they never click. You can add a short delay before firing, only prefetch on high-click entry points, or decide based on response size and connection. Also, `onMouseEnter` only helps mouse users — tabbing to a card is the same intent signal, so `onFocus` deserves the same handler.
+**Does prefetching waste bandwidth.** Yes — a user may hover and never click. You can add a short delay before firing, enable it only on high-click-through entry points, or gate it on payload size and connection quality. Also, `onMouseEnter` only serves mouse users; tabbing to a card with the keyboard is the same signal of intent, so `onFocus` deserves the same treatment. Raising this yourself shows you thought about accessibility.
 
 ## The 30-second answer
 
-> I split server data into three tiers. The API function only does HTTP. The queryOptions factory binds the query key and the query function into one identity for that resource. The typed hook is what components use. The tier count is not the point — the factory is. `QueryConfig` uses `Omit` to strip `queryKey` and `queryFn` out of what callers can set, so the list, the detail page and the hover prefetch are forced to reuse the same identity and nobody can swap the key inside one page. Hovering a card prefetches into the cache, and when the user opens the detail page it hits the same key and sends no second request while the data is fresh. After a mutation I invalidate by resource prefix and let the active queries re-sync themselves, instead of every page keeping its own copy of the state.
+> I split server data into three tiers: the API function does HTTP only, the queryOptions factory binds the key and the fetcher into the resource's one identity, and a typed hook hands it to components. The tier count is not the point — the factory is. The hook's config type omits the key and the fetcher, so the list, the detail page and the hover prefetch can only reuse the same identity; nobody can swap the key on one page. Hovering a card writes the data into the cache, and when the user opens the detail page it hits the same key and, while still fresh, fires no second request. After a mutation I invalidate by resource prefix and let the active queries re-sync themselves, instead of every page maintaining its own copy of the state.
 
 ## Self-check
 
-1. Can you explain exactly what the `Omit` in `QueryConfig` prevents?
-2. Can you state that "no request at all" means "no second request from the detail page", and name the three cases where it does not hold?
-3. Can you say that `prefetchQuery` respects `staleTime` rather than always fetching?
-4. Can you tell apart `staleTime`, `gcTime` (v4's `cacheTime`), invalidate and refetch?
+1. Can you say exactly what the config type's `Omit` prevents?
+2. Can you explain that "no request at all" means "no second request on the detail page", and name the three cases where it does not hold?
+3. Can you explain that `prefetchQuery` respects `staleTime` rather than always fetching?
+4. Can you distinguish `staleTime`, `gcTime`, invalidate and refetch?
 5. Can you raise the `onFocus` gap and the wasted-prefetch cost yourself?

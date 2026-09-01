@@ -1,366 +1,166 @@
 ---
-title: "④ Scanning levels for solvability"
+title: "④ Sweeping the level generator for solvability"
 section: WinterFell
 ---
 
-# ④ Scanning levels for solvability
+# ④ Sweeping the level generator for solvability
 
 > **Resume line**
 >
 > **Checked the level generator by machine rather than by playing it**: across **1,020 generated layouts**, every step tested against **how far the craft can move sideways at that stage's speed**, **every layout had a way through**.
 
-> ℹ️ **"No gap narrower than 15 units" and the random-scatter control are not on the resume.** You still need both: 15 units is the measured threshold, and the control is the answer to "does this scan discriminate at all".
+"No gap narrower than 15 units" and the random-scatter control are not on the resume, but you need both: 15 is the measured result, and the control is the answer to whether this sweep has any discriminating power at all.
 
-## What this bullet is about
+## What this line has to show
 
-⭐ **The core is one mental shift: whether a run can be completed is a geometric property of the layout, not an outcome of running the game. So do not run the game — compute the geometry.**
+At its core is one mental shift: whether a run is winnable is a geometric property of the layout, not an outcome of running the game. So do not run the game — compute the geometry.
 
-**And it does not "try a few random paths", it computes exactly all the positions you could survive in** — ⭐ **which is an upgrade from testing to proving.**
+And it does not sample a few paths. It computes exactly every position that survives, which is the step from testing to proof.
 
-## 1. The problem
+## The problem
 
-**The obstacles are procedurally generated**: on every run the code places a batch of blocks from noise and a random seed.
+Obstacles are procedurally generated: each run, the code places blocks from noise and a random seed. Which creates a serious problem — you cannot guarantee the generated level is passable. One roll might produce a wall spanning the whole track, and the player dies with nothing they could have done. That is not difficulty, that is a bug.
 
-**Which creates a lethal problem: you cannot guarantee the generated level can be completed.**
+Playing it manually does not work, because every run is a fresh random layout: a hundred attempts covers a hundred samples, and you do not know whether any of them was a bad one.
 
-One roll of the dice might place a wall spanning the whole track — **the player hits it and dies with nothing they could have done**. **That is not "hard", that is a bug.**
+Automated playtesting in a headless browser was explicitly rejected too, and the reason is in the script's file header: there is no real GPU there, WebGL falls back to software rasterisation, frames take seconds — and since the game advances the player by the time elapsed since the last frame, a multi-second frame teleports the player straight through the entire obstacle field. Playtested results there are meaningless.
 
-**How do you verify it?**
+Which leaves one route: analyse the layout's geometry directly. The file header states it plainly — whether a run is winnable is a property of the layout, not of the renderer, so this measures the layout instead of playtesting.
 
-| Approach | Why it fails |
-|---|---|
-| Play it by hand | Every run is a new random layout, so **a hundred attempts cover a hundred samples**, and you do not know whether you hit a bad one |
-| Auto-play in a headless browser | **Explicitly ruled out**; see below |
-| **Analyse the layout's geometry directly** | ✅ What this bullet does |
+Be able to say that mental shift in one sentence. It is the skeleton of this line.
 
-**The file header of `bench/fairness.mjs` says it plainly:**
+## The core algorithm: an interval-set forward sweep
 
-> *"Whether a run is winnable is **a property of the layout, not of the renderer**, so this measures the layout directly instead of playtesting."*
+This is the most valuable part of the line.
 
-> ⭐ **The key mental shift: whether a run can be completed is a geometric property of the layout, not an outcome of running the game. So do not run the game — compute the geometry.**
+Set the picture first: the track is a hundred and twenty wide, sixty either side of centre, and a section is two thousand long. Looking down from above, the player flies upward.
 
-**Why auto-play does not work** (the same comment, worth memorising):
+The sweep takes a step every ten units along the track, and each step maintains one thing — the reachable set, every lateral position the player could currently occupy having hit nothing on the way. It is a set of intervals, because obstacles cut it apart.
 
-> *"Playtesting this in headless Chromium does not work — **WebGL there falls back to software rasterisation**, frames take seconds, and the run either crawls or **teleported the player straight through the field**."*
+Each step does three things. Grow: over those ten units of forward travel the craft can move some distance sideways, so every reachable interval expands by that much on both sides. Subtract: every obstacle in that stretch has its collision radius removed from the reachable set, which can split one interval into two. Merge: growth makes adjacent intervals overlap, and without merging the interval list grows exponentially — a code comment says exactly this.
 
-**In plain terms**: a headless environment has no real GPU, WebGL degrades to **CPU emulation**, and a frame takes seconds. The game advances the player by "how long since the last frame" — **so a frame lasting seconds means the player crosses the whole obstacle field in one frame.** **Playtested results mean nothing.**
+If the reachable set ever becomes empty, the layout is unsolvable and the player must die.
 
-## 2. ⭐ The core algorithm: a forward sweep over an interval set
+Walking it through makes it clear. The start is one interval from minus sixty to plus sixty, a hundred and twenty wide. Advance ten units, each interval expands by the small lateral distance available at that speed, then obstacle radii are subtracted — an obstacle of radius eleven and a half at the centre cuts the set into two intervals about forty-eight and a half wide each. Advance again, another obstacle on the left cuts the left interval in two. And so on.
 
-**This is the most valuable part of the bullet.** It does not sample a few paths, it **computes exactly every position you could still be alive in.**
+What is elegant about this algorithm is that one sweep answers whether a path exists, and it answers for all paths rather than a few samples. That is the step from testing to proof.
 
-### Picture it first
+The interval count carries extra meaning: two intervals mean there is an obstacle in between that must be gone around, and the player may choose left or right. So the number of intervals measures how many routes there are. A comment puts it well — a route that is always exactly one path wide is fair, but that is a queue, not a race track.
 
-The track is 120 wide (60 each side) and each section is 2000 long. **Viewed from above, the player flies from the bottom upwards.**
+## Lateral reach: a bug fixed twice
 
-**The sweep steps 10 units along the track at a time, maintaining one thing at each step:**
+The sweep's key input is how far the craft can move sideways per unit of forward travel, which is lateral speed divided by forward speed: the faster you go, the less sideways room each metre forward buys.
 
-> **`reach` = every lateral position the player could currently be in without having hit anything on the way.**
+The generator's comments give the numbers: at the opening speed the craft can move about 0.049 sideways per unit forward, and by the sixth level only about 0.024 — half. So the same layout that is fair at the start may be genuinely impassable later.
 
-**It is a set of intervals**, because obstacles cut it apart.
+The comments record two real fixes, and both are good interview material.
 
-### The three-step loop (`fairness.mjs:271-307`)
+The first: originally this hard-coded the opening speed. The comment's words — it quietly validated the late game against reach it does not have.
 
-```js
-let reach = [[-60, 60]];                    // start: the whole track is available
+The second: the lateral speed constant was a copied value of forty-four, while the game itself had already been tuned to sixty-four. The comment is quotable directly — a copy of a constant is a constant that goes stale. Which means the validation tool was validating levels against a craft that does not exist, and staying green the whole time.
 
-for (let z = 起点; z > 终点; z -= 10) {
-    // ① grow: how far the craft can move sideways over these 10 units of forward travel
-    const grow = 10 * reachAt(section);
-    reach = reach.map(([a, b]) => [a - grow, b + grow]);
+The second one is especially worth telling: the tool copied a constant, the game changed it, the tool did not, and the tool failed silently. That is far more dangerous than a failing test, because failure raises an alarm and silent failure does not. The fix was importing from the constants file directly.
 
-    // ② punch holes: subtract every obstacle's collision radius in this stretch
-    for (const p of near) { /* 区间被切成两半 */ }
+## Why a random-scatter control is needed
 
-    // ③ merge overlapping intervals
-    reach = reach.filter(...).sort(...).reduce(...)
-}
-```
+The control takes the same number of blocks at the same sizes and throws them at the same stretch of track with no rules at all.
 
-| Step | What it does |
-|---|---|
-| **① Grow** | How far can the player move sideways over these 10 units? **Every reachable interval expands by that much in both directions** |
-| **② Punch holes** | For each obstacle in this stretch, **subtract its collision radius from the reachable intervals** — one interval may be cut into two |
-| **③ Merge** | Growing makes adjacent intervals overlap, and **without merging the interval list grows exponentially** (a code comment says so explicitly) |
+The reason is well explained in a comment: some lateral strip always gets lucky and happens not to be blocked. With eighty blocks spread over a hundred and twenty units of width, a given strip is covered about seven times in two thousand units, and the largest gap among a hundred and twenty such strips is most of a sector by chance alone.
 
-> ⭐ **If `reach` becomes the empty set after any step, the layout is unsolvable and the player must die.**
+So "a path exists" is not an achievement on its own; it has to be compared against the same density scattered arbitrarily. The comment summarises it: the control is what this density can do, and the gap between the two is what the layout is adding.
 
-### Walking through it
+This is a general experimental instinct. Any claim of the form "my algorithm achieved X" should be met with "what does the random baseline achieve?" A metric without a control measures the difficulty of the problem, not the quality of the solution.
 
-```
-start          reach = [ -60 ────────────────── +60 ]   width 120
+## Where 1,020 comes from
 
-advance 10     every interval expands by 0.49 in each direction (the lateral distance available in this step)
-               then the collision radii of this stretch's obstacles are subtracted
+The formula is simple: sections times trials per section. The script defaults to twelve sections and forty trials, which is four hundred and eighty. So 1,020 came from a parameterised run — twelve by eighty-five is the most likely combination, since the section count is the default.
 
-               obstacle A at x=0, radius 11.5
-               reach = [ -60 ─── -11.5 ]  [ +11.5 ─── +60 ]
-                         width 48.5           width 48.5
+Record the parameters before you run. Being asked where 1,020 comes from and not knowing the parameters looks bad, because this is the one input you fully control.
 
-advance again  obstacle B at x=-40, radius 11.5
-               reach = [-60,-51.5]  [-28.5,-11.5]  [+11.5,+60]
-                        width 8.5     width 17       width 48.5
-```
+Each trial reseeds independently, with a seed of the section number times a prime plus the trial index. A comment explains why reseeding the whole route matters rather than retrying one route: sampling one seed many times would test one route many times and say nothing about the one the player is actually handed.
 
-> ⭐ **What is elegant about this algorithm**: one sweep answers "is there a way through", **and it answers for every path, not for a few samples. That is an upgrade from testing to proving.**
->
-> **Each interval carries extra meaning too** (the comment at `:309-316`): **two intervals mean there is an obstacle in between that must be gone around, and the player may pick left or right.** So the **number** of intervals measures how many routes exist — "**exactly one route everywhere is fair, but that is a queue, not a racetrack**".
+That also answers "how do you reproduce a failing random layout": the seed is deterministic, so with the same parameters the sweep is fully reproducible — section three, trial seventeen is always the same layout.
 
-## 3. `at that level's speed` — a trap that was fixed twice
+## How the conclusion is phrased
 
-**`reachAt` is the sweep's key input: how far the craft can move sideways per unit of forward travel.**
+The script reports that every layout sampled had a continuous path through it; or, if any failed, that up to some percentage of layouts had no path, and those runs end in a death the player could not avoid.
 
-```js
-// fairness.mjs:59-63
-const reachAt = section => {
-    const z = -section * cfg.SECTION_LENGTH;
-    const speed = levels.paletteFor(levels.levelAt(z)).speed;
-    return LATERAL_SPEED / (speed * 60);
-};
-```
+Note that it says *every layout sampled*, not "every possible layout". The resume says every layout had a continuous path and drops "sampled" — strictly, that generalises from 1,020 samples to all.
 
-> **The formula: lateral capability = lateral speed ÷ forward speed. The faster you go, the less sideways distance you get per metre travelled.**
+When asked whether you can guarantee every random layout is passable, the correct answer is: no. This is sampled validation, not a formal proof. All 1,020 layouts had a continuous path, covering twelve sections at eighty-five independent reseeds each. A real guarantee would require formal constraints on the generator — what we built is a regression check that can be run repeatedly in CI.
 
-**A comment in the generator gives the concrete numbers**: at the opening speed the craft can move **0.049** sideways per unit forward, and by level six only **0.024** — **half of it gone.**
+Admitting it is sampling is far better than talking around it.
 
-> **So the same layout that is fair at the start may be impossible later on.**
+## "Gap" is not the spacing between obstacles
 
-**⭐ The comments record two real fixes, and both make excellent interview material** (`fairness.mjs:50-57`):
+The word invites a misreading, so kill it first. It is not the distance between two obstacles; it is a quantity the interval sweep computes.
 
-| The bug it had | Consequence |
-|---|---|
-| It originally **hard-coded the opening speed** | *"quietly validated the late game against reach it does not have"* — **it validated late levels using a capability the craft does not have** |
-| Later `LATERAL_SPEED` was **a copied constant** with the value 44, while the game itself had been tuned to 64 | *"a copy of a constant is a constant that goes stale"* — **the validator was validating levels against a craft that does not exist, and it stayed green throughout** |
+After each step, take the widest of the surviving reachable intervals. Across the whole section, take the minimum of those widest values.
 
-> ⭐ **The second is especially worth telling**: the validator copied a constant, the game changed it and the copy did not, so **the validator silently stopped being valid — which is far more dangerous than a failing test**, because a failure raises an alarm and silent invalidity does not.
->
-> **The fix was to import from the constants file directly.**
+So its exact meaning is: across the whole track, at the moment when the widest safe strip the player can occupy is at its narrowest, how wide is it?
 
-## 4. `against a random-scatter control` — why a control is needed
+## Why widest first, then narrowest
 
-```js
-// fairness.mjs:135-140
-/** The same blocks, thrown at the same ground with no rules at all. */
-const shuffled = (obstacles, startZ, endZ) =>
-    obstacles.map(p => ({ r: p.r, x: 随机, z: 随机 }));
-```
+This is the step that confuses people, and an example fixes it.
 
-**The same number of blocks, the same sizes, thrown completely at random over the same stretch of track.**
+Suppose after one step there are three intervals, of width eight and a half, seventeen, and forty-eight and a half. This step takes the widest, forty-eight and a half — not the narrowest.
 
-**Why it is needed** (the comment at `:106-114` explains it well):
+Why? Because the player only needs one route to work. Whether that eight-and-a-half-wide sliver exists is irrelevant; they can sit in the forty-eight-and-a-half one. So this step's difficulty is forty-eight and a half.
 
-> *"Some x always gets lucky: with eighty blocks spread over a hundred and twenty units of width, a given strip is covered seven times in two thousand units, and **the largest gap among a hundred and twenty such strips is most of a sector by chance alone.**"*
+Then take the minimum across the section: over two thousand units, the widest corridor is usually forty or fifty units, which is generous — but at one point it narrows to fifteen, and that point is the section's difficulty ceiling, because the player has to be precise there.
 
-**In plain terms**: **some lane down the track always gets lucky and happens to be clear** — **that is a probabilistic certainty, not a credit to the layout.**
+One sentence: it measures how hard this route is at its hardest moment.
 
-**So "there is a way through" is not an achievement in itself; it has to be compared against "scatter the same density at random":**
+## What the units are
 
-> *"The control is what this density can do; **the gap between the two is what the layout is adding.**"*
+They are game world coordinate units, not pixels and not metres. A few references at the same scale make fifteen legible: the track is a hundred and twenty wide, a section is two thousand long, a block of width 2.5 carries a collision radius of about eleven and a half, the generator's guaranteed lane half-width runs eleven to eighteen with a floor of seven, lateral speed is sixty-four, the forward sampling step is ten, and fog limits visibility to about six hundred.
 
-> ⭐ **This is general experimental thinking**: any claim of the form "my algorithm achieves X" has to be met with "**what does a random baseline achieve**". **A metric with no control measures the difficulty of the problem, not the quality of the solution.**
+Put fifteen into that scale: it is a little larger than a big block's collision radius of eleven and a half, and it sits in the lower part of the lane half-width range. So fifteen units is roughly one big block's width of passage, plus a bit. Tight, but passable — which is exactly what the difficulty design wants: at its tightest there is still just enough room.
 
-## 5. Where the 1,020 comes from
+## 15 is not a threshold that was set — it is a result that was measured
 
-**The formula is simple:**
+This is the easiest thing here to get wrong.
 
-```
-total layouts = number of sections × trials per section
-```
+Nowhere in the code does it say the gap must be at least fifteen. There is no such constant and no such assertion. That narrowest value starts at infinity and is pushed down by the actual values encountered during the sweep.
 
-```js
-// fairness.mjs:23-24
-const SECTIONS = Number(getArg('sections', 12));
-const TRIALS   = Number(getArg('trials', 40));
-```
+So the causal direction is: not "we set a floor of fifteen and the generator met it", but "we swept 1,020 layouts and the narrowest point measured fifteen".
 
-**The defaults are 12 × 40 = 480.** So 1,020 came from **a parameterised run** (`12 × 85 = 1020` is the most likely combination, since the section count kept its default).
+If asked why fifteen was chosen as the threshold, correct the premise directly: fifteen is not a threshold we set, it is the worst case the sweep measured. What the generator constrains is parameters like the lane half-width, in the range eleven to eighteen; fifteen is what layouts from those parameters actually measure at their tightest.
 
-⚠️ **Write down the parameters used before running** — being asked "where does 1,020 come from" and having no answer looks bad, **because it is the one input you control completely.**
+That correction matters. It turns this from the weak claim "we set a standard" into the strong claim "we measured the real waterline", and it avoids the unanswerable follow-up "so why not set it to twenty?"
 
-**Each trial reseeds independently** (`:260`):
+## What the generator actually constrains
 
-```js
-mod.reseedRoute(section * 7919 + t);
-```
+Fifteen is not a threshold, but the generator does guarantee passage. The rule is that a block's centre must sit at least the lane half-width plus that block's own collision radius away from the lane centre.
 
-**The comment explains why the whole route must be reseeded rather than retrying the same route:**
+There is a good technical point buried in that comment. A block of width 2.5 carries a collision radius of eleven and a half, so placing it just outside a nominally fifteen-wide lane still lets its collision volume reach into the lane and cross most of the way back over it. So the minimum distance cannot be the lane half-width alone; the block's own radius has to be added.
 
-> *"sampling one seed many times would test one route many times and **say nothing about the one the player is actually handed**."*
+The last line of that comment is the crux: the lane has to be as wide to fly as it is to look at.
 
-**7919 is a prime**, chosen so seeds from different sections and trials do not collide.
+This is a very typical collision-geometry bug: place objects by their centre points, and the collision volumes eat most of the corridor. The player sees a route, flies into it, and discovers it is not one.
 
-> ⭐ **This also answers "how do you reproduce a failing random layout"**: **the seed is deterministic** (`section * 7919 + t`), so **given the same parameters the scan is fully reproducible** — section 3, trial 17 is always the same layout.
+## Volunteer the point about the craft's collision radius
 
-## 6. How the conclusion is worded
+The sweep subtracts the obstacles' radii and treats the craft as a point. That is a simplification worth admitting yourself.
 
-`fairness.mjs:416-421` is the original source of the resume's sentence:
+The answer: in the sweep the craft is a point, and only the obstacle radii are subtracted. Strictly it should include the craft's radius too — geometrically that is the Minkowski sum — and doing so would make the measured narrowest point somewhat smaller than fifteen, so fifteen is an optimistic number. That said, the generator's clearance rule already reserves each radius between blocks and the lane, and in actual play there was never a passage too tight to fly.
 
-```js
-worst === 0
-  ? `\nEvery layout sampled had a continuous path through it.`
-  : `\nUp to ${worst}% of layouts had no path through — those runs end in a death the player could not avoid.`
-```
+Pointing out the bias in your own measurement, and saying which way it leans, is the most convincing way to present a number like this.
 
-> ⚠️ **Note it says `Every layout sampled`, not "every possible layout".**
+## Four definitions behind the number
 
-The resume says `every layout had a continuous path through it`, **dropping `sampled`** — strictly, that generalises from 1,020 samples to all layouts.
+The unit is a game world coordinate, referenced against a track width of a hundred and twenty, a big block's collision radius of eleven and a half, a lane half-width of eleven to eighteen, and fog at about six hundred. On how the threshold was set — it is not a threshold, it is the measured worst case, and there is no such constant or assertion in the code. On the craft's collision radius — the sweep treats the craft as a point and subtracts only obstacle radii, so fifteen is optimistic. On how it was measured — an interval-set forward sweep, taking the widest reachable interval per step and the minimum across the section. On reproduction — start the dev server and run the fairness script; the report has this column.
 
-**When pushed on "can you guarantee every random layout is passable", the right answer is:**
+## The 30-second answer
 
-> "**No, and this is sampled validation rather than a formal proof.** All 1,020 layouts had a continuous path, covering 12 sections with 85 independent reseeds each. A real guarantee would need formal constraints on the generator — **what we built is a regression check that can be re-run in CI.**"
+> The obstacles are procedurally generated, so every run has a different layout, and randomness can produce a wall spanning the whole track — the player hits it with nothing they could have done, and that is not difficulty, that is a bug. Manual playtesting cannot cover it, and automated playtesting in a headless browser does not work either, because WebGL falls back to software rasterisation there, frames take seconds, and the player teleports straight through the field. The key realisation is that whether a run is winnable is a geometric property of the layout, not of the renderer — so I computed the geometry. The sweep steps every ten units along the track maintaining a set of reachable intervals: each step grows them by how far the craft can move sideways at that stage's speed, subtracts the obstacle collision radii in that stretch, then merges the overlaps; if the set ever empties, the layout is unsolvable. One sweep answers for every path, not a few samples. It ran over 1,020 layouts, all of which had a continuous path, with the narrowest point measuring fifteen units — and fifteen is a measured result, not a threshold we set. There is also a random-scatter control, because "a path exists" can be pure probability; the gap between the two is what the layout adds.
 
-**Admitting it is sampling is much better than glossing over it.**
+## Self-check
 
----
-
-## 7. ⚠️ First, kill a misconception: a gap is not the spacing between obstacles
-
-**"Gap" is easily read as "the distance between two obstacles". It is not.**
-
-**It is the quantity the interval sweep computes** (`fairness.mjs:307-308`):
-
-```js
-const widest = reach.reduce((m, [a, b]) => Math.max(m, b - a), 0);
-if (widest < tightest) tightest = widest;
-```
-
-| Variable | Meaning |
-|---|---|
-| `reach` | At this step, **every still-alive reachable interval** (each one a safe lateral range) |
-| `widest` | How wide **the widest of them** is at this step |
-| `tightest` | Across the whole section, **the minimum of `widest`** |
-
-> ⭐ **So its precise meaning is: over the whole track, how wide the widest safe patch the player can occupy is at its narrowest moment.**
-
-## 8. Why the maximum first and the minimum second
-
-**This is the easiest step to get tangled in; an example makes it clear.**
-
-Suppose one step of the sweep produces:
-
-```
-reach = [-60,-51.5]  [-28.5,-11.5]  [+11.5,+60]
-         width 8.5     width 17       width 48.5
-```
-
-**This step takes the widest (48.5), not the narrowest (8.5).**
-
-**Why? Because the player only needs one route that works.** Whether that 8.5 sliver exists is irrelevant — **they can stay inside the 48.5 one.** So this step's "difficulty" is 48.5.
-
-**Then the section takes the minimum**: over two thousand units the widest corridor is often 40 or 50 units, which is generous. **But somewhere it narrows to 15** — **and that spot is the section's difficulty ceiling**, because the player has to be precise there.
-
-> ⭐ **In one line: it measures how hard the hardest moment on the route is.**
-
-## 9. What "units" are
-
-**They are game-world coordinate units, not pixels and not metres.**
-
-**A few references at the same scale, which make "15" legible:**
-
-| Quantity | Value | Source |
-|---|---|---|
-| Total track width | **120** | `FIELD_WIDTH` |
-| Length of one section | **2000** | `SECTION_LENGTH` |
-| **Collision radius of a 2.5-wide block** | **≈ 11.5** | The comment at `generateObstacles.ts:511` |
-| **Corridor half-width the generator guarantees** | `{ floor: 7, min: 11, max: 18 }` | `LANE_HALF` |
-| Lateral speed | 64 | `LATERAL_SPEED` |
-| Forward sampling step | 10 | `STEP` in the sweep |
-| Fog visibility distance | ≈ 600 | |
-
-**Put 15 on that scale**: it is **slightly more than one large block's collision radius (11.5)**, and it falls **in the lower part of the corridor half-width range (11–18)**.
-
-> **So 15 units is roughly "a bit more than one large block's width" of room to pass. Tight, but passable** — **which is exactly what the difficulty design wants: at its tightest there is still just enough room.**
-
-## 10. ⚠️ 15 is not a threshold that was set, it is a result that was measured
-
-**This is the easiest thing in this bullet to get wrong.**
-
-**Nowhere in the code does it say "the gap must be ≥ 15"** — there is no such constant and no such assertion. `tightest` starts at infinity and **is pushed down by the actual values encountered during the sweep.**
-
-**So the correct direction of causation is:**
-
-```
-❌ we set a floor of 15 and the generator met it
-✅ we scanned 1020 layouts and measured a narrowest point of 15
-```
-
-**When asked "why did you pick 15 as the threshold", correct the premise directly:**
-
-> "15 is not a threshold we set, **it is the worst value the scan measured.** What the generator constrains is parameters like corridor half-width, in the range 11 to 18; **15 is what layouts from those parameters actually measure at their tightest.**"
-
-> ⭐ **That correction matters** — it turns the bullet from "we set a standard" (weak) into "**we measured the actual water line**" (strong), and it **sidesteps the unanswerable follow-up "then why not set 20".**
-
-## 11. What the generator side actually constrains
-
-15 is not a threshold, **but the generator does guarantee passing room** (`generateObstacles.ts:508-516`):
-
-```js
-/**
- * How far this block's centre has to sit from the lane centre.
- *
- * Its own footprint plus the lane, because a 2.5-wide slab carries an 11.5
- * radius: one placed just outside a nominal 15-unit lane reaches most of the
- * way back across it. The lane has to be as wide to fly as it is to look at.
- */
-const clearFor = (shape, z) => laneHalfAt(z) + OBSTACLE_BASE_RADIUS * shape.width;
-```
-
-**There is a good technical point buried in that comment:**
-
-> A 2.5-wide block has a collision radius of 11.5. Place it **just outside** a nominal 15-wide corridor and **its collision volume still reaches into the corridor and nearly crosses it.**
-
-**So "minimum distance from the lane centre" cannot be the corridor half-width alone; the block's own collision radius has to be added** — which is what that sum is.
-
-> ⭐ **The last line of the comment is the point**: **"The lane has to be as wide to fly as it is to look at."**
->
-> **This is a textbook collision-geometry bug**: laying out purely by object centres, while collision volumes eat most of the passage. **The player sees a route and only discovers on impact that it is not one.**
-
-## 12. ⚠️ Be up front about the craft's own collision radius
-
-**The sweep subtracts obstacle radii and treats the craft as a point.**
-
-**That is a simplification worth admitting yourself:**
-
-> "In the sweep the craft is a point and only the obstacles' collision radii are subtracted. **Strictly it should include the craft's radius too** (geometrically that is a Minkowski sum), **which would make the measured narrowest point somewhat smaller than 15. So 15 is an optimistic figure** — although the generator's `clearFor` already leaves both radii as margin between block and corridor, and in actual play there has never been a passage that could not be flown."
-
-> ⭐ **Naming your own measurement's bias, and saying which way it leans, is the most convincing way to present this kind of number.**
-
-## 13. The four terms of this number
-
-| Question | Answer |
-|---|---|
-| **What the unit means** | Game-world coordinate units. References: track width 120, large-block collision radius 11.5, corridor half-width 11–18, fog distance ~600 |
-| **How the threshold was chosen** | ⚠️ **It is not a threshold, it is the measured worst case.** There is no constant 15 and no assertion in the code |
-| **Relation to the craft's collision radius** | ⚠️ **The craft is a point in the sweep**, and only obstacle radii are subtracted — **so 15 is optimistic**; say so unprompted |
-| **How it was measured** | A forward sweep over an interval set: take the widest reachable interval per step, take the minimum across the section |
-| **Reproducible?** | ✅ Start the dev server and run `node bench/fairness.mjs`; it is a column in the report table |
-
-## Glossary
-
-| 中文 | English |
-|---|---|
-| 程序化生成 | **procedural generation** |
-| 种子 / 重新播种 | **seed · reseed** |
-| 可通过性 | **solvability** (*winnable*) |
-| 试玩 | **playtesting** |
-| 前向扫描 | **forward sweep** |
-| 区间集合 | **interval set** |
-| 可达集 | **reachable set / reach** |
-| 生长 ↔ 挖洞 ↔ 合并 | **grow · subtract · merge** |
-| 空集 | **empty set** (*if reach goes empty, the layout is unwinnable*) |
-| 横向可达范围 | **lateral reach** |
-| 碰撞半径 | **collision radius** |
-| 走廊 / 通道 | **lane · corridor** (half-width) |
-| 缺口 | **gap** |
-| 采样 ↔ 穷举证明 | **sampling ↔ formal proof** (⚠️ this is the former) |
-| 对照组 | **control** (*against a random-scatter control*) |
-| 随机基线 | **random baseline** |
-| 回归检查 | **regression check** |
-| 闵可夫斯基和 | **Minkowski sum** |
-| 常量副本失效 | ⭐ *a copy of a constant is a constant that goes stale* |
-
-> ⭐ **The three easiest to get wrong**:
->
-> 1. The mental-shift sentence: **"Whether a run is winnable is a property of the layout, not of the renderer — so measure the layout, don't playtest it."**
-> 2. What the control is for: **the control is what this density can do; the gap between the two is what the layout adds**
-> 3. Say "this is sampling, not proof" yourself: **this is sampled validation, not a formal guarantee**
+1. Can you state the mental shift, and explain why playtesting in a headless browser is invalid?
+2. Can you walk the three steps of the forward sweep, and explain why merging cannot be skipped?
+3. Can you explain the lateral reach formula, and the lesson from both stale-constant bugs?
+4. Can you explain why the control exists?
+5. Can you say how 1,020 is computed, and why each trial reseeds the whole route?
+6. Can you explain that the gap takes the widest per step then the minimum overall, and what it measures?
+7. Can you correct the premise that fifteen is a threshold, and volunteer the point-craft simplification?

@@ -20,129 +20,74 @@ status: done
 
 ## 这条要讲清什么
 
-三层本身不值钱。值钱的是：列表、详情、预取、失效四条路径复用**同一份 query identity**。同一个资源永远由同一个 key 和同一个 queryFn 描述，缓存才可能被稳定命中。
+三层本身不值钱，任何人都能把代码分成三个文件。值钱的是：列表、详情、预取、失效这四条路径复用同一份 query identity。同一个资源永远由同一个 key 和同一个 queryFn 描述，缓存才可能被稳定命中——讲这条 bullet 的时候，重点要落在中间那一层怎么把身份锁死，而不是「我分了三层」。
 
-## 第一层：必须答顺
+## 为什么不用 useEffect 发请求
 
-### 1. 为什么不用 `useEffect` 发请求？
+接口数据是 server state，不是组件状态。它有异步生命周期、有缓存、会过期、需要并发去重、窗口重新聚焦之后要重新同步。
 
-接口数据是 **server state**，不是组件状态。它有异步生命周期、缓存、过期、并发去重、窗口重新聚焦后的重新同步。`useEffect` 能发请求，但会逼着每个页面自己重写一遍 loading、error、取消、竞态处理，而且各写各的，最后同一份数据在不同页面有不同版本。TanStack Query 把这些收进一个统一缓存。
+useEffect 当然能发请求，但它会逼着每个页面自己重写一遍 loading、error、取消和竞态处理，而且各写各的。最后同一份数据在不同页面有不同的版本，谁也说不清哪个是对的。TanStack Query 把这些收进一个统一的缓存里。
 
-### 2. 三层分别做什么？
+## 三层分别做什么
 
-```ts
-// 第一层：API function —— 只管 HTTP，不认识 React
-export const getPost = (slug: string): Promise<Post> => {
-  return api.get(`/api/posts/${slug}`);
-};
+第一层是 API 函数，只管 HTTP：给一个 slug，返回一个 Promise，完全不认识 React。
 
-// 第二层：queryOptions 工厂 —— 把 key 和 queryFn 绑成资源的唯一身份
-export const getPostQueryOptions = (slug: string) => {
-  return queryOptions({
-    queryKey: ['posts', slug],
-    queryFn: () => getPost(slug),
-    enabled: !!slug,
-  });
-};
+第二层是 queryOptions 工厂，把 queryKey 和 queryFn 绑在一起，形成这个资源的唯一身份。它同时也是放 enabled 这类默认行为的地方。
 
-// 第三层：typed hook —— 交给组件用
-type UsePostOptions = {
-  slug: string;
-  queryConfig?: QueryConfig<typeof getPostQueryOptions>;
-};
+第三层是类型化的 hook，交给组件用。它把工厂的结果展开进 useQuery，再允许调用方叠一层配置。
 
-export const usePost = ({ slug, queryConfig }: UsePostOptions) => {
-  return useQuery({
-    ...getPostQueryOptions(slug),
-    ...queryConfig,
-  });
-};
-```
+真正该讲的是第三层用的那个配置类型。它是用 Omit 从工厂返回值里把 queryKey 和 queryFn 两个字段删掉之后剩下的东西。也就是说：调用方能调 enabled、select、staleTime 这些行为，但没有任何办法在某个页面里偷偷换掉资源身份。
 
-关键在 `QueryConfig` 这个类型：
+这一句是三层里最该背下来的——它把「大家记得用同一个 key」从一条纪律变成了一件做不到的事。
 
-```ts
-export type QueryConfig<T extends (...args: never[]) => unknown> = Omit<
-  ReturnType<T>,
-  'queryKey' | 'queryFn'
->;
-```
+## 为什么 key 必须只有一个来源
 
-它把 `queryKey` 和 `queryFn` 从可配置项里**删掉**。调用方能调 `enabled`、`select`、`staleTime` 这些行为，但**没有办法在某个页面里偷偷换掉资源身份**。这是三层里最该讲的一句。
+缓存靠 key 认数据。如果卡片预取写成 posts 加 slug，详情页手写成 post 加 slug，或者两边参数顺序不一样，那就是两份互不相干的缓存：预取看起来成功了，详情页照样从零发请求，而且没有任何报错。
 
-### 3. 为什么 key 必须只有一个来源？
+反过来更危险：key 相同但响应不同——比如漏了一个会影响结果的筛选参数——会直接串数据。所以 key 要从业务身份出发，把所有影响响应的参数都放进去，而且只在工厂里生成一次。
 
-缓存靠 key 认数据。如果卡片预取写 `['posts', slug]`，详情页手写成 `['post', slug]`，或者参数顺序不一样，那就是两份互不相干的缓存——预取看起来成功了，详情页照样从零发请求。
+## hover prefetch 具体发生了什么
 
-反过来，key 相同但响应不同（比如漏了会影响结果的筛选参数），会串数据。所以 key 要从业务身份出发，把所有影响响应的参数放进去，而且只在工厂里生成一次。
+鼠标停到卡片上时触发一次 prefetch，用的是同一个工厂产出的 options。从鼠标停下到真正点下去，通常有两三百毫秒到半秒，这段时间用来把数据取回缓存。
 
-### 4. hover prefetch 具体发生了什么？
+用户点击、路由跳转、详情页挂载调用那个 hook 的时候，key 完全一致，数据还 fresh，组件直接读缓存，不会为了挂载再发第二个请求。
 
-```tsx
-<article
-  onMouseEnter={() => queryClient.prefetchQuery(getPostQueryOptions(post.slug))}
-  onClick={() => navigate(paths.post.getHref(post.slug))}
->
-```
+简历里 with no request at all 的准确含义就是这一句：详情页不再发第二个请求。它不承诺任何情况下都零网络——用户点得比预取快、预取失败、或者数据已经 stale 的时候，仍然会走网络。这三种情况要主动说出来，比被问出来好看得多。
 
-鼠标停到卡片上，到真正点下去，通常有 200–500ms。这段时间用来把数据取回缓存。用户点击、路由跳转、详情页挂载调用 `usePost(slug)` 时，key 完全一致，数据还 fresh，组件**直接读缓存，不为挂载再发第二个请求**。
+## prefetchQuery 自己每次都会发请求吗
 
-简历里 "with no request at all" 的准确含义就是这个：**详情页不再发第二个请求**。不是承诺任何情况下都零网络——用户点得比预取快、预取失败、或数据已经 stale 时，仍然会走网络。这句话面试时要主动说清楚，比被问出来好。
+不会。它按 staleTime 判断已有数据够不够新。项目里全局把 staleTime 配成 60 秒、关掉窗口聚焦重取、关掉自动重试，所以缓存里那份还在 60 秒内的话，重复 hover 不会重新拉。
 
-### 5. `prefetchQuery` 自己每次都会发请求吗？
+这一问的价值在于：它区分了「我配了 prefetch」和「我知道 prefetch 什么时候真的发生」。
 
-不会。它按 `staleTime` 判断已有数据够不够新。全局配置：
+## mutation 为什么只做 invalidate
 
-```ts
-export const queryConfig = {
-  queries: {
-    refetchOnWindowFocus: false,
-    retry: false,
-    staleTime: 1000 * 60,   // 60 秒内视为新鲜
-  },
-} satisfies DefaultOptions;
-```
+mutation 成功之后按资源前缀让缓存失效，而不是手工去同步每个页面的状态。
 
-缓存里那份还在 60 秒内，重复 hover 不会重新拉。
+invalidate 表达的是「这组缓存不再可信」，然后由当前活跃的查询按规则重新同步。手工改缓存只适合响应结构完全确定的场景，而且很容易漏掉某个派生列表——漏掉的那个列表会一直显示旧数据，直到用户刷新。失效更保守，也更难写错。
 
-### 6. mutation 为什么只做 invalidate，不手工同步每个页面？
+## 概念补充
 
-```ts
-onSuccess: () => {
-  queryClient.invalidateQueries({ queryKey: ['comments', postId] });
-},
-```
+**staleTime 和 gcTime 的区别。** staleTime 管新鲜度：数据多久之内不需要重新获取。gcTime 管留存：没有任何组件在观察这份缓存之后，它还能在内存里待多久。一个决定要不要重新请求，一个决定什么时候被回收。v4 里 gcTime 叫 cacheTime，v5 才改的名，被问到旧名字时能对上就行。
 
-`invalidate` 表达的是"这组缓存不再可信"，然后由当前活跃的查询按规则重新同步。手工改缓存（`setQueryData`）只适合响应结构完全确定的场景，而且很容易漏掉某个派生列表。失效更保守，也更难写错。
+**query key 为什么要分层。** 层级 key 既能精确命中某一篇文章，也能按前缀批量处理：让 posts 这个前缀下的所有查询一起标记过期，一行就够。扁平的字符串 key 做不到这件事。
 
-## 第二层：概念补充
+**invalidate 和 refetch 的区别。** invalidate 先把数据标成 stale，是否真的重新请求由活跃状态和配置决定；refetch 是命令某个查询立刻再执行一次。mutation 之后表达「旧数据失效」比到处命令式刷新更容易维护。
 
-### `staleTime` 和 `gcTime` 的区别？
-
-`staleTime` 管**新鲜度**：数据多久之内不需要重新获取。`gcTime` 管**留存**：没有任何组件在观察这份缓存之后，它还在内存里待多久。一个决定要不要重新请求，一个决定什么时候被回收。
-
-> v4 里 `gcTime` 叫 `cacheTime`，v5 改的名。被问到旧名字时能对上即可。
-
-### query key 为什么要分层？
-
-层级 key 既能精确命中 `['posts', slug]`，也能按前缀批量处理：`invalidateQueries({ queryKey: ['posts'] })` 会把所有 posts 相关的查询一起标记过期。扁平的字符串 key 做不到这件事。
-
-### invalidate 和 refetch 的区别？
-
-`invalidate` 先把数据标成 stale，是否真的重新请求由活跃状态和配置决定；`refetch` 是命令某个查询立刻再执行一次。mutation 之后表达"旧数据失效"比到处命令式刷新更容易维护。
-
-### 预取会不会浪费流量？
-
-会。用户可能 hover 了并不点。可以加一个短延迟再触发、只对点击率高的入口开、或按响应体积和网络状况决定。另外 `onMouseEnter` 只照顾鼠标用户，键盘 Tab 到卡片同样是意图信号，`onFocus` 也该加上。
+**预取会不会浪费流量。** 会，用户可能 hover 了并不点。可以加一个短延迟再触发、只对点击率高的入口开、或者按响应体积和网络状况决定。另外 onMouseEnter 只照顾鼠标用户，键盘 Tab 到卡片同样是意图信号，onFocus 也该加上——主动提这一条能显示你想过无障碍。
 
 ## 30 秒回答
 
-> 我把服务端数据分成三层：API 函数只管 HTTP，queryOptions 工厂把 queryKey 和 queryFn 绑成资源的唯一身份，typed hook 交给组件用。层数不是重点，重点是工厂——`QueryConfig` 用 `Omit` 把 `queryKey` 和 `queryFn` 从可配置项里删掉，所以列表、详情和 hover prefetch 只能复用同一份身份，没人能在某个页面里换掉 key。卡片 hover 时预取写进缓存，用户点进详情页命中同一个 key，只要还 fresh 就不再发第二个请求。mutation 成功后按资源前缀 invalidate，让活跃查询自己重新同步，而不是每个页面各维护一份状态。
+> 我把服务端数据分成三层：API 函数只管 HTTP，queryOptions 工厂把 queryKey 和 queryFn 绑成资源的唯一身份，类型化 hook 交给组件用。层数不是重点，重点是工厂——hook 的配置类型用 Omit 把 queryKey 和 queryFn 从可配置项里删掉了，所以列表、详情和 hover prefetch 只能复用同一份身份，没人能在某个页面里换掉 key。卡片 hover 时预取写进缓存，用户点进详情页命中同一个 key，只要还 fresh 就不再发第二个请求。mutation 成功后按资源前缀让缓存失效，让活跃查询自己重新同步，而不是每个页面各维护一份状态。
+
+## 英文怎么说
+
+「服务端状态」是 server state，别说 remote data。「同一份查询身份」说 one query identity, reused by the list, the detail page, the prefetch and the invalidation。Omit 那一层说 the config type omits queryKey and queryFn, so a caller can tune behaviour but cannot swap the identity。简历那句要主动限定：no request at all means no second request on the detail page — not zero network in every case。invalidate 和 refetch 的区别说 invalidate marks it stale; refetch commands it to run now。
 
 ## 自检
 
-1. 能否说清 `QueryConfig` 的 `Omit` 到底防住了什么？
-2. 能否准确解释 "no request at all" 是"详情页没有第二个请求"，并说出它不成立的三种情况？
-3. 能否说出 `prefetchQuery` 受 `staleTime` 影响，而不是每次都发请求？
-4. 能否区分 `staleTime`、`gcTime`（v4 的 `cacheTime`）、invalidate 和 refetch？
-5. 能否主动提出 `onFocus` 和预取浪费这两个缺口？
+1. 能否说清那个配置类型的 Omit 到底防住了什么？
+2. 能否准确解释 no request at all 是「详情页没有第二个请求」，并说出它不成立的三种情况？
+3. 能否说出 prefetchQuery 受 staleTime 影响，而不是每次都发请求？
+4. 能否区分 staleTime、gcTime、invalidate 和 refetch？
+5. 能否主动提出 onFocus 和预取浪费这两个缺口？
