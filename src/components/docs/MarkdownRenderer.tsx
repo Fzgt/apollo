@@ -197,6 +197,14 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
               {children}
             </p>
           ),
+          // 正文是 muted-foreground，加粗若不换色就只剩字重差别；暗色模式下
+          // 亮字压在深底上会发虚，字重那点差距基本看不出来 —— 提到 foreground
+          // 才有亮度差，重点词才真的跳出来。
+          strong: ({ children }) => (
+            <strong className="font-semibold text-foreground">
+              {children}
+            </strong>
+          ),
           a: ({ href, children }) => (
             <a
               href={href}
