@@ -65,6 +65,7 @@ const SECTION_TITLES_EN: Record<string, string> = {
   cheatsheet: 'Cheat sheet',
   interview: 'General interview',
   jd: 'The JD',
+  speak: 'Talk track',
   course: 'Course and older notes',
 };
 
