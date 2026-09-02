@@ -72,68 +72,72 @@
     --sidebar-ring: 15 65% 52%;
   }
 
+  /* 暗色模式对齐 react.dev（zh-hans.react.dev 实测取色）：
+     底 #23272f、字 #f6f7f9、链接 #58c4dc、边框 #404756、更深的槽 #16181d。
+     唯一有意偏离：正文 muted-foreground 比 react 的 gray-30 亮一档，
+     因为本站正文用 muted、加粗才用 foreground，两者得留出亮度差。 */
   .dark {
-    /* Brand Primary - Warm Orange */
-    --primary: 15 65% 52%;
-    --primary-foreground: 0 0% 100%;
-    
-    /* Secondary */
-    --secondary: 35 12% 18%;
-    --secondary-foreground: 35 20% 85%;
-    
-    /* Background & Foreground - Dark olive/brown like Anthropic */
-    --background: 40 15% 12%;
-    --foreground: 35 20% 88%;
-    
-    /* Card - Slightly lighter than background */
-    --card: 38 12% 18%;
-    --card-foreground: 35 20% 88%;
-    
-    /* Popover */
-    --popover: 40 12% 14%;
-    --popover-foreground: 35 20% 88%;
-    
+    /* Brand Primary - react.dev 暗色链接色 #58c4dc */
+    --primary: 191 65% 60%;
+    --primary-foreground: 220 15% 16%;
+
+    /* Secondary - gray-80 #343a46 */
+    --secondary: 220 15% 24%;
+    --secondary-foreground: 220 20% 97%;
+
+    /* Background & Foreground - #23272f / #f6f7f9 */
+    --background: 220 15% 16%;
+    --foreground: 220 20% 97%;
+
+    /* Card - 介于底色与 gray-80 之间 */
+    --card: 220 15% 21%;
+    --card-foreground: 220 20% 97%;
+
+    /* Popover - 贴近 gray-95 #16181d */
+    --popover: 223 14% 13%;
+    --popover-foreground: 220 20% 97%;
+
     /* Muted */
-    --muted: 38 10% 22%;
-    --muted-foreground: 35 15% 55%;
-    
+    --muted: 220 14% 22%;
+    --muted-foreground: 222 15% 72%;
+
     /* Accent */
-    --accent: 38 10% 22%;
-    --accent-foreground: 35 20% 88%;
-    
+    --accent: 220 14% 22%;
+    --accent-foreground: 220 20% 97%;
+
     /* Destructive */
-    --destructive: 0 62% 45%;
-    --destructive-foreground: 35 20% 88%;
-    
-    /* Border, Input, Ring */
-    --border: 38 10% 25%;
-    --input: 38 10% 25%;
-    --ring: 15 65% 52%;
-    
-    /* Accent warm */
-    --accent-warm: 15 55% 48%;
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 220 20% 97%;
+
+    /* Border, Input, Ring - gray-70 #404756 */
+    --border: 221 15% 29%;
+    --input: 221 15% 29%;
+    --ring: 191 65% 60%;
+
+    /* Accent - react.dev brand-dark #149eca */
+    --accent-warm: 194 82% 44%;
     --accent-warm-foreground: 0 0% 100%;
 
     /* Functional Colors */
-    --success: 142 60% 50%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 90% 58%;
-    --warning-foreground: 0 0% 10%;
-    --info: 220 75% 65%;
-    --info-foreground: 0 0% 100%;
+    --success: 142 55% 58%;
+    --success-foreground: 220 15% 16%;
+    --warning: 38 90% 62%;
+    --warning-foreground: 220 15% 16%;
+    --info: 220 80% 72%;
+    --info-foreground: 220 15% 16%;
 
     /* Syntax highlighting (Prism) — extra hue not covered by primary tokens */
-    --syntax-function: 280 70% 65%;
+    --syntax-function: 280 70% 74%;
 
-    /* Sidebar Dark */
-    --sidebar-background: 40 12% 10%;
-    --sidebar-foreground: 35 20% 85%;
-    --sidebar-primary: 15 65% 52%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 38 10% 18%;
-    --sidebar-accent-foreground: 35 20% 85%;
-    --sidebar-border: 38 10% 22%;
-    --sidebar-ring: 15 65% 52%;
+    /* Sidebar Dark - gray-95 槽 */
+    --sidebar-background: 223 14% 12%;
+    --sidebar-foreground: 222 15% 78%;
+    --sidebar-primary: 191 65% 60%;
+    --sidebar-primary-foreground: 220 15% 16%;
+    --sidebar-accent: 220 15% 21%;
+    --sidebar-accent-foreground: 220 20% 97%;
+    --sidebar-border: 220 14% 24%;
+    --sidebar-ring: 191 65% 60%;
   }
 }
 
