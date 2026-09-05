@@ -111,9 +111,8 @@ export const phrases: Phrase[] = [
     topic: "verb",
     zh: "定位到问题",
     en: "track it down",
-    avoid: "locate the problem",
     alt: ["narrow it down", "pin it down"],
-    note: "narrow down 是逐步缩小范围，track down 是最后揪出来。",
+    note: "narrow down 是逐步缩小范围，track down 是最后揪出来。 locate the problem 语法没错，只是书面。日常说 track it down、narrow it down。",
     ex: "I narrowed it down to one selector, then tracked it down to a stale ref.",
   },
   {
@@ -840,7 +839,7 @@ export const phrases: Phrase[] = [
     topic: "perf",
     zh: "包体积",
     en: "bundle size",
-    avoid: "package size",
+    note: "package size 会让人想到 npm 包的体积；讲产物说 bundle size。",
     ex: "That took 180 kB off the initial bundle.",
   },
   {
@@ -1555,7 +1554,7 @@ export const phrases: Phrase[] = [
     topic: "team",
     zh: "每日站会",
     en: "standup",
-    avoid: "daily meeting",
+    note: "daily meeting 也听得懂，只是没人这么讲；站会就叫 standup。",
   },
   {
     topic: "team",
