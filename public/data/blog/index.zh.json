@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-08-30T09:37:28.990Z",
+  "syncedAt": "2026-09-05T11:47:34.087Z",
   "translated": [
     56,
     55,
@@ -61,6 +61,202 @@
   ],
   "posts": [
     {
+      "number": 64,
+      "title": "CrUX 理解笔记 —— p75、28 天滚动窗口与流量门槛",
+      "labels": [
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        },
+        {
+          "name": "性能优化",
+          "color": "ffffff"
+        }
+      ],
+      "createdAt": "2026-09-05T11:39:59Z",
+      "updatedAt": "2026-09-05T11:39:59Z",
+      "url": "https://github.com/Fzgt/Blog/issues/64",
+      "excerpt": "CrUX = Chrome User Experience Report，Google 公开的真实用户性能数据集。 一句话理解：它是你网站在真实世界里的成绩单，不是你在本地测出来的模拟分。 --- 一、数据从哪来 Chrome 浏览器在满足条件的用户身上匿名采集性能数据并上报。用…",
+      "headings": [
+        "一、数据从哪来",
+        "二、三个必须知道的口径",
+        "三、怎么访问",
+        "四、CrUX vs Lighthouse",
+        "五、一个常被忽略的局限",
+        "总结"
+      ]
+    },
+    {
+      "number": 63,
+      "title": "Web Vitals 排查笔记：FCP / LCP / TTFB / INP / TBT",
+      "labels": [
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        },
+        {
+          "name": "性能优化",
+          "color": "ffffff"
+        }
+      ],
+      "createdAt": "2026-09-05T11:30:48Z",
+      "updatedAt": "2026-09-05T11:36:46Z",
+      "url": "https://github.com/Fzgt/Blog/issues/63",
+      "excerpt": "原始理解 FCP 慢了是不是会影响 LCP，另外 FCP 如果慢，是不是应该先看 TTFB 来判断是前端问题还是后端问题。INP 主要是用户体验性质的，看用户执行交互之后，得到有效渲染的快慢。实验室版本的 INP 的代理指标就是 TBT 是吧，通过看总的长任务阻塞时间，来判断 I…",
+      "headings": [
+        "① FCP 慢会不会影响 LCP",
+        "② FCP 慢，先看 TTFB 判断前后端",
+        "③ INP 的准确定义",
+        "④ TBT 作为 INP 的实验室代理",
+        "⑤ 字段数据：web-vitals SDK",
+        "总结表"
+      ]
+    },
+    {
+      "number": 62,
+      "title": "前端性能排查工具链 —— Lighthouse / web-vitals / Performance 火焰图 / React Profiler / Coverage",
+      "labels": [
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        },
+        {
+          "name": "性能优化",
+          "color": "ffffff"
+        }
+      ],
+      "createdAt": "2026-09-05T09:32:17Z",
+      "updatedAt": "2026-09-05T11:41:35Z",
+      "url": "https://github.com/Fzgt/Blog/issues/62",
+      "excerpt": "五个面板各回答一个不同的问题：有没有问题、慢在哪一层、是哪一行代码。搞混了就会拿错工具查错方向。 除 Lighthouse 那张是我在自己站上真跑的以外，其余截图取自 Chrome DevTools / React DevTools 官方文档。 先把顺序说清楚，后面每一节对应一步…",
+      "headings": [
+        "1. Lighthouse —— 体检，不是诊断",
+        "2. web-vitals 与 Live metrics —— 真实用户那一份数",
+        "3. Performance 火焰图 —— 主线程的时间去哪了",
+        "4. 长任务 —— 交互卡顿的直接原因",
+        "5. Layout shifts 轨道 —— 是哪个元素在跳",
+        "6. React DevTools Profiler —— 哪个组件渲染得太多",
+        "7. Coverage —— 下载了但没跑的代码",
+        "一句话总结"
+      ]
+    },
+    {
+      "number": 61,
+      "title": "React 里的 TS：四个高频知识点",
+      "labels": [
+        {
+          "name": "React",
+          "color": "0075ca"
+        },
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        }
+      ],
+      "createdAt": "2026-09-05T05:57:19Z",
+      "updatedAt": "2026-09-05T05:57:19Z",
+      "url": "https://github.com/Fzgt/Blog/issues/61",
+      "excerpt": "复用原生 props、children 的类型、事件类型、useState 的推断边界。 --- 1. 复用原生元素的全部属性：ComponentProps 问题 你写一个自定义 Button，希望它用起来和原生 <button> 一样：能传 onClick、disabled、t…",
+      "headings": [
+        "1. 复用原生元素的全部属性：ComponentProps",
+        "2. ReactNode vs ReactElement",
+        "3. 事件类型",
+        "4. useState 什么时候需要写泛型",
+        "一句话总结"
+      ]
+    },
+    {
+      "number": 60,
+      "title": "换一个雾色为什么会重编译整个场景：引用相等做缓存失效的代价",
+      "labels": [
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        }
+      ],
+      "createdAt": "2026-09-02T09:19:33Z",
+      "updatedAt": "2026-09-02T09:22:28Z",
+      "url": "https://github.com/Fzgt/Blog/issues/60",
+      "excerpt": "症状：卡死精确落在换关那一帧 WinterFell 每跑 1800 个世界单位换一次调色板，其中一项是雾色。这个「只改一个颜色」的动作，曾经稳定地在换关那一帧把主线程打死。 - 雾在渲染里不是一层贴上去的滤镜，是编进每个材质着色器里的一段混色代码——所以「有没有雾」是源码差异，必…",
+      "headings": [
+        "症状：卡死精确落在换关那一帧",
+        "一、雾不是画面里的某一块",
+        "二、为什么「有没有雾」是代码，「雾什么颜色」是变量",
+        "三、three 怎么判断「雾变了」",
+        "四、从一个新节点到全场重建",
+        "五、触发它的写法长什么样",
+        "六、可以带走的那条规则"
+      ]
+    },
+    {
+      "number": 59,
+      "title": "后处理必须是最后一步：renderPriority 接管了什么，又赔上了什么",
+      "labels": [
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        }
+      ],
+      "createdAt": "2026-09-02T02:00:42Z",
+      "updatedAt": "2026-09-02T09:22:27Z",
+      "url": "https://github.com/Fzgt/Blog/issues/59",
+      "excerpt": "一行参数引出来的故障 #57 讲 bloom 为什么必须走 TSL 节点管线时，留了一句没展开的话：后处理组件把 renderPriority 设成大于零。这一行参数背后是一整套因果。 - 后处理的输入是「一整张已经渲完的画面」，所以它在渲染管线里只能排最后一步——它的原料是别人…",
+      "headings": [
+        "一行参数引出来的故障",
+        "一、为什么后处理不能边渲边做",
+        "二、renderPriority 到底改了什么",
+        "三、接管之后，渲染只剩一条命",
+        "四、真正的根因在几何体释放",
+        "五、能带走的那条"
+      ]
+    },
+    {
+      "number": 58,
+      "title": "剔除为什么会被实例化吃掉：draw call 的粒度问题",
+      "labels": [
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        }
+      ],
+      "createdAt": "2026-09-01T15:11:47Z",
+      "updatedAt": "2026-09-02T09:22:25Z",
+      "url": "https://github.com/Fzgt/Blog/issues/58",
+      "excerpt": "上一篇留的尾巴 上一篇最后留了个尾巴：实例化的代价是「逐物体视锥剔除没了」。这句话本身是对的，但为什么会这样，值得单独拆一遍——因为它牵出的是渲染优化里一对天生打架的东西。 - 剔除是 CPU 侧、提交之前做的，判断依据是包围盒，不是真几何体。 - CPU 手里只有一个开关：这次…",
+      "headings": [
+        "上一篇留的尾巴",
+        "一、剔除发生在什么时候",
+        "二、为什么粒度只能到 draw call",
+        "三、实例化把粒度撑粗了",
+        "四、代价落在哪一级——别叫它 overdraw",
+        "五、这条路的尽头：GPU-driven culling"
+      ]
+    },
+    {
+      "number": 57,
+      "title": "从「为什么用 WebGPU」问起：bloom、draw call、实例化与 compute",
+      "labels": [
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        }
+      ],
+      "createdAt": "2026-09-01T14:17:40Z",
+      "updatedAt": "2026-09-02T09:22:23Z",
+      "url": "https://github.com/Fzgt/Blog/issues/57",
+      "excerpt": "起因 围绕 WinterFell（项目说明见 #48）的一次追问，把几个容易讲错的点钉死： - WebGPU 相对 WebGL 的优势在 CPU 侧和 compute，不在画质。 同一个着色器跑在同一块 GPU 上，两边出的像素完全一样。 - 实例化省的是「命令次数」，不是三角形…",
+      "headings": [
+        "起因",
+        "一、bloom 不是特效，是「发光」本身",
+        "二、一个渲染器，两个后端",
+        "三、TSL 是中间描述层，不是语法糖",
+        "四、选型的因果顺序（很容易讲反）",
+        "五、draw call 与实例化",
+        "六、WebGPU 到底快在哪",
+        "七、FPS 为什么比不出差距"
+      ]
+    },
+    {
       "number": 56,
       "title": "Blob、二进制传输与 Base64：什么时候需要编码",
       "labels": [],
@@ -84,7 +280,7 @@
       "title": "SSE（Server-Sent Events）—— 一个不结束的 HTTP 响应",
       "labels": [],
       "createdAt": "2026-08-23T13:15:36Z",
-      "updatedAt": "2026-08-23T13:15:36Z",
+      "updatedAt": "2026-09-01T15:18:21Z",
       "url": "https://github.com/Fzgt/Blog/issues/55",
       "excerpt": "一直觉得 SSE 很玄，其实它是这几种实时方案里最土的一个：就是一个不结束的 HTTP 响应。 把这一句吃透，剩下的全是细节。 一、它到底是什么 普通的 HTTP 请求是这样： SSE 只改了最后一步： ⭐ 服务器把响应体写了一半就停在那儿不关，隔一会儿再往里写一段。 浏览器这边…",
       "headings": [
@@ -275,7 +471,7 @@
         }
       ],
       "createdAt": "2026-08-10T14:29:06Z",
-      "updatedAt": "2026-08-10T14:58:26Z",
+      "updatedAt": "2026-09-01T15:18:19Z",
       "url": "https://github.com/Fzgt/Blog/issues/45",
       "excerpt": "AI Related 项目地址： https://github.com/parthenon-labs/periplus 证据锚定，防幻觉 SourceDocument.evidencefor 校验引用是原文的精确子串，不是原文才拒收。 模型引用原文时经常「顺手改一个数字、合并两句…",
       "headings": [
@@ -320,7 +516,7 @@
         }
       ],
       "createdAt": "2026-08-06T03:51:35Z",
-      "updatedAt": "2026-08-06T03:51:35Z",
+      "updatedAt": "2026-09-01T15:18:17Z",
       "url": "https://github.com/Fzgt/Blog/issues/43",
       "excerpt": "整理于 2026-08-06。一手来源为主（react.dev / GitHub releases），二手来源已标注。 注意：搜索 \"React best practices 2026\" 出来的内容大量是 SEO 农场文 —— 互相抄袭、掺杂过时信息、把 2024 年的东西包装成…",
       "headings": [
@@ -583,7 +779,7 @@
         }
       ],
       "createdAt": "2026-07-27T08:05:50Z",
-      "updatedAt": "2026-07-28T00:07:55Z",
+      "updatedAt": "2026-09-01T15:18:16Z",
       "url": "https://github.com/Fzgt/Blog/issues/29",
       "excerpt": "一、getDerivedStateFromProps 是什么：类组件专属的静态生命周期方法，作用是\"根据最新传进来的props，决定要不要更新state\"。 关键特点： - 静态方法，拿不到this，不能调用this.setState，只能通过return一个对象来更新state…",
       "headings": [
@@ -762,7 +958,7 @@
         }
       ],
       "createdAt": "2026-07-24T04:22:39Z",
-      "updatedAt": "2026-08-23T12:46:20Z",
+      "updatedAt": "2026-09-01T15:18:14Z",
       "url": "https://github.com/Fzgt/Blog/issues/21",
       "excerpt": "Bullet 3 ⭐ 虚拟列表 —— 500+ DOM → 20,30 FPS → 60 FPS Built the infinite scroll Feed for the Xiaodu App homepage (daily PV 5M+) based on Haokan V…",
       "headings": [
@@ -1085,9 +1281,9 @@
         }
       ],
       "createdAt": "2025-08-03T14:09:41Z",
-      "updatedAt": "2026-07-28T08:04:14Z",
+      "updatedAt": "2026-09-01T15:18:12Z",
       "url": "https://github.com/Fzgt/Blog/issues/3",
-      "excerpt": "垃圾回收机制 涉及面试题：V8 下的垃圾回收机制是怎么样的？ （1）垃圾回收概述 垃圾回收机制(GC:Garbage Collection),执行环境负责管理代码执行过程中使用的内存。垃圾收集器会定期（周期性）找出那些不在继续使用的变量，然后释放其内存。但是这个过程不是实时的，因…",
+      "excerpt": "垃圾回收机制 问题：V8 下的垃圾回收机制是怎么样的？ （1）垃圾回收概述 垃圾回收机制(GC:Garbage Collection),执行环境负责管理代码执行过程中使用的内存。垃圾收集器会定期（周期性）找出那些不在继续使用的变量，然后释放其内存。但是这个过程不是实时的，因为其开…",
       "headings": [
         "垃圾回收机制",
         "新生代算法",
