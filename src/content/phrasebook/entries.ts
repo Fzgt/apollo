@@ -1740,10 +1740,10 @@ export const phrases: Phrase[] = [
   {
     topic: "judge",
     zh: "优点",
-    en: "what you get is",
-    alt: ["the advantage is"],
-    note: "少用名词。What you get is… 比 The advantage is… 自然得多。",
-    ex: "What you get is one place to change the threshold.",
+    en: "the upside",
+    alt: ["what you get is", "the advantage is"],
+    note: "upside 跟 downside 是一对，两句连着说最顺。想更口语就换成句式 What you get is…。",
+    ex: "The upside is one place to change the threshold; the downside is one more file to find.",
   },
   {
     topic: "judge",
