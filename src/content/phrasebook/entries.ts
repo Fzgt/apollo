@@ -1495,10 +1495,18 @@ export const phrases: Phrase[] = [
   },
   {
     topic: "test",
-    zh: "优先级最高",
+    zh: "卡住别人的活 / 阻塞项",
     en: "a blocker",
-    alt: ["P0"],
-    ex: "It was a blocker, so everything else waited.",
+    note: "blocker 说的是「挡住后面的事」，不是「最重要」。不挡任何人、只是很急，那是 top priority，不是 blocker。",
+    ex: "The API wasn't ready, so it was a blocker for the whole team.",
+  },
+  {
+    topic: "test",
+    zh: "优先级最高",
+    en: "top priority",
+    alt: ["P0", "the highest-priority item"],
+    note: "P0 是内部票据里的写法，口头讲清楚就说 top priority。",
+    ex: "We made the checkout bug the top priority that week.",
   },
   {
     topic: "test",
