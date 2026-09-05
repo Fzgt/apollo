@@ -299,10 +299,13 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           hr: () => (
             <hr className="border-border my-8" />
           ),
+          // 正文里的图都是截图，动辄一两百 KB，且基本都在首屏之外
           img: ({ src, alt }) => (
             <img
               src={src}
               alt={alt}
+              loading="lazy"
+              decoding="async"
               className="my-6 max-w-full rounded-xl border border-border shadow-lg"
             />
           ),

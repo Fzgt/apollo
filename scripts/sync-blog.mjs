@@ -25,10 +25,16 @@
  * 顺序照抄，博客页左侧的索引直接用它——README 是唯一的一份分类清单，
  * 这边只是把它解析成数据，不另维护一套。
  *
+ * 正文里的图片一律镜像到本地 `public/data/blog/assets/`：GitHub 上的图（仓库里的
+ * `raw.githubusercontent.com`、正文里粘的 `user-attachments`）跟着仓库的可见性走，
+ * Blog 是私有的，浏览器匿名去取只会拿到 404。外站图（语雀 CDN 之类）一并镜像，
+ * 免得哪天防盗链或者链接失效。已经下过的不重下，孤儿文件同步时清掉。
+ *
  * 用法：node scripts/sync-blog.mjs
  * 可选环境变量：GITHUB_TOKEN（提高限流额度）、BLOG_REPO（默认 Fzgt/Blog）
  */
 
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -38,6 +44,9 @@ const OUT_DIR = path.join(ROOT, 'public', 'data', 'blog');
 const INDEX_FILE = path.join(OUT_DIR, 'index.json');
 const INDEX_ZH_FILE = path.join(OUT_DIR, 'index.zh.json');
 const EN_DIR = path.join(ROOT, 'src', 'content', 'blog');
+const ASSET_DIR = path.join(OUT_DIR, 'assets');
+// 站点部署在根路径；换子路径部署要带上 VITE_BASE 重跑一次同步，正文里的图才对得上
+const BASE = process.env.VITE_BASE ?? '/';
 const REPO = process.env.BLOG_REPO ?? 'Fzgt/Blog';
 const PER_PAGE = 100;
 const MAX_PAGES = 10;
@@ -137,6 +146,103 @@ function toIndexEntry(issue, translation) {
   };
 }
 
+/** 正文里所有 http(s) 图片：markdown 的 `![]()` 和手写的 `<img src>` */
+const IMAGE_RE = /!\[[^\]]*\]\(\s*(https?:\/\/[^\s)]+?)\s*(?:"[^"]*")?\s*\)|<img\b[^>]*?\bsrc\s*=\s*["'](https?:\/\/[^"']+)["']/gi;
+
+const EXT_BY_TYPE = {
+  'image/png': '.png',
+  'image/jpeg': '.jpg',
+  'image/gif': '.gif',
+  'image/webp': '.webp',
+  'image/avif': '.avif',
+  'image/svg+xml': '.svg',
+};
+
+function collectImageUrls(body) {
+  const urls = [];
+  for (const match of (body ?? '').matchAll(IMAGE_RE)) {
+    const url = match[1] ?? match[2];
+    if (url && !urls.includes(url)) urls.push(url);
+  }
+  return urls;
+}
+
+/** 文件名只认 URL，同一张图在几篇里出现也只存一份 */
+function assetName(url, contentType) {
+  const hash = crypto.createHash('sha1').update(url).digest('hex').slice(0, 16);
+  const fromUrl = path.extname(new URL(url).pathname).toLowerCase();
+  const fromType = EXT_BY_TYPE[(contentType ?? '').split(';')[0].trim()];
+  const ext = fromType ?? (fromUrl.length > 1 && fromUrl.length <= 5 ? fromUrl : '.png');
+  return `${hash}${ext}`;
+}
+
+function isGitHubHost(url) {
+  const host = new URL(url).hostname;
+  return host === 'github.com' || host.endsWith('.githubusercontent.com');
+}
+
+/**
+ * 把远端图片抓到本地，返回 URL → 站内路径 的映射。
+ * 抓不动的那张原样留着外链——少一张图，好过整篇正文报错。
+ */
+async function mirrorImages(urls, existing) {
+  const mapping = new Map();
+  const kept = new Set();
+  let downloaded = 0;
+  let failed = 0;
+
+  for (const url of urls) {
+    // 已经下过的直接复用：文件名只跟 URL 有关，扩展名先按 URL 猜
+    const guess = [...existing].find((name) => name.startsWith(
+      crypto.createHash('sha1').update(url).digest('hex').slice(0, 16)
+    ));
+    if (guess) {
+      mapping.set(url, `${BASE}data/blog/assets/${guess}`);
+      kept.add(guess);
+      continue;
+    }
+
+    try {
+      // 私有仓库的图要带 token；外站图不发我们的凭证
+      const headers = isGitHubHost(url)
+        ? githubHeaders('image/*')
+        : { 'User-Agent': 'apollo-blog-sync', Accept: 'image/*' };
+      const res = await fetch(url, { headers, redirect: 'follow' });
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+
+      const buffer = Buffer.from(await res.arrayBuffer());
+      const name = assetName(url, res.headers.get('content-type'));
+      await fs.writeFile(path.join(ASSET_DIR, name), buffer);
+      mapping.set(url, `${BASE}data/blog/assets/${name}`);
+      kept.add(name);
+      downloaded += 1;
+    } catch (error) {
+      failed += 1;
+      console.warn(`[sync-blog] 图片抓不下来，保留外链：${url}（${error.message}）`);
+    }
+  }
+
+  // 正文里已经不引用的，删掉，别在仓库里越攒越多
+  let pruned = 0;
+  for (const name of existing) {
+    if (kept.has(name)) continue;
+    await fs.rm(path.join(ASSET_DIR, name), { force: true });
+    pruned += 1;
+  }
+
+  return { mapping, downloaded, reused: kept.size - downloaded, pruned, failed };
+}
+
+/** 正文里的图片地址换成镜像后的站内路径；没镜像成功的原样不动 */
+function rewriteImages(body, mapping) {
+  if (!body) return body ?? '';
+  let out = body;
+  for (const [url, local] of mapping) {
+    out = out.split(url).join(local);
+  }
+  return out;
+}
+
 function githubHeaders(accept) {
   const headers = { Accept: accept, 'User-Agent': 'apollo-blog-sync' };
   if (process.env.GITHUB_TOKEN) {
@@ -216,9 +322,24 @@ async function main() {
 
   issues.sort((a, b) => b.number - a.number);
 
-  // 整个目录重写，避免删掉的 issue 留下孤儿文件
-  await fs.rm(OUT_DIR, { recursive: true, force: true });
-  await fs.mkdir(OUT_DIR, { recursive: true });
+  // JSON 全部重写，避免删掉的 issue 留下孤儿文件；图片另算，见下面的 mirrorImages
+  await fs.mkdir(ASSET_DIR, { recursive: true });
+  for (const name of await fs.readdir(OUT_DIR)) {
+    if (name.endsWith('.json')) await fs.rm(path.join(OUT_DIR, name), { force: true });
+  }
+
+  const existingAssets = new Set(await fs.readdir(ASSET_DIR));
+  const imageUrls = [];
+  for (const issue of issues) {
+    const translation = translations.get(issue.number);
+    for (const url of [
+      ...collectImageUrls(issue.body),
+      ...collectImageUrls(translation?.body),
+    ]) {
+      if (!imageUrls.includes(url)) imageUrls.push(url);
+    }
+  }
+  const assets = await mirrorImages(imageUrls, existingAssets);
 
   const syncedAt = new Date().toISOString();
   // 运行期从 GitHub 拉到的是中文原文，靠这份号码单知道哪些该让快照说了算
@@ -257,7 +378,7 @@ async function main() {
     const post = {
       number: issue.number,
       title: translation?.title || issue.title,
-      body: translation?.body ?? issue.body ?? '',
+      body: rewriteImages(translation?.body ?? issue.body ?? '', assets.mapping),
       updatedAt: issue.updated_at,
     };
     await fs.writeFile(
@@ -271,7 +392,12 @@ async function main() {
     await fs.writeFile(
       path.join(OUT_DIR, `${issue.number}.zh.json`),
       `${JSON.stringify(
-        { number: issue.number, title: issue.title, body: issue.body ?? '', updatedAt: issue.updated_at },
+        {
+          number: issue.number,
+          title: issue.title,
+          body: rewriteImages(issue.body ?? '', assets.mapping),
+          updatedAt: issue.updated_at,
+        },
         null,
         2
       )}\n`,
@@ -284,6 +410,10 @@ async function main() {
     `synced ${issues.length} posts from ${REPO} -> public/data/blog/ ` +
       `(index ${indexKb} KB, ${translated.length} translated, zh snapshot alongside, ` +
       `${knownCategories.length} categories from README)`
+  );
+  console.log(
+    `images: ${assets.downloaded} downloaded, ${assets.reused} reused, ` +
+      `${assets.pruned} pruned${assets.failed ? `, ${assets.failed} failed` : ''}`
   );
   if (uncategorized.length > 0) {
     console.warn(
