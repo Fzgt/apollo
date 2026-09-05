@@ -37,14 +37,15 @@ export function phrasesOf(topic: TopicKey): Phrase[] {
  * 搜索命中的那一段文本。
  *
  * 中文和英文都要能搜到：想不起 resolve 的时候搜的是「解析」，
- * 记得词但不确定用法时搜的是 downside。note 和例句一起进，
- * 因为「怎么说 40% 提升」这种问题，答案在例句里。
+ * 记得词但不确定用法时搜的是 downside。note、例句和 avoid 一起进，
+ * 因为「怎么说 40% 提升」这种问题答案在例句里，而搜 realize 的人要的正是那条 ✗。
  */
 export function haystackOf(phrase: Phrase): string {
   return [
     phrase.zh,
     phrase.en,
     ...(phrase.alt ?? []),
+    phrase.avoid ?? "",
     phrase.note ?? "",
     phrase.ex ?? "",
   ]

@@ -317,8 +317,8 @@ export const UI = {
 
   phrasebook: {
     intro: {
-      en: "Chinese on the left, the word to actually say on the right. Search either side; open a row for usage, pronunciation and one sentence you can say as is.",
-      zh: "左边中文，右边该说的英文。中英都能搜；点开一条看用法、读音，和一句能原样念出去的例句。",
+      en: "Chinese on the left, the word to actually say on the right — and a red ✗ on the literal translation that will trip you up. Search either side; open a row for synonyms, usage, pronunciation and one sentence you can say as is.",
+      zh: "左边中文，右边该说的英文；红色 ✗ 是会拖后腿的直译。中英都能搜；点开一条看同义词、用法、读音，和一句能原样念出去的例句。",
     } satisfies Text,
     searchPlaceholder: {
       en: "Search in Chinese or English — 解析 / downside",

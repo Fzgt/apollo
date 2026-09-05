@@ -8,6 +8,8 @@ export interface Phrase {
   alt?: string[];
   /** 什么时候换词、什么词别说。只在真有区别时写 */
   note?: string;
+  /** 中式直译的高危词。写在卡面上，因为说错的代价比想不起来更大 */
+  avoid?: string;
   /** 一句能直接念出口的例句 */
   ex?: string;
   /** 读音提示，只给会读错的词 */
