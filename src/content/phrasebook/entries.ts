@@ -135,7 +135,7 @@ export const phrases: Phrase[] = [
     en: "merge",
     alt: ["land"],
     note: "land 是 Meta / Google 内部的说法，小团队未必讲。拿不准就 merge。",
-    ex: "The PR landed on Friday.",
+    ex: "The PR was merged on Friday.",
   },
   {
     topic: "verb",
@@ -282,9 +282,9 @@ export const phrases: Phrase[] = [
     topic: "net",
     zh: "跨域",
     en: "CORS",
-    avoid: "cross-domain",
-    say: "course",
+    say: "cores，跟 doors 押韵，不是 course",
     alt: ["cross-origin"],
+    note: "cross-domain 听得懂，只是没人这么讲；同源那套机制的正式名字就是 CORS。",
     ex: "It was a CORS issue — the preflight was failing, not the request itself.",
   },
   {
@@ -379,8 +379,7 @@ export const phrases: Phrase[] = [
     topic: "net",
     zh: "登录态 / 鉴权",
     en: "auth",
-    avoid: "login state",
-    note: "细分：authentication 是「你是谁」，authorization 是「你能做什么」。口语两个都缩成 auth。",
+    note: "「登录态」说 the logged-in state，别说 login state。细分：authentication 是「你是谁」，authorization 是「你能做什么」。口语两个都缩成 auth。",
   },
   {
     topic: "net",
@@ -884,7 +883,13 @@ export const phrases: Phrase[] = [
     say: "三个都逐字母读",
     note: "LCP 最大内容绘制、CLS 布局偏移、INP 交互响应。FID 已经被 INP 取代了，别说错。",
   },
-  { topic: "perf", zh: "可交互时间", en: "time to interactive", alt: ["TTI"] },
+  {
+    topic: "perf",
+    zh: "可交互时间",
+    en: "time to interactive",
+    alt: ["TTI"],
+    note: "Lighthouse 10 起 TTI 已经不算进性能分了。现在讲「点得动没」说 INP。",
+  },
   {
     topic: "perf",
     zh: "压测 / 跑分",
@@ -1132,7 +1137,7 @@ export const phrases: Phrase[] = [
     alt: ["nullable"],
     ex: "The field is nullable, so every consumer had to guard against it.",
   },
-  { topic: "data", zh: "默认值", en: "a default", alt: ["fall back to"] },
+  { topic: "data", zh: "默认值", en: "a default", alt: ["a sensible default"] },
   {
     topic: "data",
     zh: "类型安全",
@@ -1265,9 +1270,11 @@ export const phrases: Phrase[] = [
   {
     topic: "build",
     zh: "版本号",
-    en: "semver",
-    alt: ["bump the version"],
-    say: "SEM-ver",
+    en: "the version",
+    alt: ["bump the version", "semver"],
+    say: "semver 读 SEM-ver",
+    note: "「升个版本号」= bump the version。semver 是那套 major.minor.patch 的规则本身，不是版本号——说 bump the semver 会露怯。",
+    ex: "That was a minor bump, so it should have been backwards-compatible.",
   },
   {
     topic: "build",
@@ -1287,8 +1294,8 @@ export const phrases: Phrase[] = [
     topic: "build",
     zh: "预发环境",
     en: "staging",
-    avoid: "pre-release environment",
     alt: ["a preview environment"],
+    note: "pre-release environment 听得懂，只是没人这么讲。",
     ex: "Every PR gets a preview deploy.",
   },
   {
@@ -1374,7 +1381,7 @@ export const phrases: Phrase[] = [
   },
   {
     topic: "build",
-    zh: "灰度回滚预案",
+    zh: "回滚预案",
     en: "a rollback plan",
     ex: "Anything risky ships with a way to turn it off.",
   },
@@ -1557,8 +1564,7 @@ export const phrases: Phrase[] = [
     alt: ["I drove"],
     ex: "I drove the migration and wrote the plan.",
   },
-  { topic: "team", zh: "对齐", en: "get on the same page", alt: ["align"] },
-    {
+  {
     topic: "team",
     zh: "每日站会",
     en: "standup",
@@ -1638,7 +1644,13 @@ export const phrases: Phrase[] = [
     en: "user feedback",
     ex: "The complaint was always the same: the list felt slow.",
   },
-  { topic: "team", zh: "复盘", en: "a retro", alt: ["a postmortem"] },
+  {
+    topic: "team",
+    zh: "复盘",
+    en: "a retro",
+    alt: ["a postmortem"],
+    note: "迭代结束的例行复盘是 retro；出了事故之后的复盘是 postmortem。两个别混。",
+  },
   {
     topic: "team",
     zh: "主动做的",
@@ -1685,7 +1697,6 @@ export const phrases: Phrase[] = [
     topic: "judge",
     zh: "缺点",
     en: "the downside",
-    avoid: "disadvantage",
     alt: ["drawback"],
     note: "默认说 downside，口语最自然。drawback 也对，只是书面些。disadvantage 是作文体；weakness 形容工具太重，像在骂人。",
     ex: "The downside is that every consumer re-renders.",
@@ -1721,7 +1732,6 @@ export const phrases: Phrase[] = [
     topic: "judge",
     zh: "优点",
     en: "what you get is",
-    avoid: "advantage",
     alt: ["the advantage is"],
     note: "少用名词。What you get is… 比 The advantage is… 自然得多。",
     ex: "What you get is one place to change the threshold.",
@@ -1748,8 +1758,8 @@ export const phrases: Phrase[] = [
     topic: "judge",
     zh: "过度设计",
     en: "overkill",
-    avoid: "over-design",
     alt: ["over-engineered"],
+    note: "over-design 听得懂，只是母语者说 over-engineered。",
     ex: "A state machine would have been overkill for three states.",
   },
   {
@@ -1770,7 +1780,7 @@ export const phrases: Phrase[] = [
   { topic: "judge", zh: "干净 / 好读", en: "clean", alt: ["readable"] },
   {
     topic: "judge",
-    zh: "直接了当",
+    zh: "直截了当",
     en: "straightforward",
     say: "straight-FOR-ward",
   },
@@ -1848,8 +1858,8 @@ export const phrases: Phrase[] = [
   {
     topic: "frame",
     zh: "自我介绍开场",
-    en: "I'm a frontend engineer with around four years' experience, mostly React and TypeScript.",
-    note: "结尾一定补一句工作权：I have full working rights on a 485 visa — 他们手上那份简历抬头没有签证行。",
+    en: "I'm a frontend engineer, mostly React and TypeScript. Three roles — Baidu, BioMap and a remote startup — and I've just finished a master's at UTS.",
+    note: "别报总年数。简历上是 Baidu 10 个月、BioMap 6 个月、Beyz 10 个月，加起来两年出头，面试官手里就有这三行日期，说「四年」当场对不上。真被问到年限，说 about two and a half years。签证不用主动补，简历抬头已经写了 Full working rights (Subclass 485)。",
   },
   {
     topic: "frame",
