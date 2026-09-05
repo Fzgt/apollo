@@ -30,9 +30,9 @@
  * Blog 是私有的，浏览器匿名去取只会拿到 404。外站图（语雀 CDN 之类）一并镜像，
  * 免得哪天防盗链或者链接失效。已经下过的不重下，孤儿文件同步时清掉。
  *
- * 存下来之前一律转 WebP 并限宽 1600px：原图是 Retina 截屏，动辄一两 MB，
- * 一篇十八张图的正文光图片就 8 MB+，LCP 直接完蛋。SVG 和动图不动（前者本来就小，
- * 后者转静态会丢帧）。转换失败就存原图，少压一张好过整次同步挂掉。
+ * 存下来之前转 WebP：原图是 Retina 截屏，动辄一两 MB，一篇十八张图的正文
+ * 光图片就 8 MB+，LCP 直接完蛋。SVG 和动图不动（前者本来就小，后者转静态会丢帧）。
+ * 转换失败就存原图，少压一张好过整次同步挂掉。
  *
  * 用法：node scripts/sync-blog.mjs
  * 可选环境变量：GITHUB_TOKEN（提高限流额度）、BLOG_REPO（默认 Fzgt/Blog）
@@ -188,25 +188,34 @@ function originalExt(url, contentType) {
 }
 
 /**
- * 转 WebP + 限宽。返回 `{ buffer, ext }`。
+ * 转 WebP，返回 `{ buffer, ext }`。
  *
- * SVG 是矢量的，转位图只会变大变糊；动图转过去会只剩第一帧——两种都原样存。
- * 图本来就比 1600px 窄时不放大（`withoutEnlargement`）。
+ * SVG 是矢量的，转位图只会变大变糊；动图转过去只剩第一帧——两种都原样存。
+ *
+ * 限宽这件事没有定论，所以干脆两种都编一遍取小的：这些图是 UI 截屏，
+ * 大片纯色加锐利文字，缩放会把边缘重采样成渐变，有损编码器反而要花更多 bit。
+ * 实测 22 张宽于 1600px 的图里有 5 张缩完更大，整批加起来限宽只省 7%。
+ * 编码一次几十毫秒，不值得为了省这点时间猜错。
  */
 async function toWebp(buffer, ext) {
   if (ext === '.svg') return { buffer, ext };
 
-  const image = sharp(buffer, { animated: false });
-  const meta = await image.metadata();
+  const meta = await sharp(buffer).metadata();
   if (meta.pages > 1) return { buffer, ext }; // 动图
 
-  const converted = await image
-    .resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
-    .webp({ quality: WEBP_QUALITY })
-    .toBuffer();
+  const candidates = [await sharp(buffer).webp({ quality: WEBP_QUALITY }).toBuffer()];
+  if ((meta.width ?? 0) > MAX_IMAGE_WIDTH) {
+    candidates.push(
+      await sharp(buffer)
+        .resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
+        .webp({ quality: WEBP_QUALITY })
+        .toBuffer()
+    );
+  }
 
-  // 极少数图（纯色、已经很小）转完反而更大，那就留原图
-  return converted.length < buffer.length ? { buffer: converted, ext: '.webp' } : { buffer, ext };
+  const best = candidates.reduce((a, b) => (b.length < a.length ? b : a));
+  // 极少数图（纯色、本来就小）转完反而更大，那就留原图
+  return best.length < buffer.length ? { buffer: best, ext: '.webp' } : { buffer, ext };
 }
 
 function isGitHubHost(url) {
