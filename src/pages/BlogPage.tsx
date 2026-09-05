@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  RefreshCw,
   Search,
   SearchX,
 } from 'lucide-react';
@@ -16,9 +15,7 @@ import { BLOG_ISSUES_URL, BLOG_REPO } from '@/content/site';
 import { useReadPosts } from '@/hooks/use-read-posts';
 import type { Lang } from '@/lib/i18n';
 import {
-  fetchLiveIndex,
   formatDate,
-  getCachedLiveIndex,
   loadPostBody,
   loadSnapshotIndex,
   type BlogIndex,
@@ -88,11 +85,8 @@ export default function BlogPage() {
   const { lang, t } = useLang();
   const activeNumber = Number(searchParams.get('post')) || null;
 
-  const [index, setIndex] = useState<BlogIndex | null>(() => getCachedLiveIndex(lang));
+  const [index, setIndex] = useState<BlogIndex | null>(null);
   const [indexError, setIndexError] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
-  /** 实时同步失败的原因；快照仍然在用，所以只是提示，不是错误页 */
-  const [syncNote, setSyncNote] = useState<string | null>(null);
 
   const [query, setQuery] = useState('');
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
@@ -103,60 +97,25 @@ export default function BlogPage() {
   const [isBodyLoading, setIsBodyLoading] = useState(false);
 
   const { readPosts, markRead, toggleRead } = useReadPosts();
-  const syncControllerRef = useRef<AbortController | null>(null);
   const entranceSettled = useRef(false);
 
-  const syncLive = useCallback(async () => {
-    syncControllerRef.current?.abort();
-    const controller = new AbortController();
-    syncControllerRef.current = controller;
-
-    setIsSyncing(true);
-    setSyncNote(null);
-    try {
-      const live = await fetchLiveIndex(lang, controller.signal);
-      if (!controller.signal.aborted) {
-        setIndex(live);
-        setIndexError(null);
-      }
-    } catch (error) {
-      if (!controller.signal.aborted) {
-        setSyncNote(error instanceof Error ? error.message : t(UI.blog.sync));
-      }
-    } finally {
-      if (!controller.signal.aborted) setIsSyncing(false);
-    }
-  }, [lang, t]);
-
-  // 先上快照（随站点发布，秒开），再后台向 GitHub 要最新的。换语言＝换一整套数据，重走一遍
+  // 数据只有构建期快照一份。换语言＝换一整套数据，重走一遍
   useEffect(() => {
     const controller = new AbortController();
 
-    (async () => {
-      const cached = getCachedLiveIndex(lang);
-      setIndex(cached);
-      setIndexError(null);
-
-      if (!cached) {
-        try {
-          const snapshot = await loadSnapshotIndex(lang, controller.signal);
-          if (!controller.signal.aborted) {
-            setIndex((prev) => prev ?? snapshot);
-          }
-        } catch (error) {
-          if (!controller.signal.aborted) {
-            setIndexError(error instanceof Error ? error.message : 'snapshot');
-          }
+    setIndexError(null);
+    loadSnapshotIndex(lang, controller.signal)
+      .then((snapshot) => {
+        if (!controller.signal.aborted) setIndex(snapshot);
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          setIndexError(error instanceof Error ? error.message : 'snapshot');
         }
-      }
-      if (!controller.signal.aborted) await syncLive();
-    })();
+      });
 
-    return () => {
-      controller.abort();
-      syncControllerRef.current?.abort();
-    };
-  }, [syncLive, lang]);
+    return () => controller.abort();
+  }, [lang]);
 
   useEffect(() => {
     entranceSettled.current = true;
@@ -247,7 +206,7 @@ export default function BlogPage() {
 
   const isFiltered = visiblePosts.length !== posts.length;
   const syncedLabel = index
-    ? `${t(index.source === 'live' ? UI.blog.syncedLive : UI.blog.syncedSnapshot)} · ${formatDate(index.syncedAt)}`
+    ? `${t(UI.blog.syncedSnapshot)} · ${formatDate(index.syncedAt)}`
     : t(UI.common.loading);
 
   return (
@@ -279,22 +238,8 @@ export default function BlogPage() {
 
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span>{syncedLabel}</span>
-              <button
-                onClick={syncLive}
-                disabled={isSyncing}
-                className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/50 px-2.5 py-1.5 transition-colors hover:bg-muted hover:text-foreground disabled:opacity-60"
-              >
-                <RefreshCw className={cn('h-3.5 w-3.5', isSyncing && 'animate-spin')} />
-                {t(isSyncing ? UI.blog.syncing : UI.blog.sync)}
-              </button>
             </div>
           </div>
-
-          {syncNote && (
-            <p className="mt-3 text-xs text-muted-foreground">
-              {t(UI.blog.syncFailed(syncNote))}
-            </p>
-          )}
 
           <div className="py-6">
             {indexError && !index && (

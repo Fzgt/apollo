@@ -265,17 +265,10 @@ export const UI = {
     title: { en: 'Blog', zh: '博客' } satisfies Text,
     sourceA: { en: 'Posts live in the issues of', zh: '文章写在' } satisfies Text,
     sourceB: (count: number): Text => ({
-      en: `, synced automatically · ${count} posts`,
-      zh: ` 的 issues 里，自动同步 · ${count} 篇`,
+      en: `, synced at build time · ${count} posts`,
+      zh: ` 的 issues 里，构建时同步 · ${count} 篇`,
     }),
-    syncedLive: { en: 'Just synced from GitHub', zh: '刚从 GitHub 同步' } satisfies Text,
-    syncedSnapshot: { en: 'Snapshot', zh: '构建期快照' } satisfies Text,
-    sync: { en: 'Sync', zh: '同步' } satisfies Text,
-    syncing: { en: 'Syncing', zh: '同步中' } satisfies Text,
-    syncFailed: (reason: string): Text => ({
-      en: `Live sync failed (${reason}); showing the build-time snapshot.`,
-      zh: `实时同步失败（${reason}），显示的是构建期快照。`,
-    }),
+    syncedSnapshot: { en: 'Updated', zh: '更新于' } satisfies Text,
     indexError: (reason: string): Text => ({
       en: `Could not read the post list: ${reason}`,
       zh: `读不到文章列表：${reason}`,
