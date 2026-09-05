@@ -29,8 +29,16 @@ export const phrases: Phrase[] = [
     en: "ship",
     avoid: "go online",
     alt: ["release", "go live"],
-    note: "ship 是母语者讲交付的默认词，带「真的送到用户手里」的意思。",
+    note: "软件语境里 ship 就是「发布上线」，跟物流发货无关——母语者日常只说 ship。release 偏正式，go live 强调切过去的那一刻。把整个项目交给客户才用 deliver。",
     ex: "We shipped it in two weeks.",
+  },
+  {
+    topic: "verb",
+    zh: "交付（把项目/成果交出去）",
+    en: "deliver",
+    alt: ["hand over", "hand off"],
+    note: "deliver 的对象是整个项目或成果，收方是客户、业务方、下一个团队；单个功能上线用 ship。continuous delivery 里的 delivery 就是这个词。",
+    ex: "We delivered the first version to the client in six weeks.",
   },
   {
     topic: "verb",
@@ -497,10 +505,11 @@ export const phrases: Phrase[] = [
   {
     topic: "render",
     zh: "首屏",
-    en: "the first paint",
+    en: "above the fold",
     avoid: "first screen",
-    alt: ["above the fold"],
-    note: "「首屏内容」说 above the fold，「首次绘制」说 first paint。",
+    alt: ["first paint"],
+    note: "「首屏内容」说 above the fold（报纸对折线以上，母语者都懂）；只有说「首次绘制」那个指标时才用 first paint。",
+    ex: "Everything above the fold rendered in under a second.",
   },
   {
     topic: "render",
