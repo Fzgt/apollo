@@ -1,6 +1,6 @@
 {
   "number": 40,
   "title": "AI Related Concepts",
-  "body": "\n## MCP\n\n<img width=\"400\" height=\"200\" alt=\"Image\" src=\"/data/blog/assets/4698403fabcccb4f.png\" />\n\n> An agent can act because it has tools. MCP is what lets an agent plug into more external tools through one standard interface.\n",
+  "body": "\n## MCP\n\n<img width=\"400\" height=\"200\" alt=\"Image\" src=\"/data/blog/assets/4698403fabcccb4f.webp\" />\n\n> An agent can act because it has tools. MCP is what lets an agent plug into more external tools through one standard interface.\n",
   "updatedAt": "2026-08-23T11:48:45Z"
 }

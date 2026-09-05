@@ -30,6 +30,10 @@
  * Blog 是私有的，浏览器匿名去取只会拿到 404。外站图（语雀 CDN 之类）一并镜像，
  * 免得哪天防盗链或者链接失效。已经下过的不重下，孤儿文件同步时清掉。
  *
+ * 存下来之前一律转 WebP 并限宽 1600px：原图是 Retina 截屏，动辄一两 MB，
+ * 一篇十八张图的正文光图片就 8 MB+，LCP 直接完蛋。SVG 和动图不动（前者本来就小，
+ * 后者转静态会丢帧）。转换失败就存原图，少压一张好过整次同步挂掉。
+ *
  * 用法：node scripts/sync-blog.mjs
  * 可选环境变量：GITHUB_TOKEN（提高限流额度）、BLOG_REPO（默认 Fzgt/Blog）
  */
@@ -38,6 +42,8 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import sharp from 'sharp';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = path.join(ROOT, 'public', 'data', 'blog');
@@ -149,6 +155,9 @@ function toIndexEntry(issue, translation) {
 /** 正文里所有 http(s) 图片：markdown 的 `![]()` 和手写的 `<img src>` */
 const IMAGE_RE = /!\[[^\]]*\]\(\s*(https?:\/\/[^\s)]+?)\s*(?:"[^"]*")?\s*\)|<img\b[^>]*?\bsrc\s*=\s*["'](https?:\/\/[^"']+)["']/gi;
 
+const MAX_IMAGE_WIDTH = 1600;
+const WEBP_QUALITY = 80;
+
 const EXT_BY_TYPE = {
   'image/png': '.png',
   'image/jpeg': '.jpg',
@@ -167,13 +176,37 @@ function collectImageUrls(body) {
   return urls;
 }
 
-/** 文件名只认 URL，同一张图在几篇里出现也只存一份 */
-function assetName(url, contentType) {
-  const hash = crypto.createHash('sha1').update(url).digest('hex').slice(0, 16);
-  const fromUrl = path.extname(new URL(url).pathname).toLowerCase();
+function assetHash(url) {
+  return crypto.createHash('sha1').update(url).digest('hex').slice(0, 16);
+}
+
+function originalExt(url, contentType) {
   const fromType = EXT_BY_TYPE[(contentType ?? '').split(';')[0].trim()];
-  const ext = fromType ?? (fromUrl.length > 1 && fromUrl.length <= 5 ? fromUrl : '.png');
-  return `${hash}${ext}`;
+  if (fromType) return fromType;
+  const fromUrl = path.extname(new URL(url).pathname).toLowerCase();
+  return fromUrl.length > 1 && fromUrl.length <= 5 ? fromUrl : '.png';
+}
+
+/**
+ * 转 WebP + 限宽。返回 `{ buffer, ext }`。
+ *
+ * SVG 是矢量的，转位图只会变大变糊；动图转过去会只剩第一帧——两种都原样存。
+ * 图本来就比 1600px 窄时不放大（`withoutEnlargement`）。
+ */
+async function toWebp(buffer, ext) {
+  if (ext === '.svg') return { buffer, ext };
+
+  const image = sharp(buffer, { animated: false });
+  const meta = await image.metadata();
+  if (meta.pages > 1) return { buffer, ext }; // 动图
+
+  const converted = await image
+    .resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
+    .webp({ quality: WEBP_QUALITY })
+    .toBuffer();
+
+  // 极少数图（纯色、已经很小）转完反而更大，那就留原图
+  return converted.length < buffer.length ? { buffer: converted, ext: '.webp' } : { buffer, ext };
 }
 
 function isGitHubHost(url) {
@@ -190,15 +223,16 @@ async function mirrorImages(urls, existing) {
   const kept = new Set();
   let downloaded = 0;
   let failed = 0;
+  let bytesIn = 0;
+  let bytesOut = 0;
 
   for (const url of urls) {
-    // 已经下过的直接复用：文件名只跟 URL 有关，扩展名先按 URL 猜
-    const guess = [...existing].find((name) => name.startsWith(
-      crypto.createHash('sha1').update(url).digest('hex').slice(0, 16)
-    ));
-    if (guess) {
-      mapping.set(url, `${BASE}data/blog/assets/${guess}`);
-      kept.add(guess);
+    // 已经下过的直接复用：文件名只跟 URL 有关，扩展名是转换之后才定的
+    const hash = assetHash(url);
+    const existingName = [...existing].find((name) => name.startsWith(hash));
+    if (existingName) {
+      mapping.set(url, `${BASE}data/blog/assets/${existingName}`);
+      kept.add(existingName);
       continue;
     }
 
@@ -210,12 +244,23 @@ async function mirrorImages(urls, existing) {
       const res = await fetch(url, { headers, redirect: 'follow' });
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
 
-      const buffer = Buffer.from(await res.arrayBuffer());
-      const name = assetName(url, res.headers.get('content-type'));
-      await fs.writeFile(path.join(ASSET_DIR, name), buffer);
+      const original = Buffer.from(await res.arrayBuffer());
+      const ext = originalExt(url, res.headers.get('content-type'));
+
+      let encoded = { buffer: original, ext };
+      try {
+        encoded = await toWebp(original, ext);
+      } catch (error) {
+        console.warn(`[sync-blog] 转 WebP 失败，存原图：${url}（${error.message}）`);
+      }
+
+      const name = `${hash}${encoded.ext}`;
+      await fs.writeFile(path.join(ASSET_DIR, name), encoded.buffer);
       mapping.set(url, `${BASE}data/blog/assets/${name}`);
       kept.add(name);
       downloaded += 1;
+      bytesIn += original.length;
+      bytesOut += encoded.buffer.length;
     } catch (error) {
       failed += 1;
       console.warn(`[sync-blog] 图片抓不下来，保留外链：${url}（${error.message}）`);
@@ -230,7 +275,15 @@ async function mirrorImages(urls, existing) {
     pruned += 1;
   }
 
-  return { mapping, downloaded, reused: kept.size - downloaded, pruned, failed };
+  return {
+    mapping,
+    downloaded,
+    reused: kept.size - downloaded,
+    pruned,
+    failed,
+    bytesIn,
+    bytesOut,
+  };
 }
 
 /** 正文里的图片地址换成镜像后的站内路径；没镜像成功的原样不动 */
@@ -411,9 +464,11 @@ async function main() {
       `(index ${indexKb} KB, ${translated.length} translated, zh snapshot alongside, ` +
       `${knownCategories.length} categories from README)`
   );
+  const mb = (bytes) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   console.log(
     `images: ${assets.downloaded} downloaded, ${assets.reused} reused, ` +
-      `${assets.pruned} pruned${assets.failed ? `, ${assets.failed} failed` : ''}`
+      `${assets.pruned} pruned${assets.failed ? `, ${assets.failed} failed` : ''}` +
+      (assets.downloaded > 0 ? ` — ${mb(assets.bytesIn)} → ${mb(assets.bytesOut)} as WebP` : '')
   );
   if (uncategorized.length > 0) {
     console.warn(

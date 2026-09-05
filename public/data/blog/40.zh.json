@@ -1,6 +1,6 @@
 {
   "number": 40,
   "title": "MCP 与 Tools",
-  "body": "## MCP\n<img width=\"400\" height=\"200\" alt=\"Image\" src=\"/data/blog/assets/4698403fabcccb4f.png\" />\n\n> Agent 之所以能动手，是因为有 Tools；MCP 让 Agent 能以标准化方式接入更多外部 Tools。",
+  "body": "## MCP\n<img width=\"400\" height=\"200\" alt=\"Image\" src=\"/data/blog/assets/4698403fabcccb4f.webp\" />\n\n> Agent 之所以能动手，是因为有 Tools；MCP 让 Agent 能以标准化方式接入更多外部 Tools。",
   "updatedAt": "2026-08-23T11:48:45Z"
 }
