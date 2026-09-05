@@ -12,6 +12,7 @@ import {
   PawPrint,
   Radio,
   Repeat,
+  Scale,
   Workflow,
   Wrench,
 } from 'lucide-react';
@@ -45,6 +46,7 @@ const ICONS: Record<string, ReactNode> = {
   'paw-print': <PawPrint className="w-4 h-4" />,
   repeat: <Repeat className="w-4 h-4" />,
   'file-text': <FileText className="w-4 h-4" />,
+  scale: <Scale className="w-4 h-4" />,
 };
 
 /**
@@ -66,6 +68,7 @@ const SECTION_TITLES_EN: Record<string, string> = {
   interview: 'General interview',
   jd: 'The JD',
   speak: 'Talk track',
+  english: 'Interview English',
   course: 'Course and older notes',
 };
 
