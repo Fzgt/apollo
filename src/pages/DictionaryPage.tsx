@@ -62,7 +62,7 @@ export default function DictionaryPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="pt-20 md:pt-24">
-        <div className="container mx-auto max-w-3xl px-4 sm:px-6">
+        <div className="container mx-auto max-w-5xl px-4 sm:px-6">
           <header className="py-4">
             <h1 className="text-2xl font-bold text-foreground">{t(UI.dictionary.title)}</h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
@@ -183,20 +183,24 @@ export default function DictionaryPage() {
             </div>
           )}
 
-          <div className="space-y-1.5 py-4 pb-16">
+          {/*
+            卡片瘦下来之后就不该再排成一长条：一列 27 张矮卡等于逼人滚一屏找一个词。
+            改成两到三列，`items-start` 保证同一行里某张卡展开时，旁边的卡不跟着抻高。
+          */}
+          <div className="grid grid-cols-1 items-start gap-2 py-4 pb-16 sm:grid-cols-2 lg:grid-cols-3">
             {shown.map((entry) => (
               <WordRow key={entry.term} entry={entry} expanded={Boolean(trimmed)} />
             ))}
-
-            {shown.length === 0 && (
-              <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
-                <SearchX className="size-6" />
-                <p className="text-sm">
-                  {t(dictionaryCount === 0 ? UI.dictionary.emptyDictionary : UI.dictionary.emptyMatch)}
-                </p>
-              </div>
-            )}
           </div>
+
+          {shown.length === 0 && (
+            <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
+              <SearchX className="size-6" />
+              <p className="text-sm">
+                {t(dictionaryCount === 0 ? UI.dictionary.emptyDictionary : UI.dictionary.emptyMatch)}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

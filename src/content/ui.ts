@@ -210,10 +210,10 @@ export const UI = {
 
   dictionary: {
     title: { en: 'Technical Dictionary', zh: '技术生词本' } satisfies Text,
-    introA: { en: 'Words this site made me look up. English first — press', zh: '这个站逼我查过的词。先读英文 —— 任意页面按' } satisfies Text,
+    introA: { en: 'Words this site made me look up. Press', zh: '这个站逼我查过的词。任意页面按' } satisfies Text,
     introB: {
-      en: 'anywhere to add one, click a row for the Chinese.',
-      zh: '就能加一个，点开某一行看中文。',
+      en: 'anywhere to add one; open a card for the English definition and an example.',
+      zh: '就能加一个；点开卡片看英文释义和例句。',
     } satisfies Text,
     queueTitle: { en: 'Waiting for definitions', zh: '等着补释义' } satisfies Text,
     copyList: { en: 'Copy list', zh: '复制列表' } satisfies Text,

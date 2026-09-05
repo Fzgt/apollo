@@ -151,6 +151,7 @@ export const wordEntries: WordEntry[] = [
     pos: 'noun / verb',
     en: 'For a secret: to escape to somewhere it was never meant to reach. For memory: to be held on to and never released.',
     zh: '泄露；也指内存泄漏。同一个词两种意思，看主语是密钥还是内存。密钥泄露的对策不是「保证不泄」，是让泄出去的那份不值钱。',
+    gloss: '泄露 / 内存泄漏',
     example: 'A leaked browser credential had a very small lifetime and permission surface.',
     also: ['leaks', 'leaked', 'memory leak'],
     tags: ['backend', 'interview'],
