@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-05T11:47:34.087Z",
+  "syncedAt": "2026-09-05T11:53:40.357Z",
   "translated": [
     56,
     55,
@@ -58,6 +58,150 @@
     3,
     2,
     1
+  ],
+  "categories": [
+    {
+      "name": "React 原理",
+      "hint": "调度、协调、渲染流程、合成事件",
+      "numbers": [
+        22,
+        23,
+        43,
+        26,
+        29,
+        33,
+        31
+      ]
+    },
+    {
+      "name": "Hooks",
+      "hint": "各 Hook 的理解与踩坑",
+      "numbers": [
+        8,
+        27,
+        6,
+        30,
+        28,
+        32,
+        25,
+        24,
+        7
+      ]
+    },
+    {
+      "name": "服务端渲染",
+      "hint": "同构、Hydrate、Qwik",
+      "numbers": [
+        34,
+        35
+      ]
+    },
+    {
+      "name": "数据层与状态",
+      "hint": "React-Query 三层架构、tRPC / Zod / RHF",
+      "numbers": [
+        20,
+        54
+      ]
+    },
+    {
+      "name": "性能优化",
+      "hint": "指标、排查工具链、虚拟列表、长任务、防抖",
+      "numbers": [
+        64,
+        63,
+        62,
+        21,
+        36,
+        13,
+        10,
+        52,
+        16
+      ]
+    },
+    {
+      "name": "网络与协议",
+      "hint": "SSE、缓存策略、鉴权、CDN",
+      "numbers": [
+        56,
+        55,
+        18,
+        11,
+        12
+      ]
+    },
+    {
+      "name": "语言与异步",
+      "hint": "异步迭代、Promise、GC、TS",
+      "numbers": [
+        37,
+        51,
+        17,
+        3,
+        5,
+        41,
+        61
+      ]
+    },
+    {
+      "name": "构建与工程化",
+      "hint": "Webpack、代码扫描、排查工具链、AI 开发环境",
+      "numbers": [
+        14,
+        42,
+        53,
+        15
+      ]
+    },
+    {
+      "name": "AI 工程",
+      "hint": "Agent、MCP、LangGraph、LLM 路线",
+      "numbers": [
+        50,
+        44,
+        47,
+        46,
+        40
+      ]
+    },
+    {
+      "name": "项目笔记",
+      "hint": "百度、Periplus、WinterFell",
+      "numbers": [
+        48,
+        57,
+        58,
+        59,
+        60,
+        19,
+        45
+      ]
+    },
+    {
+      "name": "面试与清单",
+      "hint": "概念清单、知识体系、面试题、资源",
+      "numbers": [
+        49,
+        9,
+        2,
+        1,
+        39
+      ]
+    },
+    {
+      "name": "Vue",
+      "hint": "",
+      "numbers": [
+        4
+      ]
+    },
+    {
+      "name": "待定",
+      "hint": "",
+      "numbers": [
+        38
+      ]
+    }
   ],
   "posts": [
     {

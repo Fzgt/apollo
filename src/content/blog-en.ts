@@ -27,3 +27,27 @@ const LABEL_EN: Record<string, string> = {
 export function labelText(name: string, lang: Lang): string {
   return lang === 'zh' ? name : (LABEL_EN[name] ?? name);
 }
+
+/**
+ * 左侧索引的分类名同理：分组写在 Blog 仓库的 README 里，是中文，
+ * 这里只管显示时换个说法。README 加了新分组而这里没补，就回落中文。
+ */
+const CATEGORY_EN: Record<string, string> = {
+  'React 原理': 'React internals',
+  Hooks: 'Hooks',
+  服务端渲染: 'Server rendering',
+  数据层与状态: 'Data & state',
+  性能优化: 'Performance',
+  网络与协议: 'Network & protocols',
+  语言与异步: 'Language & async',
+  构建与工程化: 'Build & tooling',
+  'AI 工程': 'AI engineering',
+  项目笔记: 'Project notes',
+  面试与清单: 'Checklists',
+  Vue: 'Vue',
+  待定: 'Unfiled',
+};
+
+export function categoryText(name: string, lang: Lang): string {
+  return lang === 'zh' ? name : (CATEGORY_EN[name] ?? name);
+}

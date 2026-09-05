@@ -23,7 +23,7 @@ import {
 } from '@/lib/blog';
 import { cn } from '@/lib/utils';
 import { useLang } from '@/lib/i18n';
-import { labelText } from '@/content/blog-en';
+import { categoryText, labelText } from '@/content/blog-en';
 import { UI } from '@/content/ui';
 
 // 正文渲染（react-markdown + prism）和目录只在点开文章时才需要，
@@ -65,6 +65,38 @@ function Chip({
   );
 }
 
+/** 侧栏的一条分类。计数用等宽数字，切换分类时不会左右抖 */
+function CategoryLink({
+  active,
+  count,
+  onClick,
+  title,
+  children,
+}: {
+  active: boolean;
+  count: number;
+  onClick: () => void;
+  title?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      aria-current={active ? 'true' : undefined}
+      className={cn(
+        'flex w-full items-center justify-between gap-2 rounded-lg px-3 py-1.5 text-left text-sm transition-colors',
+        active
+          ? 'bg-primary/10 font-medium text-primary'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+      )}
+    >
+      <span className="truncate">{children}</span>
+      <span className="shrink-0 text-xs tabular-nums opacity-60">{count}</span>
+    </button>
+  );
+}
+
 function matchesQuery(post: BlogPostMeta, query: string, lang: Lang): boolean {
   const needle = query.trim().toLowerCase();
   if (!needle) return true;
@@ -89,6 +121,7 @@ export default function BlogPage() {
   const [indexError, setIndexError] = useState<string | null>(null);
 
   const [query, setQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
   const [unreadOnly, setUnreadOnly] = useState(false);
 
@@ -123,6 +156,32 @@ export default function BlogPage() {
 
   const posts = useMemo(() => index?.posts ?? [], [index]);
 
+  /** README 里的分组 + 每组还剩几篇（已删的 issue 在构建期就剔掉了，这里只数当前这批） */
+  const categories = useMemo(() => {
+    const source = index?.categories ?? [];
+    const known = new Set(posts.map((post) => post.number));
+    return source
+      .map((category) => ({
+        ...category,
+        count: category.numbers.filter((number) => known.has(number)).length,
+      }))
+      .filter((category) => category.count > 0);
+  }, [index, posts]);
+
+  /** 当前选中分类里的 issue 号，null = 不按分类过滤 */
+  const categoryNumbers = useMemo(() => {
+    if (!activeCategory) return null;
+    const category = categories.find((item) => item.name === activeCategory);
+    return category ? new Set(category.numbers) : null;
+  }, [activeCategory, categories]);
+
+  // README 改了分组名之后，选中的那个可能已经不在了
+  useEffect(() => {
+    if (activeCategory && !categories.some((category) => category.name === activeCategory)) {
+      setActiveCategory(null);
+    }
+  }, [activeCategory, categories]);
+
   const labels = useMemo(() => {
     const counts = new Map<string, { name: string; color: string; count: number }>();
     for (const post of posts) {
@@ -140,10 +199,11 @@ export default function BlogPage() {
       posts.filter(
         (post) =>
           matchesQuery(post, query, lang) &&
+          (!categoryNumbers || categoryNumbers.has(post.number)) &&
           (!activeLabel || post.labels.some((label) => label.name === activeLabel)) &&
           (!unreadOnly || !readPosts.has(post.number))
       ),
-    [posts, query, activeLabel, unreadOnly, readPosts, lang]
+    [posts, query, categoryNumbers, activeLabel, unreadOnly, readPosts, lang]
   );
 
   const activePost = useMemo(
@@ -170,6 +230,7 @@ export default function BlogPage() {
 
   const resetFilters = useCallback(() => {
     setQuery('');
+    setActiveCategory(null);
     setActiveLabel(null);
     setUnreadOnly(false);
   }, []);
@@ -215,7 +276,7 @@ export default function BlogPage() {
         <div
           className={cn(
             'container mx-auto px-4 sm:px-6 lg:px-4',
-            activeNumber ? 'max-w-[1400px]' : 'max-w-5xl'
+            activeNumber ? 'max-w-[1400px]' : 'max-w-7xl'
           )}
         >
           {/* 页头 */}
@@ -256,7 +317,41 @@ export default function BlogPage() {
 
             {/* 列表 */}
             {index && !activeNumber && (
-              <div className="space-y-3">
+              <div className="flex gap-8">
+                {/* 左侧分类索引：分组照抄 Blog 仓库 README */}
+                {categories.length > 0 && (
+                  <aside className="hidden w-52 shrink-0 lg:block">
+                    <nav className="sticky top-24" aria-label={t(UI.blog.categories)}>
+                      <p className="px-3 pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        {t(UI.blog.categories)}
+                      </p>
+                      <CategoryLink
+                        active={activeCategory === null}
+                        count={posts.length}
+                        onClick={() => setActiveCategory(null)}
+                      >
+                        {t(UI.blog.allCategories)}
+                      </CategoryLink>
+                      {categories.map((category) => (
+                        <CategoryLink
+                          key={category.name}
+                          active={activeCategory === category.name}
+                          count={category.count}
+                          title={category.hint || undefined}
+                          onClick={() =>
+                            setActiveCategory((prev) =>
+                              prev === category.name ? null : category.name
+                            )
+                          }
+                        >
+                          {categoryText(category.name, lang)}
+                        </CategoryLink>
+                      ))}
+                    </nav>
+                  </aside>
+                )}
+
+              <div className="min-w-0 flex-1 space-y-3">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <input
@@ -295,6 +390,31 @@ export default function BlogPage() {
                     </div>
                   )}
                 </div>
+
+                {/* 窄屏没有侧栏，分类退化成一行可横向滚动的胶囊 */}
+                {categories.length > 0 && (
+                  <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 lg:hidden">
+                    <Chip active={activeCategory === null} onClick={() => setActiveCategory(null)}>
+                      {t(UI.blog.allCategories)}
+                      <span className="tabular-nums opacity-60">{posts.length}</span>
+                    </Chip>
+                    {categories.map((category) => (
+                      <Chip
+                        key={category.name}
+                        active={activeCategory === category.name}
+                        title={category.hint || undefined}
+                        onClick={() =>
+                          setActiveCategory((prev) => (prev === category.name ? null : category.name))
+                        }
+                      >
+                        <span className="whitespace-nowrap">
+                          {categoryText(category.name, lang)}
+                        </span>
+                        <span className="tabular-nums opacity-60">{category.count}</span>
+                      </Chip>
+                    ))}
+                  </div>
+                )}
 
                 <div className="flex flex-wrap items-center gap-1.5">
                   {labels.map((label) => {
@@ -357,6 +477,7 @@ export default function BlogPage() {
                     ))}
                   </motion.div>
                 )}
+              </div>
               </div>
             )}
 

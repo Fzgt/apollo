@@ -269,6 +269,8 @@ export const UI = {
       zh: ` 的 issues 里，构建时同步 · ${count} 篇`,
     }),
     syncedSnapshot: { en: 'Updated', zh: '更新于' } satisfies Text,
+    categories: { en: 'Categories', zh: '分类' } satisfies Text,
+    allCategories: { en: 'All posts', zh: '全部文章' } satisfies Text,
     indexError: (reason: string): Text => ({
       en: `Could not read the post list: ${reason}`,
       zh: `读不到文章列表：${reason}`,

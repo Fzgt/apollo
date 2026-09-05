@@ -21,6 +21,10 @@
  * 中文模式就只能指望运行期的 GitHub 请求 —— 未登录额度每小时 60 次，
  * 一限流整页中文就没了。
  *
+ * 分类来自 Blog 仓库 README 里的分组（`## 分类名` + 底下那串 issue 链接），
+ * 顺序照抄，博客页左侧的索引直接用它——README 是唯一的一份分类清单，
+ * 这边只是把它解析成数据，不另维护一套。
+ *
  * 用法：node scripts/sync-blog.mjs
  * 可选环境变量：GITHUB_TOKEN（提高限流额度）、BLOG_REPO（默认 Fzgt/Blog）
  */
@@ -133,17 +137,66 @@ function toIndexEntry(issue, translation) {
   };
 }
 
-async function fetchPage(page) {
-  const url = `https://api.github.com/repos/${REPO}/issues?state=all&per_page=${PER_PAGE}&page=${page}&sort=created&direction=desc`;
-  const headers = {
-    Accept: 'application/vnd.github+json',
-    'User-Agent': 'apollo-blog-sync',
-  };
+function githubHeaders(accept) {
+  const headers = { Accept: accept, 'User-Agent': 'apollo-blog-sync' };
   if (process.env.GITHUB_TOKEN) {
     headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
   }
+  return headers;
+}
 
-  const res = await fetch(url, { headers });
+/**
+ * 从 README 解析分类。段落形如：
+ *
+ *   ## React 原理 · 调度、协调、渲染流程、合成事件
+ *   - [标题](https://github.com/Fzgt/Blog/issues/22)
+ *
+ * `·` 前面是分类名，后面是那一行副标题；没写副标题就只有名字。
+ * 空分类（一条链接都没有）直接丢掉。
+ */
+function parseCategories(readme) {
+  const categories = [];
+  const sectionRe = /^##\s+(.+?)\s*$/gm;
+  const matches = [...readme.matchAll(sectionRe)];
+
+  for (let i = 0; i < matches.length; i += 1) {
+    const heading = matches[i][1].trim();
+    const start = matches[i].index + matches[i][0].length;
+    const end = i + 1 < matches.length ? matches[i + 1].index : readme.length;
+    const block = readme.slice(start, end);
+
+    const numbers = [];
+    for (const link of block.matchAll(/\/issues\/(\d+)/g)) {
+      const number = Number(link[1]);
+      if (!numbers.includes(number)) numbers.push(number);
+    }
+    if (numbers.length === 0) continue;
+
+    const [name, ...rest] = heading.split('·');
+    categories.push({
+      name: name.trim(),
+      hint: rest.join('·').trim(),
+      numbers,
+    });
+  }
+
+  return categories;
+}
+
+async function fetchReadme() {
+  const url = `https://api.github.com/repos/${REPO}/readme`;
+  const res = await fetch(url, { headers: githubHeaders('application/vnd.github.raw') });
+  if (!res.ok) {
+    // 分类只是锦上添花，README 读不到就当没有分类，不该让整次同步失败
+    console.warn(`[sync-blog] 读不到 README（${res.status}），这次不带分类`);
+    return [];
+  }
+  return parseCategories(await res.text());
+}
+
+async function fetchPage(page) {
+  const url = `https://api.github.com/repos/${REPO}/issues?state=all&per_page=${PER_PAGE}&page=${page}&sort=created&direction=desc`;
+  const res = await fetch(url, { headers: githubHeaders('application/vnd.github+json') });
   if (!res.ok) {
     throw new Error(`GitHub API ${res.status} ${res.statusText} — ${url}`);
   }
@@ -152,6 +205,7 @@ async function fetchPage(page) {
 
 async function main() {
   const translations = await loadTranslations();
+  const categories = await fetchReadme();
   const issues = [];
 
   for (let page = 1; page <= MAX_PAGES; page += 1) {
@@ -170,10 +224,20 @@ async function main() {
   // 运行期从 GitHub 拉到的是中文原文，靠这份号码单知道哪些该让快照说了算
   const translated = issues.map((i) => i.number).filter((n) => translations.has(n));
 
+  // README 里可能还留着已删掉的 issue，也可能新写的还没进 README——两边取交集
+  const existing = new Set(issues.map((issue) => issue.number));
+  const knownCategories = categories
+    .map((category) => ({ ...category, numbers: category.numbers.filter((n) => existing.has(n)) }))
+    .filter((category) => category.numbers.length > 0);
+
+  const categorized = new Set(knownCategories.flatMap((category) => category.numbers));
+  const uncategorized = issues.map((i) => i.number).filter((n) => !categorized.has(n));
+
   const index = {
     repo: REPO,
     syncedAt,
     translated,
+    categories: knownCategories,
     posts: issues.map((issue) => toIndexEntry(issue, translations.get(issue.number))),
   };
   await fs.writeFile(INDEX_FILE, `${JSON.stringify(index, null, 2)}\n`, 'utf8');
@@ -183,6 +247,7 @@ async function main() {
     repo: REPO,
     syncedAt,
     translated,
+    categories: knownCategories,
     posts: issues.map((issue) => toIndexEntry(issue, undefined)),
   };
   await fs.writeFile(INDEX_ZH_FILE, `${JSON.stringify(indexZh, null, 2)}\n`, 'utf8');
@@ -217,8 +282,15 @@ async function main() {
   const indexKb = (Buffer.byteLength(JSON.stringify(index)) / 1024).toFixed(1);
   console.log(
     `synced ${issues.length} posts from ${REPO} -> public/data/blog/ ` +
-      `(index ${indexKb} KB, ${translated.length} translated, zh snapshot alongside)`
+      `(index ${indexKb} KB, ${translated.length} translated, zh snapshot alongside, ` +
+      `${knownCategories.length} categories from README)`
   );
+  if (uncategorized.length > 0) {
+    console.warn(
+      `[sync-blog] README 里没收录：${uncategorized.map((n) => `#${n}`).join('、')}——` +
+        `这些篇只在「全部」里出现`
+    );
+  }
 }
 
 main().catch((error) => {
