@@ -14,7 +14,7 @@
  * 两套快照（`index.json` 是英文优先的那份，`index.zh.json` 是纯中文那份）。
  */
 
-import type { Lang } from '@/lib/i18n';
+import type { Lang } from "@/lib/i18n";
 
 export interface BlogLabel {
   name: string;
@@ -61,25 +61,46 @@ function assetUrl(relativePath: string): string {
   return `${import.meta.env.BASE_URL}${relativePath}`;
 }
 
-/** 哪些篇的 `<号>.json` 里装的是译文——那时中文正文要去读 `<号>.zh.json` */
-const translatedNumbers = new Set<number>();
+/**
+ * 哪些篇的 `<号>.json` 里装的是译文——那时中文正文要去读 `<号>.zh.json`。
+ *
+ * 这份名单只在索引里，而正文是可以先于索引被请求的：直接打开 `/blog?post=62`
+ * 时，列表和正文两个请求同时发出，正文常常先回来。名单还空着就会误判成
+ * 「这篇没译文」，于是中文模式下读到 `<号>.json`——那里装的是英文。
+ * 所以这里存的是一个 Promise，正文那边等它，而不是读一个可能还没填好的集合。
+ */
+let translatedPromise: Promise<Set<number>> | null = null;
 
+function loadTranslated(): Promise<Set<number>> {
+  translatedPromise ??= fetch(assetUrl("data/blog/index.json"))
+    .then((res) => (res.ok ? (res.json() as Promise<BlogIndex>) : null))
+    .then((data) => new Set(data?.translated ?? []))
+    .catch(() => new Set<number>());
+  return translatedPromise;
+}
+
+/** 索引已经在手上时直接把名单填好，正文就不用再等一次网络 */
 function rememberSnapshot(index: BlogIndex): void {
-  translatedNumbers.clear();
-  for (const number of index.translated ?? []) translatedNumbers.add(number);
+  translatedPromise = Promise.resolve(new Set(index.translated ?? []));
 }
 
 /** 构建期快照：随站点一起发布，离线也在 */
-export async function loadSnapshotIndex(lang: Lang, signal?: AbortSignal): Promise<BlogIndex> {
+export async function loadSnapshotIndex(
+  lang: Lang,
+  signal?: AbortSignal,
+): Promise<BlogIndex> {
   // 一篇译文都没有时构建不出中文索引，那时中文快照就是 index.json 本身
-  const file = lang === 'zh' ? 'data/blog/index.zh.json' : 'data/blog/index.json';
+  const file =
+    lang === "zh" ? "data/blog/index.zh.json" : "data/blog/index.json";
   let res = await fetch(assetUrl(file), { signal });
-  if (!res.ok && lang === 'zh') {
-    res = await fetch(assetUrl('data/blog/index.json'), { signal });
+  if (!res.ok && lang === "zh") {
+    res = await fetch(assetUrl("data/blog/index.json"), { signal });
   }
   if (!res.ok) {
     throw new Error(
-      lang === 'zh' ? `读不到构建期快照（${res.status}）` : `Could not read the snapshot (${res.status})`
+      lang === "zh"
+        ? `读不到构建期快照（${res.status}）`
+        : `Could not read the snapshot (${res.status})`,
     );
   }
   const index = (await res.json()) as BlogIndex;
@@ -94,34 +115,34 @@ export async function loadSnapshotIndex(lang: Lang, signal?: AbortSignal): Promi
 export async function loadPostBody(
   number: number,
   lang: Lang,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<string> {
   const key = `${lang}:${number}`;
   const cached = bodyCache.get(key);
   if (cached !== undefined) return cached;
 
-  const file =
-    lang === 'zh' && translatedNumbers.has(number)
-      ? `data/blog/${number}.zh.json`
-      : `data/blog/${number}.json`;
+  const translated = lang === "zh" ? await loadTranslated() : null;
+  const file = translated?.has(number)
+    ? `data/blog/${number}.zh.json`
+    : `data/blog/${number}.json`;
 
   const res = await fetch(assetUrl(file), { signal });
   if (!res.ok) {
     throw new Error(
-      lang === 'zh'
+      lang === "zh"
         ? `这一篇还没进快照（#${number}）`
-        : `This post is not in the snapshot yet (#${number})`
+        : `This post is not in the snapshot yet (#${number})`,
     );
   }
 
   const post = (await res.json()) as { body?: string };
-  const body = post.body ?? '';
+  const body = post.body ?? "";
   bodyCache.set(key, body);
   return body;
 }
 
 export function formatDate(iso: string): string {
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }

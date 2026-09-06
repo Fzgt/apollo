@@ -1,7 +1,8 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-06T04:59:08.963Z",
+  "syncedAt": "2026-09-06T05:05:22.864Z",
   "translated": [
+    62,
     56,
     55,
     54,
@@ -394,7 +395,7 @@
     },
     {
       "number": 62,
-      "title": "前端性能排查工具链 —— Lighthouse / web-vitals / Performance 火焰图 / React Profiler / Coverage",
+      "title": "A Front-End Performance Toolchain: Lighthouse, web-vitals, Flame Charts, React Profiler, Coverage",
       "labels": [
         {
           "name": "知识体系",
@@ -408,16 +409,16 @@
       "createdAt": "2026-09-05T09:32:17Z",
       "updatedAt": "2026-09-06T04:58:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/62",
-      "excerpt": "五个面板各回答一个不同的问题：有没有问题、慢在哪一层、是哪一行代码。搞混了就会拿错工具查错方向。 除 Lighthouse 那张是我在自己站上真跑的以外，其余截图取自 Chrome DevTools / React DevTools 官方文档。 先把顺序说清楚，后面每一节对应一步…",
+      "excerpt": "Five panels, five different questions: is there a problem, which layer is slow, which line of code. Mix them up and you reach for the wrong …",
       "headings": [
-        "1. Lighthouse —— 体检，不是诊断",
-        "2. web-vitals 与 Live metrics —— 真实用户那一份数",
-        "3. Performance 火焰图 —— 主线程的时间去哪了",
-        "4. 长任务 —— 交互卡顿的直接原因",
-        "5. Layout shifts 轨道 —— 是哪个元素在跳",
-        "6. React DevTools Profiler —— 哪个组件渲染得太多",
-        "7. Coverage —— 下载了但没跑的代码",
-        "一句话总结"
+        "1. Lighthouse — a check-up, not a diagnosis",
+        "2. web-vitals and Live metrics — the number from real users",
+        "3. Performance flame chart — where the main thread went",
+        "4. Long tasks — the direct cause of janky interactions",
+        "5. Layout shifts track — which element is jumping",
+        "6. React DevTools Profiler — which component renders too much",
+        "7. Coverage — code that was downloaded but never ran",
+        "In one paragraph"
       ]
     },
     {

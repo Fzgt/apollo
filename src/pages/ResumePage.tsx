@@ -16,26 +16,22 @@ import { useLang } from '@/lib/i18n';
  * 而机翻在这些句子上会出硬伤（"drops overlapping generations" 会被译反）。
  *
  * 纸面本身永远以英文为主：这张纸是要发给澳洲雇主的原件，不该跟着站点语言变成中文。
- * 站点切到中文时默认把对照打开——那正是这时候想看的东西——但 URL 里写了什么以 URL 为准。
+ * 站点切到中文时也一样——中文只切界面，不切这张纸。想看对照就点工具条上那个按钮，
+ * 或者直接给链接带上 `?zh=1`。
  */
 
 export default function ResumePage() {
   // 对照开关放进 URL 而不是组件 state：刷新不丢、能直接把链接发出去，
   // 也和站里其他页「URL 就是当前视图」的做法一致。
   const [searchParams, setSearchParams] = useSearchParams();
-  const { lang, t } = useLang();
-  const param = searchParams.get('zh');
-  const bilingual = param === null ? lang === 'zh' : param === '1';
+  const { t } = useLang();
+  // 只认 URL，不看站点语言：默认永远是英文原件，对照要显式要
+  const bilingual = searchParams.get('zh') === '1';
 
   const toggleBilingual = () => {
     const next = new URLSearchParams(searchParams);
-    // 中文模式下「关掉对照」也要写进 URL：删掉参数只会让它再按语言默认打开
-    if (bilingual) {
-      if (lang === 'zh') next.set('zh', '0');
-      else next.delete('zh');
-    } else {
-      next.set('zh', '1');
-    }
+    if (bilingual) next.delete('zh');
+    else next.set('zh', '1');
     setSearchParams(next, { replace: true });
   };
 
