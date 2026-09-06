@@ -313,6 +313,10 @@ export const UI = {
     } satisfies Text,
     tabWords: { en: "Words", zh: "生词本" } satisfies Text,
     tabPhrases: { en: "Interview phrasebook", zh: "面试速查" } satisfies Text,
+    collections: { en: "Collections", zh: "词库" } satisfies Text,
+    tags: { en: "Tags", zh: "标签" } satisfies Text,
+    topics: { en: "Topics", zh: "话题" } satisfies Text,
+    all: { en: "All", zh: "全部" } satisfies Text,
   },
 
   phrasebook: {

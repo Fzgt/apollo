@@ -5,13 +5,14 @@ import { Check, Copy, Search, SearchX, Trash2, X } from "lucide-react";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WordRow } from "@/components/dictionary/WordRow";
 import { PhrasebookView } from "@/components/dictionary/PhrasebookView";
+import { SideNav } from "@/components/dictionary/SideNav";
 import {
   dictionary,
   dictionaryCount,
   dictionaryTags,
   type WordEntry,
 } from "@/content/dictionary";
-import { phrasebookCount } from "@/content/phrasebook";
+import { TOPICS, phrasebookCount, phrasesOf, type TopicKey } from "@/content/phrasebook";
 import {
   clearQueue,
   queueAsText,
@@ -56,6 +57,8 @@ export default function DictionaryPage() {
   const tab = params.get("tab") === "phrases" ? "phrases" : "words";
   const [query, setQuery] = useState("");
   const [tag, setTag] = useState<string | null>(null);
+  const [topic, setTopic] = useState<TopicKey | null>(null);
+  const [openTerm, setOpenTerm] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const queue = useSyncExternalStore(
@@ -87,11 +90,73 @@ export default function DictionaryPage() {
     }
   };
 
+  /** 侧栏的分类计数 */
+  const tagCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of dictionary) {
+      for (const name of entry.tags ?? []) {
+        counts.set(name, (counts.get(name) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, []);
+
+  const ALL = "__all";
+
+  const sections = [
+    {
+      title: t(UI.dictionary.collections),
+      activeKey: tab,
+      onSelect: (key: string) =>
+        setParams(key === "phrases" ? { tab: "phrases" } : {}),
+      items: [
+        {
+          key: "words",
+          label: t(UI.dictionary.tabWords),
+          count: dictionaryCount,
+        },
+        {
+          key: "phrases",
+          label: t(UI.dictionary.tabPhrases),
+          count: phrasebookCount,
+        },
+      ],
+    },
+    tab === "words"
+      ? {
+          title: t(UI.dictionary.tags),
+          activeKey: tag ?? ALL,
+          onSelect: (key: string) => setTag(key === ALL ? null : key),
+          items: [
+            { key: ALL, label: t(UI.dictionary.all), count: dictionaryCount },
+            ...dictionaryTags.map((name) => ({
+              key: name,
+              label: name,
+              count: tagCounts.get(name) ?? 0,
+            })),
+          ],
+        }
+      : {
+          title: t(UI.dictionary.topics),
+          activeKey: topic ?? ALL,
+          onSelect: (key: string) =>
+            setTopic(key === ALL ? null : (key as TopicKey)),
+          items: [
+            { key: ALL, label: t(UI.dictionary.all), count: phrasebookCount },
+            ...TOPICS.map(({ key, label }) => ({
+              key,
+              label: t(label),
+              count: phrasesOf(key).length,
+            })),
+          ],
+        },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <div className="pt-20 md:pt-24">
-        <div className="container mx-auto max-w-5xl px-4 sm:px-6">
-          <header className="py-4">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6">
+          <header className="border-b border-border py-4">
             <h1 className="text-2xl font-bold text-foreground">
               {t(UI.dictionary.title)}
             </h1>
@@ -104,203 +169,198 @@ export default function DictionaryPage() {
                 {t(UI.dictionary.introB)}
               </p>
             ) : (
-              <p className="mt-1.5 text-sm text-muted-foreground">
+              <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
                 {t(UI.phrasebook.intro)}
               </p>
             )}
           </header>
 
-          {/* 页签而不是导航栏第十个入口：两份都是词表，进的是同一个动作 */}
-          <div className="flex w-full gap-1 rounded-xl border border-border bg-muted/40 p-1">
-            {(
-              [
-                {
-                  key: "words",
-                  label: UI.dictionary.tabWords,
-                  count: dictionaryCount,
-                },
-                {
-                  key: "phrases",
-                  label: UI.dictionary.tabPhrases,
-                  count: phrasebookCount,
-                },
-              ] as const
-            ).map((entry) => (
-              <button
-                key={entry.key}
-                type="button"
-                onClick={() =>
-                  setParams(entry.key === "phrases" ? { tab: "phrases" } : {})
-                }
-                aria-current={tab === entry.key ? "true" : undefined}
-                className={cn(
-                  "flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
-                  tab === entry.key
-                    ? "bg-card font-medium text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {t(entry.label)}
-                <span className="text-xs tabular-nums text-muted-foreground">
-                  {entry.count}
-                </span>
-              </button>
-            ))}
-          </div>
+          <div className="flex gap-8 py-6 pb-16">
+            {/* 左侧：上半截切词库，下半截筛分类 */}
+            <aside className="hidden w-52 shrink-0 lg:block">
+              <SideNav sections={sections} />
+            </aside>
 
-          {tab === "phrases" && <PhrasebookView />}
-
-          {tab === "words" && queue.length > 0 && (
-            <section className="mt-4 rounded-xl border border-dashed border-border bg-muted/30 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-sm font-semibold text-foreground">
-                  {t(UI.dictionary.queueTitle)}
-                  <span className="ml-2 text-xs font-normal text-muted-foreground tabular-nums">
-                    {queue.length}
-                  </span>
-                </h2>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={copyQueue}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
-                  >
-                    {copied ? (
-                      <Check className="size-3.5" />
-                    ) : (
-                      <Copy className="size-3.5" />
-                    )}
-                    {t(copied ? UI.links.copied : UI.dictionary.copyList)}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={clearQueue}
-                    aria-label={t(UI.dictionary.clearQueue)}
-                    className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t(UI.dictionary.queueBody)}
-              </p>
-
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {queue.map((word) => (
-                  <span
-                    key={word.term.toLowerCase()}
-                    className="inline-flex items-center gap-1 rounded-full border border-border bg-card py-1 pl-3 pr-1.5 text-xs text-foreground"
-                  >
-                    {word.term}
+            <div className="min-w-0 flex-1">
+              {/* 窄屏没有侧栏：词库回落成页签，分类回落成一行可横向滚动的胶囊 */}
+              <div className="mb-4 space-y-2 lg:hidden">
+                <div className="flex w-full gap-1 rounded-xl border border-border bg-muted/40 p-1">
+                  {sections[0].items.map((item) => (
                     <button
+                      key={item.key}
                       type="button"
-                      onClick={() => removeWord(word.term)}
-                      aria-label={t(UI.dictionary.remove(word.term))}
-                      className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    >
-                      <X className="size-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {tab === "words" && (
-            <>
-              <div className="relative mt-5">
-                <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder={t(UI.dictionary.searchPlaceholder)}
-                  aria-label={t(UI.dictionary.searchPlaceholder)}
-                  className="h-11 w-full rounded-xl border border-border bg-card pl-11 pr-24 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
-                />
-                <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
-                  {trimmed && (
-                    <button
-                      type="button"
-                      onClick={() => setQuery("")}
-                      aria-label={t(UI.common.clearSearch)}
-                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  )}
-                  <span className="flex items-baseline gap-1 text-xs tabular-nums">
-                    <motion.span
-                      key={shown.length}
-                      initial={{ opacity: 0, y: -3 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      onClick={() => sections[0].onSelect(item.key)}
+                      aria-current={tab === item.key ? "true" : undefined}
                       className={cn(
-                        "font-semibold",
-                        trimmed || tag
-                          ? "text-foreground"
-                          : "text-muted-foreground",
+                        "flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                        tab === item.key
+                          ? "bg-card font-medium text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground",
                       )}
                     >
-                      {shown.length}
-                    </motion.span>
-                    <span className="text-muted-foreground">
-                      {trimmed || tag
-                        ? `/ ${dictionaryCount}`
-                        : t(UI.dictionary.unit)}
-                    </span>
-                  </span>
+                      {item.label}
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {item.count}
+                      </span>
+                    </button>
+                  ))}
                 </div>
-              </div>
 
-              {dictionaryTags.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {dictionaryTags.map((name) => (
+                <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1">
+                  {sections[1].items.map((item) => (
                     <button
-                      key={name}
+                      key={item.key}
                       type="button"
-                      onClick={() => setTag(tag === name ? null : name)}
+                      onClick={() => sections[1].onSelect(item.key)}
                       className={cn(
-                        "rounded-full border px-3 py-1 text-xs transition-colors",
-                        tag === name
+                        "shrink-0 rounded-full border px-3 py-1 text-xs transition-colors",
+                        sections[1].activeKey === item.key
                           ? "border-primary/50 bg-primary/15 font-medium text-primary"
                           : "border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
-                      {name}
+                      {item.label}
                     </button>
                   ))}
                 </div>
-              )}
-
-              {/*
-            卡片瘦下来之后就不该再排成一长条：一列 27 张矮卡等于逼人滚一屏找一个词。
-            改成两到三列，`items-start` 保证同一行里某张卡展开时，旁边的卡不跟着抻高。
-          */}
-              <div className="grid grid-cols-1 items-start gap-2 py-4 pb-16 sm:grid-cols-2 lg:grid-cols-3">
-                {shown.map((entry) => (
-                  <WordRow
-                    key={entry.term}
-                    entry={entry}
-                    expanded={Boolean(trimmed)}
-                  />
-                ))}
               </div>
 
-              {shown.length === 0 && (
-                <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
-                  <SearchX className="size-6" />
-                  <p className="text-sm">
-                    {t(
-                      dictionaryCount === 0
-                        ? UI.dictionary.emptyDictionary
-                        : UI.dictionary.emptyMatch,
-                    )}
-                  </p>
-                </div>
+              {tab === "phrases" && <PhrasebookView topic={topic} />}
+
+              {tab === "words" && (
+                <>
+                  {queue.length > 0 && (
+                    <section className="mb-4 rounded-xl border border-dashed border-border bg-muted/30 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h2 className="text-sm font-semibold text-foreground">
+                          {t(UI.dictionary.queueTitle)}
+                          <span className="ml-2 text-xs font-normal tabular-nums text-muted-foreground">
+                            {queue.length}
+                          </span>
+                        </h2>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={copyQueue}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
+                          >
+                            {copied ? (
+                              <Check className="size-3.5" />
+                            ) : (
+                              <Copy className="size-3.5" />
+                            )}
+                            {t(copied ? UI.links.copied : UI.dictionary.copyList)}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={clearQueue}
+                            aria-label={t(UI.dictionary.clearQueue)}
+                            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {t(UI.dictionary.queueBody)}
+                      </p>
+
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {queue.map((word) => (
+                          <span
+                            key={word.term.toLowerCase()}
+                            className="inline-flex items-center gap-1 rounded-full border border-border bg-card py-1 pl-3 pr-1.5 text-xs text-foreground"
+                          >
+                            {word.term}
+                            <button
+                              type="button"
+                              onClick={() => removeWord(word.term)}
+                              aria-label={t(UI.dictionary.remove(word.term))}
+                              className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            >
+                              <X className="size-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      placeholder={t(UI.dictionary.searchPlaceholder)}
+                      aria-label={t(UI.dictionary.searchPlaceholder)}
+                      className="h-11 w-full rounded-xl border border-border bg-card pl-11 pr-24 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40"
+                    />
+                    <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
+                      {trimmed && (
+                        <button
+                          type="button"
+                          onClick={() => setQuery("")}
+                          aria-label={t(UI.common.clearSearch)}
+                          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      )}
+                      <span className="flex items-baseline gap-1 text-xs tabular-nums">
+                        <motion.span
+                          key={shown.length}
+                          initial={{ opacity: 0, y: -3 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={cn(
+                            "font-semibold",
+                            trimmed || tag
+                              ? "text-foreground"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {shown.length}
+                        </motion.span>
+                        <span className="text-muted-foreground">
+                          {trimmed || tag
+                            ? `/ ${dictionaryCount}`
+                            : t(UI.dictionary.unit)}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {shown.length > 0 ? (
+                    <div className="mt-4 divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+                      {shown.map((entry) => (
+                        <WordRow
+                          key={entry.term}
+                          entry={entry}
+                          isOpen={openTerm === entry.term}
+                          onToggle={() =>
+                            setOpenTerm((prev) =>
+                              prev === entry.term ? null : entry.term,
+                            )
+                          }
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
+                      <SearchX className="size-6" />
+                      <p className="text-sm">
+                        {t(
+                          dictionaryCount === 0
+                            ? UI.dictionary.emptyDictionary
+                            : UI.dictionary.emptyMatch,
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </div>
 

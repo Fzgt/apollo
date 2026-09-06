@@ -35,17 +35,23 @@ function scorePhrase(phrase: Phrase, query: string): number {
   return Math.max(en?.score ?? -Infinity, (alt?.score ?? -Infinity) - 20, body);
 }
 
+function keyOf(phrase: Phrase): string {
+  return `${phrase.topic}-${phrase.zh}`;
+}
+
 /**
  * 面试速查表：中文在左，该说的英文在右。
  *
  * 跟生词本共用 /words 这一页，但方向是反的，所以没做成同一个列表——
  * 生词本按字母排（读到不认识的词回来查），这里按话题排（面试聊到哪一块，
  * 整块的词一起过一遍）。
+ *
+ * 话题筛选提到页面左侧的侧栏了，这里只收 `topic` 这个 prop。
  */
-export function PhrasebookView() {
+export function PhrasebookView({ topic }: { topic: TopicKey | null }) {
   const { t } = useLang();
   const [query, setQuery] = useState("");
-  const [topic, setTopic] = useState<TopicKey | null>(null);
+  const [openKey, setOpenKey] = useState<string | null>(null);
 
   const trimmed = query.trim();
 
@@ -71,9 +77,12 @@ export function PhrasebookView() {
     ? hits.length
     : groups.reduce((sum, group) => sum + group.items.length, 0);
 
+  const toggle = (phrase: Phrase) =>
+    setOpenKey((prev) => (prev === keyOf(phrase) ? null : keyOf(phrase)));
+
   return (
     <div>
-      <div className="relative mt-5">
+      <div className="relative">
         <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <input
           value={query}
@@ -114,32 +123,15 @@ export function PhrasebookView() {
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {TOPICS.map(({ key, label }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setTopic(topic === key ? null : key)}
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs transition-colors",
-              topic === key
-                ? "border-primary/50 bg-primary/15 font-medium text-primary"
-                : "border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
-          >
-            {t(label)}
-          </button>
-        ))}
-      </div>
-
       {hits ? (
         hits.length > 0 ? (
-          <div className="grid grid-cols-1 items-start gap-2 py-4 pb-16 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-4 divide-y divide-border overflow-hidden rounded-xl border border-border bg-card pb-0">
             {hits.map((phrase) => (
               <PhraseRow
-                key={`${phrase.topic}-${phrase.zh}`}
+                key={keyOf(phrase)}
                 phrase={phrase}
-                expanded
+                isOpen={openKey === keyOf(phrase)}
+                onToggle={() => toggle(phrase)}
               />
             ))}
           </div>
@@ -150,21 +142,22 @@ export function PhrasebookView() {
           </div>
         )
       ) : (
-        <div className="pb-16">
+        <div>
           {groups.map((group) => (
             <section key={group.key} className="pt-6">
-              <h2 className="flex items-baseline gap-2 text-sm font-semibold text-foreground">
+              <h2 className="flex items-baseline gap-2 px-1 pb-2 text-sm font-semibold text-foreground">
                 {t(group.label)}
                 <span className="text-xs font-normal text-muted-foreground tabular-nums">
                   {group.items.length}
                 </span>
               </h2>
-              <div className="mt-2 grid grid-cols-1 items-start gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
                 {group.items.map((phrase) => (
                   <PhraseRow
-                    key={`${phrase.topic}-${phrase.zh}`}
+                    key={keyOf(phrase)}
                     phrase={phrase}
-                    expanded={false}
+                    isOpen={openKey === keyOf(phrase)}
+                    onToggle={() => toggle(phrase)}
                   />
                 ))}
               </div>
