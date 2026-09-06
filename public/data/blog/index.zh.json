@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-05T14:44:13.700Z",
+  "syncedAt": "2026-09-06T04:59:08.963Z",
   "translated": [
     56,
     55,
@@ -406,7 +406,7 @@
         }
       ],
       "createdAt": "2026-09-05T09:32:17Z",
-      "updatedAt": "2026-09-05T11:41:35Z",
+      "updatedAt": "2026-09-06T04:58:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/62",
       "excerpt": "五个面板各回答一个不同的问题：有没有问题、慢在哪一层、是哪一行代码。搞混了就会拿错工具查错方向。 除 Lighthouse 那张是我在自己站上真跑的以外，其余截图取自 Chrome DevTools / React DevTools 官方文档。 先把顺序说清楚，后面每一节对应一步…",
       "headings": [
