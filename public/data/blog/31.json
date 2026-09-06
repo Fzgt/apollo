@@ -2,5 +2,5 @@
   "number": 31,
   "title": "The React Render Pipeline, End to End",
   "body": "\n## One complete update, the fuller version\n\n0. An update is triggered: `setState` is called\n   → the reconciler assigns a lane (`requestUpdateLane`)\n   → decide: sync or async?\n\n```\n┌─ sync lane: call performSyncWorkOnRoot directly, skip the scheduler, run to completion\n│\n└─ async lane:\n   ① Scheduling:\n      the taskQueue/timerQueue machinery decides when the render phase is allowed to start\n      (nothing to do with lanes — the reconciler computes the lane and translates it into a\n       priority number before handing it to the scheduler)\n\n   ② The render phase (= reconciliation; the same thing):\n      beginWork (run the component body, run the hooks, diff — same-level comparison plus key\n      matching, apply tags)\n      + completeWork (roll the tags back up)\n      all of it in memory, invisible to the user, and interruptible\n\n   ③ The commit phase:\n      before mutation (getSnapshotBeforeUpdate)\n      → mutation (the real DOM operations) → the current pointer switches\n      → layout (componentDidMount / componentDidUpdate, useLayoutEffect)\n      → passive (useEffect, asynchronous)\n```\n",
-  "updatedAt": "2026-07-28T00:38:17Z"
+  "updatedAt": "2026-09-06T10:18:35Z"
 }

@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-06T05:05:22.864Z",
+  "syncedAt": "2026-09-06T11:06:36.905Z",
   "translated": [
     62,
     56,
@@ -98,6 +98,14 @@
       ]
     },
     {
+      "name": "Next.js",
+      "hint": "App Router、渲染模式、缓存模型",
+      "numbers": [
+        71,
+        72
+      ]
+    },
+    {
       "name": "数据层与状态",
       "hint": "React-Query 三层架构、tRPC / Zod / RHF",
       "numbers": [
@@ -112,6 +120,7 @@
         67,
         68,
         66,
+        70,
         65,
         64,
         63,
@@ -210,6 +219,87 @@
     }
   ],
   "posts": [
+    {
+      "number": 72,
+      "title": "Next.js 核心概念、优势与局限",
+      "labels": [
+        {
+          "name": "React",
+          "color": "0075ca"
+        },
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        }
+      ],
+      "createdAt": "2026-09-06T10:56:57Z",
+      "updatedAt": "2026-09-06T10:57:07Z",
+      "url": "https://github.com/Fzgt/Blog/issues/72",
+      "excerpt": "整理于 2026-09-06，基准 Next.js 16.3。上一篇 #71 Next.js API 用法汇总 讲怎么写，这篇讲为什么这么设计、它换来什么、赔上什么。 末尾第八节是问答速查：面试官随手抛一个 Next.js 小问题，那一节里基本都有一句话答案。 --- 一、Nex…",
+      "headings": [
+        "一、Next.js 到底是什么",
+        "二、渲染模式：真正要分清的是三个维度",
+        "三、RSC 和 SSR 不是一回事（最容易答混的一题）",
+        "四、导航为什么快：预取 + 分段",
+        "五、缓存：Next.js 这些年最大的争议，也是最好的考点",
+        "六、优势：能落到具体收益的那几条",
+        "七、局限：真正要说清楚的部分",
+        "八、面试问答速查"
+      ]
+    },
+    {
+      "number": 71,
+      "title": "Next.js API 用法汇总（App Router · 16.3）",
+      "labels": [
+        {
+          "name": "React",
+          "color": "0075ca"
+        },
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        }
+      ],
+      "createdAt": "2026-09-06T10:56:55Z",
+      "updatedAt": "2026-09-06T10:57:05Z",
+      "url": "https://github.com/Fzgt/Blog/issues/71",
+      "excerpt": "整理于 2026-09-06。基准版本：Next.js 16.3（文档标注 16.3.4，16.3.3 是 Active LTS，15.5.24 是 Maintenance LTS，16.4 还在 canary）。 一手来源：nextjs.org 官方文档与 release bl…",
+      "headings": [
+        "〇、先记住这版的四个前提",
+        "一、路由：全靠文件名",
+        "二、页面拿参数：全是 Promise",
+        "三、取数据：Server Component 直接 await",
+        "四、缓存：Next 16 有两套模型，别混着答",
+        "五、预渲染动态路由：generateStaticParams",
+        "六、Server Actions：不写接口也能改数据",
+        "七、Route Handlers：需要真接口的时候"
+      ]
+    },
+    {
+      "number": 70,
+      "title": "为什么还要自建性能监控 SDK —— 上下文、业务首屏、单一出口",
+      "labels": [
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        },
+        {
+          "name": "性能优化",
+          "color": "ffffff"
+        }
+      ],
+      "createdAt": "2026-09-06T07:16:44Z",
+      "updatedAt": "2026-09-06T07:16:44Z",
+      "url": "https://github.com/Fzgt/Blog/issues/70",
+      "excerpt": "接着 #66 往上一层问：既然 web-vitals 把 CLS 的会话窗口、INP 的分位、bfcache 重算这些边界都处理得比谁都准，为什么还要自己养一套 SDK？ 以前我的答案是「业务侧要方便埋点，得定制一些 hook」。这个答案只对了一半——「多几个 hook」是表象，…",
+      "headings": [
+        "一、维度是自己的",
+        "二、业务首屏 ≠ LCP",
+        "三、一条管道，一个出口",
+        "四、什么时候别自建",
+        "结论"
+      ]
+    },
     {
       "number": 69,
       "title": "assets、public、dist —— 资源目录、上线顺序与缓存策略",
@@ -957,7 +1047,7 @@
         }
       ],
       "createdAt": "2026-07-28T03:35:07Z",
-      "updatedAt": "2026-07-28T03:35:07Z",
+      "updatedAt": "2026-09-06T10:44:56Z",
       "url": "https://github.com/Fzgt/Blog/issues/34",
       "excerpt": "一、\"同构\"到底在说什么 正常情况下，React代码只在浏览器里跑：用户打开页面，先下载一个几乎空的HTML，再下载JS，JS执行完才把内容渲染出来。HTML下载完到JS执行完之前，用户看到的是白屏。 \"同构\"（Isomorphic）说的是：同一份React代码，既能在Node.…",
       "headings": [
@@ -966,7 +1056,8 @@
         "三、流式渲染（Streaming SSR）—— 原理详解",
         "四、同构渲染解决了哪些性能指标",
         "五、Serverless环境部署需要的改变",
-        "一句话总结全部"
+        "一句话总结全部",
+        "六、RSC（React Server Components）和 SSR 不是一回事"
       ]
     },
     {
@@ -1021,11 +1112,12 @@
         }
       ],
       "createdAt": "2026-07-28T00:38:17Z",
-      "updatedAt": "2026-07-28T00:38:17Z",
+      "updatedAt": "2026-09-06T10:18:35Z",
       "url": "https://github.com/Fzgt/Blog/issues/31",
       "excerpt": "一次完整更新全流程图PLUS版 0. 触发更新：setState被调用 → reconciler分配lane（requestUpdateLane） → 判断同步/异步 ┌─ 同步lane：直接调 performSyncWorkOnRoot，不进Scheduler，立即执行完 │ …",
       "headings": [
-        "一次完整更新全流程图PLUS版"
+        "一次完整更新全流程图PLUS版",
+        "⚠️ 最容易连错的一条：走 Scheduler ≠ 会被切片"
       ]
     },
     {
@@ -1060,7 +1152,7 @@
         }
       ],
       "createdAt": "2026-07-27T08:05:50Z",
-      "updatedAt": "2026-09-01T15:18:16Z",
+      "updatedAt": "2026-09-06T10:36:30Z",
       "url": "https://github.com/Fzgt/Blog/issues/29",
       "excerpt": "一、getDerivedStateFromProps 是什么：类组件专属的静态生命周期方法，作用是\"根据最新传进来的props，决定要不要更新state\"。 关键特点： - 静态方法，拿不到this，不能调用this.setState，只能通过return一个对象来更新state…",
       "headings": [
@@ -1069,7 +1161,8 @@
         "三、\"Jotai对Concurrent Mode完全友好\"——需要澄清的说法",
         "四、Portal",
         "五、react.d.ts 是什么文件",
-        "六、FID 已被 INP 取代（2024年3月起）"
+        "六、FID 已被 INP 取代（2024年3月起）",
+        "七、Suspense 与错误边界 —— 同一个入口"
       ]
     },
     {
@@ -1086,7 +1179,7 @@
         }
       ],
       "createdAt": "2026-07-27T08:03:39Z",
-      "updatedAt": "2026-07-28T00:09:43Z",
+      "updatedAt": "2026-09-06T10:36:29Z",
       "url": "https://github.com/Fzgt/Blog/issues/28",
       "excerpt": "解决什么问题 React.memo/PureComponent靠\"浅比较props/state\"来判断要不要跳过渲染，但有个隐蔽的坑：如果传的是对象/数组/函数，哪怕内容一样，只要不是同一个引用，浅比较就会判定\"变了\"，照样触发重渲染。 即使style内容永远一样，因为每次都是新…",
       "headings": [
@@ -1094,7 +1187,8 @@
         "具体怎么用（三步）",
         "追踪特定组件的两种方式",
         "实际效果",
-        "一句话总结"
+        "一句话总结",
+        "补：React 自己的三道闸 —— 源码层的 bailout"
       ]
     },
     {
@@ -1191,7 +1285,7 @@
         }
       ],
       "createdAt": "2026-07-25T06:19:52Z",
-      "updatedAt": "2026-07-28T00:07:52Z",
+      "updatedAt": "2026-09-06T10:18:34Z",
       "url": "https://github.com/Fzgt/Blog/issues/23",
       "excerpt": "区分React里有两种性质完全不同的\"暂停/打断\" | | Render阶段的\"可打断\" | Commit阶段的\"暂停\"（View Transition相关） | |---|---|---| | 打断原因 | 被更高优先级的任务抢占 | 要等浏览器把过渡动画播完 | | 打断的对…",
       "headings": [
@@ -1199,10 +1293,10 @@
         "一、Reconciler概念",
         "二、双缓存结构",
         "三、构建 Fiber Tree （Render阶段）",
+        "三·补、Render阶段的两个 workLoop —— 「可中断」不等于「一定中断」",
         "四、React Diff 算法",
         "一句话串联全部",
-        "快照工具getSnapShotBeforeUpdate()与ComponentDidUpdate()",
-        "Commit阶段"
+        "快照工具getSnapShotBeforeUpdate()与ComponentDidUpdate()"
       ]
     },
     {
@@ -1215,7 +1309,7 @@
         }
       ],
       "createdAt": "2026-07-24T23:54:57Z",
-      "updatedAt": "2026-07-28T00:39:06Z",
+      "updatedAt": "2026-09-06T10:18:32Z",
       "url": "https://github.com/Fzgt/Blog/issues/22",
       "excerpt": "Scheduler 调度流程 一句话总结：更新任务先按\"该不该现在处理\"分进两个队列（延时/及时）；及时任务通过 MessageChannel 被安排到下一个宏任务里去执行；执行时是一个循环，每处理一点就检查一下\"要不要让出主线程\"，让不完就先歇着，下轮宏任务接着干；而\"同步更新…",
       "headings": [
@@ -1486,10 +1580,12 @@
         }
       ],
       "createdAt": "2025-08-12T14:17:54Z",
-      "updatedAt": "2026-07-28T00:07:50Z",
+      "updatedAt": "2026-09-06T10:44:54Z",
       "url": "https://github.com/Fzgt/Blog/issues/7",
       "excerpt": "比较通用的方案是： 通过区分 容器组件 和 UI组件。 只把最通用性的部分提取出成UI组件。然后通过参数控制不同样式的UI。 而逻辑都写到容器组件里，容器组件里再嵌套封装的UI组件来使用。 避免在封装组件的时候引入业务逻辑到里边，难免后边会变动。 类似这种 只需要通过传参来控制 …",
-      "headings": []
+      "headings": [
+        "ref 转发：怎么把子组件的 DOM 交给父组件"
+      ]
     },
     {
       "number": 6,
@@ -1501,7 +1597,7 @@
         }
       ],
       "createdAt": "2025-08-11T10:32:38Z",
-      "updatedAt": "2026-07-28T01:30:45Z",
+      "updatedAt": "2026-09-06T10:36:27Z",
       "url": "https://github.com/Fzgt/Blog/issues/6",
       "excerpt": "为什么会有hooks？解决了什么问题 历史背景：hooks出现前的最佳实践是 class组件做容器组件 + function组件做UI组件， 因为function组件不能定义state，只能通过props传值，组件能力很薄弱。 痛点1：状态逻辑很难在组件间复用——只能靠HOC或r…",
       "headings": [
@@ -1510,7 +1606,8 @@
         "useState的理解",
         "useEffect的理解",
         "React.memo()与pureComponent与ShouldComponentUpdate",
-        "简版useState实现"
+        "简版useState实现",
+        "真实的 useState 长什么样 —— hook 链表"
       ]
     },
     {
