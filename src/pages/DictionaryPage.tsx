@@ -1,4 +1,4 @@
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Check, Copy, Search, SearchX, Trash2, X } from "lucide-react";
@@ -10,11 +10,13 @@ import {
   dictionary,
   dictionaryCount,
   dictionaryTags,
+  isDefined,
   type WordEntry,
 } from "@/content/dictionary";
 import { TOPICS, phrasebookCount, phrasesOf, type TopicKey } from "@/content/phrasebook";
 import {
   clearQueue,
+  pruneDefined,
   queueAsText,
   queueSnapshot,
   queueServerSnapshot,
@@ -66,6 +68,11 @@ export default function DictionaryPage() {
     queueSnapshot,
     queueServerSnapshot,
   );
+
+  // 队列里那些已经补进词表的词,打开这一页时顺手摘掉——否则会一直挂在「等着补释义」
+  useEffect(() => {
+    pruneDefined(isDefined);
+  }, []);
 
   const trimmed = query.trim();
   const shown = useMemo(() => {

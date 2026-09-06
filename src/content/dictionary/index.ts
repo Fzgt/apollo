@@ -60,7 +60,16 @@ const known = new Set(
   dictionary.flatMap((entry) => [entry.term, ...(entry.also ?? [])].map((w) => w.toLowerCase()))
 );
 
-/** 队列里这个词是不是已经收进单词本了 */
+/**
+ * 队列里这个词是不是已经收进单词本了。
+ *
+ * 首尾标点要剥掉：从正文里划词经常会连着句号一起带走（`permission surface.`），
+ * 那和词条本身是同一个词，不该因为一个点就被当成新词。
+ */
 export function isDefined(term: string): boolean {
-  return known.has(term.trim().toLowerCase());
+  const clean = term
+    .trim()
+    .toLowerCase()
+    .replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
+  return clean.length > 0 && known.has(clean);
 }

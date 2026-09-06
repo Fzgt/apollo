@@ -119,6 +119,23 @@ export function clearQueue(): void {
   write([]);
 }
 
+/**
+ * 把已经补上释义的词从队列里摘掉。
+ *
+ * 捕获那一刻会挡掉已收录的词，但队列是攒着的：某个词躺在队列里的这段时间
+ * 我可能已经把它写进词表了。不清的话它会一直挂在「等着补释义」里，
+ * 让人以为还有活要干。判断规则不放在这里——那是内容层的事，传个谓词进来。
+ *
+ * 返回摘掉了几个，没动就返回 0（别白写一次 localStorage）。
+ */
+export function pruneDefined(isDefined: (term: string) => boolean): number {
+  const current = queueSnapshot();
+  const next = current.filter((item) => !isDefined(item.term));
+  if (next.length === current.length) return 0;
+  write(next);
+  return current.length - next.length;
+}
+
 /** 交出去时的样子：一行一个词，带出处，人和 agent 都读得动 */
 export function queueAsText(words: CapturedWord[]): string {
   return words
