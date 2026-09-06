@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 // 中文里 `是**「粗体」**` 这种写法，按 CommonMark 的定界符规则不构成强调
@@ -7,7 +8,20 @@ import remarkCjkFriendly from 'remark-cjk-friendly';
 import { cn } from '@/lib/utils';
 import { headingIdByLine } from '@/lib/headings';
 import { inlineHtmlImages } from '@/lib/markdown-html';
+import { ImageLightbox, type LightboxImage } from './ImageLightbox';
 import { Copy, Check } from 'lucide-react';
+
+// 正文里的图片，按出现顺序。灯箱要靠这个做左右翻页，所以在渲染之前先扫一遍源码——
+// `img` 组件是一张张被调用的，拿不到「这一篇一共有几张、我是第几张」。
+// HTML 的 <img> 已经被 inlineHtmlImages 改写成 markdown 语法了，一条正则就够。
+const MARKDOWN_IMAGE = /!\[([^\]]*)\]\(\s*(?:<([^>]*)>|([^\s)]+))[^)]*\)/g;
+
+function collectImages(source: string): LightboxImage[] {
+  return [...source.matchAll(MARKDOWN_IMAGE)].map((match) => ({
+    alt: match[1] ?? '',
+    src: (match[2] ?? match[3] ?? '').trim(),
+  }));
+}
 
 interface MarkdownRendererProps {
   content: string;
@@ -155,6 +169,12 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
   // Line-preserving, so the line numbers idByLine was built from still line up.
   const source = useMemo(() => inlineHtmlImages(content), [content]);
 
+  const images = useMemo(() => collectImages(source), [source]);
+  const [zoomed, setZoomed] = useState<number | null>(null);
+
+  // 换一篇文章时把灯箱关掉：索引是对着上一篇那组图算的
+  useEffect(() => setZoomed(null), [source]);
+
   return (
     <div className={cn('prose-docs max-w-full [overflow-wrap:anywhere]', className)}>
       <ReactMarkdown
@@ -300,19 +320,40 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             <hr className="border-border my-8" />
           ),
           // 正文里的图都是截图，动辄一两百 KB，且基本都在首屏之外
-          img: ({ src, alt }) => (
-            <img
-              src={src}
-              alt={alt}
-              loading="lazy"
-              decoding="async"
-              className="my-6 max-w-full rounded-xl border border-border shadow-lg"
-            />
-          ),
+          img: ({ src, alt }) => {
+            const index = images.findIndex((image) => image.src === src);
+            return (
+              <button
+                type="button"
+                onClick={() => setZoomed(index >= 0 ? index : 0)}
+                aria-label={alt ? `Zoom: ${alt}` : 'Zoom image'}
+                className="my-6 block w-full cursor-zoom-in rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                <img
+                  src={src}
+                  alt={alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="max-w-full rounded-xl border border-border shadow-lg transition-shadow hover:shadow-xl"
+                />
+              </button>
+            );
+          },
         }}
       >
         {source}
       </ReactMarkdown>
+
+      <AnimatePresence>
+        {zoomed !== null && images.length > 0 && (
+          <ImageLightbox
+            images={images}
+            index={zoomed}
+            onIndexChange={setZoomed}
+            onClose={() => setZoomed(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
