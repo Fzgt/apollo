@@ -781,6 +781,24 @@ export const phrases: Phrase[] = [
   // ── 性能 ──────────────────────────────────────────────────────
   {
     topic: "perf",
+    zh: "现场数据（真实用户测到的）",
+    en: "field data",
+    avoid: "online data",
+    alt: ["real user monitoring", "RUM"],
+    note: "和 lab data 是一对。CrUX、web-vitals 上报的都是 field data；Lighthouse 跑一次是 lab data。",
+    ex: "Lighthouse looked fine, but the field data said LCP was over four seconds.",
+  },
+  {
+    topic: "perf",
+    zh: "实验室数据（本地跑出来的）",
+    en: "lab data",
+    alt: ["synthetic testing"],
+    note: "受控环境下的一次模拟，能定位原因但不代表真实体验。",
+    ex: "Lab data tells you why it's slow; field data tells you whether it is.",
+  },
+
+  {
+    topic: "perf",
     zh: "瓶颈",
     en: "the bottleneck",
     ex: "The bottleneck turned out to be JSON parsing, not the network.",
@@ -1314,6 +1332,30 @@ export const phrases: Phrase[] = [
     avoid: "online",
     alt: ["prod"],
     ex: "It only reproduced in prod, which is what made it interesting.",
+  },
+  {
+    topic: "build",
+    zh: "线上的真实用户",
+    en: "real users in production",
+    avoid: "online users",
+    alt: ["real users in the wild"],
+    note: "in the wild 强调「各种没法控制的真实设备和网络」，谈兼容性和性能时用它更贴切。",
+    ex: "It only showed up for real users in the wild — never on our test devices.",
+  },
+  {
+    topic: "build",
+    zh: "线上那一版",
+    en: "what's in production",
+    avoid: "online version",
+    alt: ["the live version", "what's shipped"],
+    ex: "What's in production is two commits behind main.",
+  },
+  {
+    topic: "build",
+    zh: "正在服务真实流量（的）",
+    en: "live",
+    note: "跟 production 的分工：production 说的是「哪套环境」，live 说的是「此刻正跑着、有人在用」。go live 是上线那一刻。",
+    ex: "The new checkout went live on Tuesday and has been taking real traffic since.",
   },
   {
     topic: "build",
