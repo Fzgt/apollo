@@ -1,7 +1,8 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-07T12:49:13.741Z",
+  "syncedAt": "2026-09-07T14:19:50.792Z",
   "translated": [
+    77,
     76,
     62,
     56,
@@ -105,7 +106,8 @@
       "hint": "App Router、渲染模式、缓存模型",
       "numbers": [
         71,
-        72
+        72,
+        77
       ]
     },
     {
@@ -224,6 +226,35 @@
     }
   ],
   "posts": [
+    {
+      "number": 77,
+      "title": "Next.js 与常规 SPA 相比，性能真的更好了吗",
+      "labels": [
+        {
+          "name": "React",
+          "color": "0075ca"
+        },
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        },
+        {
+          "name": "性能优化",
+          "color": "ffffff"
+        }
+      ],
+      "createdAt": "2026-09-07T14:18:59Z",
+      "updatedAt": "2026-09-07T14:18:59Z",
+      "url": "https://github.com/Fzgt/Blog/issues/77",
+      "excerpt": "问：那 Next.js 玩的这一套，与常规 SPA 相比，性能更好了吗？ 分指标看，不是一句「更好」能概括的。 明确变好的 首屏可见速度（FCP/LCP）。 这是最确定的收益。SPA 要等 HTML → JS bundle → 执行 → 请求数据 → 渲染，首屏至少三个串行往返。…",
+      "headings": [
+        "明确变好的",
+        "明确变差的",
+        "说不清的",
+        "本质上的取舍",
+        "一句话"
+      ]
+    },
     {
       "number": 76,
       "title": "浏览器渲染流程（新架构）—— RenderingNG 里分层为什么在 Paint 之后",
