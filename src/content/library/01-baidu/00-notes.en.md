@@ -9,7 +9,7 @@ section: Baidu
 >
 > Every bullet has five parts: **the text** / **the core technical points** / **how it works** / **what you most likely did at the time** / **follow-ups to expect**.
 >
-> **The numbering matches the resume** (the note used to put the virtualized list third and withdrawals second, the reverse of the resume; they've been swapped). Every quote at the top of a bullet is **that bullet's earlier wording**; where it differs from the current resume, the notes on this site win.
+> **The numbering matches the resume** (reordered 2026-09-07: the five follow the current resume's Baidu section exactly — virtualized list / Webpack / white screen / withdrawal / jsBridge). Every quote at the top of a bullet is **that bullet's earlier wording**; where it differs from the current resume, the notes on this site win.
 >
 > **Handled 2026-08-19**: the withdrawal bullet used to carry `without a single dollar of financial loss`. Zero financial loss is a conclusion from finance reconciliation, not something the frontend can measure — it's off the resume, replaced by three provable actions: the request lock, the idempotency key, and treating an uncertain outcome as a failure. The quote below has been updated to match.
 >
@@ -17,125 +17,8 @@ section: Baidu
 
 ---
 
-## Bullet 1: the Xiaodu App H5 smart-home module — jsBridge and hybrid apps
+## Bullet 1 ⭐ the virtualized list — DOM nodes constant at ~100, 30 FPS → 60 FPS
 
-> Older resume text: Delivered the Xiaodu App's H5 smart-home module in Vue 2, adding native iOS/Android sharing via jsBridge, device detail pages and analytics tracking.
-
-### Core technical points
-
-#### ① Hybrid app architecture
-- **What it is**: a native app embeds a WebView that loads H5 pages. Native owns the shell (launch, accounts, payments, the big features), H5 owns the business screens (fast iteration, consistent across platforms).
-- **Why hybrid**:
-  - Fast iteration (changing H5 doesn't need an app release)
-  - Cross-platform (one set of H5 for iOS and Android)
-  - Live operations (campaign pages, topic pages, A/B tests)
-- **WebView**:
-  - **iOS**: early on UIWebView (deprecated), now everything is **WKWebView** (WebKit, the Safari engine)
-  - **Android**: early on the system WebView (WebKit before 4.4, Chromium from 4.4), later **X5 WebView** (Tencent's fork of Blink, which makes behaviour consistent across handsets)
-
-#### ② jsBridge — how H5 and native talk
-The problem: H5 runs inside the WebView sandbox, and native is **a different world**. To "share to WeChat", "read a Bluetooth device" or "open the camera", H5 can only ask native to do it.
-
-**Four ways H5 can call native**:
-1. **URL scheme** (the oldest): `location.href = 'xiaodu://share?title=xxx'` in H5; native watches URL changes, matches the scheme, intercepts, parses and executes. Downside: asynchronous with no return value, one call at a time.
-2. **iframe.src** (a variant of the URL scheme): `iframe.src = 'xiaodu://...'`, using an iframe so the main page doesn't navigate.
-3. **Intercepting `window.prompt`** (common on Android): H5 calls `window.prompt('xiaodu://...')` and native overrides the WebView's `onJsPrompt` to intercept it.
-4. **Injecting a native object** (the modern mainstream):
-   - **Android**: `webView.addJavascriptInterface(new NativeBridge(), 'AndroidBridge')`, then H5 calls `window.AndroidBridge.share(...)` directly
-   - **iOS (WKWebView)**: `WKUserContentController.add(handler, name: 'iosBridge')`, then H5 calls `window.webkit.messageHandlers.iosBridge.postMessage({...})`, with the callback injected back through `evaluateJavaScript`
-
-**Native calling H5** (the reverse):
-- `webView.evaluateJavascript('window.somefn(data)', null)` (Android)
-- `webView.evaluateJavaScript("window.somefn(...)")` (iOS)
-- H5 has to have attached `window.somefn` beforehand
-
-#### ③ A unified jsBridge wrapper
-The standard industry approach: wrap a layer so the frontend never deals with the iOS/Android difference and just calls `bridge.call('share', {...})`.
-
-Pseudocode:
-```js
-class JSBridge {
-  callbacks = new Map();
-  callId = 0;
-  
-  call(method, params) {
-    return new Promise((resolve, reject) => {
-      const id = ++this.callId;
-      this.callbacks.set(id, { resolve, reject });
-      
-      const payload = { id, method, params };
-      
-      if (isIOS) {
-        window.webkit.messageHandlers.iosBridge.postMessage(payload);
-      } else if (isAndroid) {
-        window.AndroidBridge.call(JSON.stringify(payload));
-      }
-    });
-  }
-  
-  // native calls this to fire the callback
-  _onNativeCallback(id, data, error) {
-    const cb = this.callbacks.get(id);
-    if (!cb) return;
-    error ? cb.reject(error) : cb.resolve(data);
-    this.callbacks.delete(id);
-  }
-}
-```
-The key point: **the callId ties a response back to its request**, because the channel is asynchronous.
-
-#### ④ How sharing is implemented natively
-- **WeChat sharing**: native integrates the WeChat SDK; the bridge receives a "share" command → calls `WXApi.sendReq(...)`
-- **Weibo/QQ**: the same, with their own SDKs
-- **System share sheet**: `UIActivityViewController` on iOS, `Intent.ACTION_SEND` on Android
-
-The frontend only calls `bridge.call('share', { title, desc, imageUrl, link })` and knows nothing about the destination channel.
-
-#### ⑤ The Baidu Analytics API
-- **What it is**: Baidu's own web analytics, roughly the domestic equivalent of Google Analytics
-- **How it's added**:
-  1. Embed the SDK script in the HTML (loaded asynchronously)
-  2. Page views are reported automatically
-  3. Custom events: `_hmt.push(['_trackEvent', 'category', 'action', 'label', value])`
-- **An obscure interview question**: "how does Baidu Analytics avoid losing requests?" → it uses a 1x1 image, `<img src="https://hm.baidu.com/hm.gif?..." />`, rather than XHR, because an image request isn't subject to CORS and still goes out during unload (some browsers optimise this away; `navigator.sendBeacon` is better)
-
-### How it works
-
-#### The key differences between WKWebView and UIWebView
-- **Process model**: WKWebView runs in its own process (isolated, so a crash doesn't take the app down); UIWebView runs in the app's main process
-- **JS engine**: WKWebView uses Nitro (the same one as Safari, fast); UIWebView uses a restricted JavaScriptCore (slow)
-- **Everyone large moved to WKWebView after iOS 8**
-
-#### The traps in URL schemes
-- **iOS**: `window.location.href = 'xiaodu://...'` navigates the page, and if the scheme isn't registered you get a white screen. Hence the iframe isolation
-- **Rapid calls get dropped**: fire a URL scheme twice quickly and native may only receive it once. You need a queue plus a delay
-
-### What you most likely did at the time
-
-1. A Vue 2 project, vue-router for routing, vuex for state
-2. A `utils/bridge.js` wrapper hiding the iOS/Android difference
-3. UA sniffing: checking iOS/Android in `navigator.userAgent`
-4. `import bridge from '@/utils/bridge'` in the page, then `bridge.call('share', {...})`
-5. The device detail page: `bridge.call('getDeviceList')` for the device list → render
-6. Baidu Analytics: load the SDK in main.js, report a pageview from a mixin's `mounted`, and push events with `_hmt.push` at the business points
-
-### Follow-ups to expect
-
-- **How do the iOS and Android bridge implementations differ?**
-  → See ② above: iOS uses `messageHandlers`, Android uses `addJavascriptInterface`. Both are two-way and asynchronous.
-- **Why does a bridge call return a Promise?**
-  → The native → H5 callback is asynchronous, and without a Promise you're in callback hell. callId plus a Promise makes it look like a synchronous call from the H5 side.
-- **An H5 page performs badly inside a native app — how do you fix it?**
-  → ① An offline bundle (native ships the H5 assets, no network). ② Preloading the WebView (warm it up at app launch). ③ SSR / SSG for the first screen. ④ Inlining critical resources (fewer requests). ⑤ Trimming dependencies.
-- **What are the security risks of AndroidBridge?**
-  → Before API 17, `addJavascriptInterface` had an RCE hole (reflection could call arbitrary Java methods). From 17 it requires the `@JavascriptInterface` annotation. Expose only the methods you need and validate input strictly.
-- **How do you handle behaviour that differs between iOS and Android?**
-  → The bridge layer exposes one API and dispatches internally by platform, so the business layer never sees the difference. Special cases (the page being squeezed when the iOS keyboard appears) get a platform-specific fix.
-
----
-
-
-## Bullet 2 ⭐ the virtualized list — DOM nodes constant at ~100, 30 FPS → 60 FPS
 
 > Older resume text: Built a virtualized React feed serving 5M+ daily page views on a custom useVirtualList hook over IntersectionObserver: live DOM nodes stay near 100 at any scroll depth, scroll from 30 to a stable 60 FPS.
 >
@@ -350,6 +233,39 @@ An interviewer may ask "which step actually raised the frame rate?":
 3. **`passive: true`**: the scroll event no longer blocks compositing
 4. **IntersectionObserver instead of scroll checks**: no `getBoundingClientRect` per scroll, so no forced synchronous layout (FSL)
 
+### The build-vs-buy call: why not an off-the-shelf library (⭐ likely the opening question)
+
+The wheel already exists — why did you build one? Miss this and the depth later still costs you.
+
+**Two answers to rule out first:**
+
+- **Never say "it didn't exist yet."** react-window `1.0.0` shipped on **2018-07-22**; the stable version in use through all of 2021 was `1.8.6` (2020-10-29), with 1.8.7 not landing until 2022-04. By the time you wrote that code it had been out for three years and sitting on an eighteen-month-old stable release.
+- **Never say "there was no alternative."** There were at least four in 2021, and an interviewer can name two off the top of their head.
+
+| Library | Version available in 2021 | Shape | What matters for this case |
+|---|---|---|---|
+| **react-window** | 1.8.6 (2020-10) | component | The industry default. **Requires its own fixed-height scroll container** |
+| **react-virtualized** | 9.22.3 (2020-12) | component | Same author, full-featured; **has `WindowScroller`, so it can ride page scroll** |
+| **react-virtual** | 2.x (updated through 2021) | **headless hook** | Returns indexes and offsets only; the DOM and the container stay yours — **the same shape as your `useVirtualList`** |
+| **react-virtuoso** | 2.x | component | Built around automatic measurement of variable heights |
+
+(`@tanstack/react-virtual` is only the renamed package, from **2022-02**, and v3 is later still. In 2021 there was only react-virtual v2 — don't conflate the two.)
+
+**react-window's core constraint**: it wants a fixed-height scroll container — `<FixedSizeList height={600} itemCount={...} itemSize={80}>` — with the scrollbar on that div, not on the page.
+
+**This case**: an H5 home feed inside the Xiaodu App, where the whole page scrolls. Pull-to-refresh, the sticky header and infinite loading all hang off page scroll. Moving the scroll into a fixed-height div means reworking all of them.
+
+**Open with these two sentences and stop:**
+
+> I looked at react-window and react-virtualized at the time. react-window takes over the scroll container, which fights page-level scrolling; react-virtualized's WindowScroller solves that, but the library carries far more than I needed — not worth pulling in for one home feed. The core logic was about a hundred lines, so writing it myself stayed more controllable.
+
+**Three follow-ups, with answers ready:**
+
+- **"What about fixed heights?"** → Fixed height isn't the problem; that's exactly what react-window is best at. The problem is that it takes over the scroll container.
+- **"What about react-virtual? It's headless, it doesn't take the container."** → Concede it: "That was 2.x at the time — not yet under TanStack, API still moving. I wasn't going to put it in production."
+  ⚠️ This is the sharpest counter — react-virtual `2.10.0`'s types carry both `windowRef` (window scrolling) and `measureRef` (automatic measurement), so it **answers both** of the reasons above. The only honest reply is that you wouldn't bet on a library whose API was still shifting. Don't try to argue past it.
+- **"How would you choose today?"** → Today, `@tanstack/react-virtual` — headless, actively maintained, window scrolling and dynamic heights both covered. Back then the options either took the container, were too heavy, or weren't stable.
+
 ### What you most likely did at the time
 
 1. Fetch data from the backend (paged, `page=1&size=20`)
@@ -363,6 +279,7 @@ An interviewer may ask "which step actually raised the frame rate?":
 ### Follow-ups to expect (⭐ frequent)
 
 **The basic layer:**
+- **Why not react-window?** (the build-vs-buy section above — likely the opening question; get this one fluent first)
 - **Why transform rather than top?** (point ④ above)
 - **How does IntersectionObserver differ from a scroll listener?** (point ⑤ above)
 - **What does 60 FPS mean?** (16.67ms per frame; over that and you drop one)
@@ -397,155 +314,8 @@ An interviewer may ask "which step actually raised the frame rate?":
 
 ---
 
-## Bullet 3: the withdrawal feature above 2000 QPS — frontend defence under high concurrency
+## Bullet 2 ⭐ the Webpack 3 → 5 migration — bundle -15%, build -70%
 
-> Older resume text: Built the withdrawal client on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures, never successes.
-
-### Core technical points
-
-#### ① Debounce vs throttle — constantly confused
-- **Debounce**: many triggers, but it **only runs n milliseconds after the last one**. However fast the user hammers the button, the call happens 300ms after they stop.
-  - Good for: search input, resize, blocking double-clicks (the first version of it)
-- **Throttle**: many triggers, but it **runs at most once every n milliseconds**. Continuous triggering produces an even rate.
-  - Good for: scroll, mousemove
-- **Which one for a withdrawal button?**
-  - Debounce has a problem: "only the last one counts" means that if the user clicks 100 times, the request goes out 300ms after click 100. The user may feel nothing is happening and click more.
-  - **The better shape**: **run immediately on the first click, then lock** (② below). That's leading-edge debounce combined with a request lock.
-
-#### ② Request locking / in-flight tracking
-The problem: the user clicks withdraw → a request goes out → **before it returns** the user clicks again → a second request goes out → the backend may debit twice.
-
-The fix: block any identical request for **the whole window between the request leaving and the response arriving**.
-
-```js
-let inFlight = false;
-
-async function withdraw() {
-  if (inFlight) return; // locked, ignore it
-  inFlight = true;
-  try {
-    const res = await api.withdraw();
-    handleSuccess(res);
-  } catch (err) {
-    handleError(err);
-  } finally {
-    inFlight = false; // unlock
-  }
-}
-```
-A more complete version: **deduplicate by a key derived from the arguments** (lock one withdrawal, let different ones run concurrently):
-```js
-const inFlightMap = new Map();
-
-async function withdraw(orderId) {
-  if (inFlightMap.has(orderId)) return inFlightMap.get(orderId);
-  const promise = api.withdraw(orderId);
-  inFlightMap.set(orderId, promise);
-  try {
-    return await promise;
-  } finally {
-    inFlightMap.delete(orderId);
-  }
-}
-```
-This pattern is called **promise deduplication**, and it's exactly what React Query and SWR do internally.
-
-#### ③ Idempotency — this is what actually gives you zero financial loss
-A frontend lock only stops rapid clicking in one tab. It cannot stop:
-- The frontend retrying after a network timeout
-- The user acting from two devices or tabs at once
-- The user reloading the page and clicking again
-
-**Real zero-loss has to come from backend idempotency**:
-- Every withdrawal request carries an **idempotency key** (a UUID generated by the frontend, or the orderId)
-- The backend stores the keys it has already processed; a repeat of the same key returns the previous result instead of executing again
-
-What the frontend can do:
-- Generate the idempotency key up front and store it in sessionStorage (so it survives a reload)
-- Send that key on every call
-- **Only together with the backend is this a complete solution**
-
-#### ④ Error fallbacks
-The rule for error handling where money is involved: **fail by default, and only show success when success is certain**.
-- **Certain failure** (HTTP 4xx/5xx, a business error code): show the error and a retry button
-- **Uncertain** (timeout, network drop, request sent with no response): **treat it as a failure**, but tell the user "network problem, please check your withdrawal history shortly" rather than flatly saying "failed" (the backend may well have processed it)
-- **Certain success** (2xx plus a success code): show success
-
-**Why does "uncertain" have to be treated as failure?**
-- Showing "failed" makes the user retry, and the retry is covered by the idempotency key, so nothing is debited twice
-- Showing "success" when the money never arrived means the user believes they withdrew and sees no money — that blows up
-
-#### ⑤ What 2000+ QPS means from the frontend's side
-- **QPS = queries per second**
-- 2000 QPS is usually a **backend** number, not a frontend one. The frontend doesn't "withstand" QPS, it "contributes" QPS (each user click contributes 1)
-- What the frontend can do:
-  - Cut unnecessary requests (debounce plus the lock)
-  - Queue or rate-limit (don't let a hundred thousand people all click at the instant a campaign opens)
-  - Serve static assets from a CDN so there are fewer dynamic requests
-
-### How it works
-
-#### The advanced version of frontend rate limiting — token bucket / leaky bucket
-In a genuinely high-concurrency situation the frontend does its own rate limiting:
-- **Token bucket**: a token is generated every 100ms, a click consumes one, and the button is disabled when there are none
-- **Leaky bucket**: requests go into a queue and are sent at a fixed rate
-- **Example** (token bucket):
-```js
-let tokens = 5;
-setInterval(() => tokens = Math.min(tokens + 1, 5), 200);
-
-async function tryClick() {
-  if (tokens === 0) return alert('操作太频繁');
-  tokens--;
-  await api.doSomething();
-}
-```
-
-### What you most likely did at the time
-
-1. `disabled` on the button's onClick (disable immediately, re-enable on response) — the visual lock
-2. The logical lock: an `inFlightMap` or `Set` in memory, blocking the same orderId
-3. Generate an idempotency key (uuid) on the frontend and keep it in sessionStorage
-4. Inject the idempotency key into the header or body in one place in the API layer
-5. Error fallbacks: one error handler, showing "check back shortly" for timeouts and network errors and the business error for 4xx
-6. A global loading state so the user never thinks nothing happened
-
-### Follow-ups to expect
-
-- **How exactly do you implement debounce and throttle?**
-  → Write them by hand (a very common question):
-  ```js
-  const debounce = (fn, ms) => {
-    let timer;
-    return (...args) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn(...args), ms);
-    };
-  };
-  
-  const throttle = (fn, ms) => {
-    let last = 0;
-    return (...args) => {
-      const now = Date.now();
-      if (now - last >= ms) {
-        last = now;
-        fn(...args);
-      }
-    };
-  };
-  ```
-  The advanced versions: debounce with `leading` / `trailing` options, throttle built on `requestAnimationFrame`.
-- **How did you guarantee zero financial loss?**
-  → Three layers in the frontend (visual disable + an in-memory lock + an idempotency key) plus backend idempotency = an end-to-end guarantee. **The frontend only reduces useless requests; real zero-loss is the backend and frontend together.**
-- **What does 2000 QPS actually challenge on the frontend?**
-  → Not the QPS itself, but the peak when a campaign opens, when a hundred thousand people can hit the first screen at once. The frontend answers with a CDN, SSR/SSG to cut dynamic requests, a queue in front of the button, and degrading to a static notice page on failure.
-- **What if the user clicks withdraw in two tabs at once?**
-  → An in-memory lock doesn't cross tabs, so it has to be backend idempotency or a distributed lock (Redis SETNX with an expiry).
-
----
-
-
-## Bullet 4 ⭐ the Webpack 3 → 5 migration — bundle -15%, build -70%
 
 > Older resume text: Led a Webpack 3-to-5 migration across 10+ incompatible packages, extracting shared runtime through SplitChunksPlugin and turning on persistent caching — bundle size down ~15%, local build times down 70%.
 
@@ -705,7 +475,8 @@ Webpack 5 decides whether a cache entry is valid from **content hashes plus depe
 ---
 
 
-## Bullet 5: the P2 white-screen review — dependency pinning and pre-release verification
+## Bullet 3: the P2 white-screen review — dependency pinning and pre-release verification
+
 
 > Older resume text: First to diagnose a P2 white screen on Haokan Video's search page (100M+ DAU): mismatched Node versions regenerated package-lock.json, pulling a breaking minor bump — version locks and release checks followed.
 
@@ -846,6 +617,274 @@ Semver says minor is compatible; in practice:
     3. The impact (how many users, how much revenue)
     4. Action items (specific actions, an owner, a deadline)
     5. **No blaming individuals** — ask instead why the system allowed it
+
+---
+
+
+## Bullet 4: the withdrawal feature above 2000 QPS — frontend defence under high concurrency
+
+
+> Older resume text: Built the withdrawal client on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures, never successes.
+
+### Core technical points
+
+#### ① Debounce vs throttle — constantly confused
+- **Debounce**: many triggers, but it **only runs n milliseconds after the last one**. However fast the user hammers the button, the call happens 300ms after they stop.
+  - Good for: search input, resize, blocking double-clicks (the first version of it)
+- **Throttle**: many triggers, but it **runs at most once every n milliseconds**. Continuous triggering produces an even rate.
+  - Good for: scroll, mousemove
+- **Which one for a withdrawal button?**
+  - Debounce has a problem: "only the last one counts" means that if the user clicks 100 times, the request goes out 300ms after click 100. The user may feel nothing is happening and click more.
+  - **The better shape**: **run immediately on the first click, then lock** (② below). That's leading-edge debounce combined with a request lock.
+
+#### ② Request locking / in-flight tracking
+The problem: the user clicks withdraw → a request goes out → **before it returns** the user clicks again → a second request goes out → the backend may debit twice.
+
+The fix: block any identical request for **the whole window between the request leaving and the response arriving**.
+
+```js
+let inFlight = false;
+
+async function withdraw() {
+  if (inFlight) return; // locked, ignore it
+  inFlight = true;
+  try {
+    const res = await api.withdraw();
+    handleSuccess(res);
+  } catch (err) {
+    handleError(err);
+  } finally {
+    inFlight = false; // unlock
+  }
+}
+```
+A more complete version: **deduplicate by a key derived from the arguments** (lock one withdrawal, let different ones run concurrently):
+```js
+const inFlightMap = new Map();
+
+async function withdraw(orderId) {
+  if (inFlightMap.has(orderId)) return inFlightMap.get(orderId);
+  const promise = api.withdraw(orderId);
+  inFlightMap.set(orderId, promise);
+  try {
+    return await promise;
+  } finally {
+    inFlightMap.delete(orderId);
+  }
+}
+```
+This pattern is called **promise deduplication**, and it's exactly what React Query and SWR do internally.
+
+#### ③ Idempotency — this is what actually gives you zero financial loss
+A frontend lock only stops rapid clicking in one tab. It cannot stop:
+- The frontend retrying after a network timeout
+- The user acting from two devices or tabs at once
+- The user reloading the page and clicking again
+
+**Real zero-loss has to come from backend idempotency**:
+- Every withdrawal request carries an **idempotency key** (a UUID generated by the frontend, or the orderId)
+- The backend stores the keys it has already processed; a repeat of the same key returns the previous result instead of executing again
+
+What the frontend can do:
+- Generate the idempotency key up front and store it in sessionStorage (so it survives a reload)
+- Send that key on every call
+- **Only together with the backend is this a complete solution**
+
+#### ④ Error fallbacks
+The rule for error handling where money is involved: **fail by default, and only show success when success is certain**.
+- **Certain failure** (HTTP 4xx/5xx, a business error code): show the error and a retry button
+- **Uncertain** (timeout, network drop, request sent with no response): **treat it as a failure**, but tell the user "network problem, please check your withdrawal history shortly" rather than flatly saying "failed" (the backend may well have processed it)
+- **Certain success** (2xx plus a success code): show success
+
+**Why does "uncertain" have to be treated as failure?**
+- Showing "failed" makes the user retry, and the retry is covered by the idempotency key, so nothing is debited twice
+- Showing "success" when the money never arrived means the user believes they withdrew and sees no money — that blows up
+
+#### ⑤ What 2000+ QPS means from the frontend's side
+- **QPS = queries per second**
+- 2000 QPS is usually a **backend** number, not a frontend one. The frontend doesn't "withstand" QPS, it "contributes" QPS (each user click contributes 1)
+- What the frontend can do:
+  - Cut unnecessary requests (debounce plus the lock)
+  - Queue or rate-limit (don't let a hundred thousand people all click at the instant a campaign opens)
+  - Serve static assets from a CDN so there are fewer dynamic requests
+
+### How it works
+
+#### The advanced version of frontend rate limiting — token bucket / leaky bucket
+In a genuinely high-concurrency situation the frontend does its own rate limiting:
+- **Token bucket**: a token is generated every 100ms, a click consumes one, and the button is disabled when there are none
+- **Leaky bucket**: requests go into a queue and are sent at a fixed rate
+- **Example** (token bucket):
+```js
+let tokens = 5;
+setInterval(() => tokens = Math.min(tokens + 1, 5), 200);
+
+async function tryClick() {
+  if (tokens === 0) return alert('操作太频繁');
+  tokens--;
+  await api.doSomething();
+}
+```
+
+### What you most likely did at the time
+
+1. `disabled` on the button's onClick (disable immediately, re-enable on response) — the visual lock
+2. The logical lock: an `inFlightMap` or `Set` in memory, blocking the same orderId
+3. Generate an idempotency key (uuid) on the frontend and keep it in sessionStorage
+4. Inject the idempotency key into the header or body in one place in the API layer
+5. Error fallbacks: one error handler, showing "check back shortly" for timeouts and network errors and the business error for 4xx
+6. A global loading state so the user never thinks nothing happened
+
+### Follow-ups to expect
+
+- **How exactly do you implement debounce and throttle?**
+  → Write them by hand (a very common question):
+  ```js
+  const debounce = (fn, ms) => {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), ms);
+    };
+  };
+  
+  const throttle = (fn, ms) => {
+    let last = 0;
+    return (...args) => {
+      const now = Date.now();
+      if (now - last >= ms) {
+        last = now;
+        fn(...args);
+      }
+    };
+  };
+  ```
+  The advanced versions: debounce with `leading` / `trailing` options, throttle built on `requestAnimationFrame`.
+- **How did you guarantee zero financial loss?**
+  → Three layers in the frontend (visual disable + an in-memory lock + an idempotency key) plus backend idempotency = an end-to-end guarantee. **The frontend only reduces useless requests; real zero-loss is the backend and frontend together.**
+- **What does 2000 QPS actually challenge on the frontend?**
+  → Not the QPS itself, but the peak when a campaign opens, when a hundred thousand people can hit the first screen at once. The frontend answers with a CDN, SSR/SSG to cut dynamic requests, a queue in front of the button, and degrading to a static notice page on failure.
+- **What if the user clicks withdraw in two tabs at once?**
+  → An in-memory lock doesn't cross tabs, so it has to be backend idempotency or a distributed lock (Redis SETNX with an expiry).
+
+---
+
+
+## Bullet 5: the Xiaodu App H5 smart-home module — jsBridge and hybrid apps
+
+
+> Older resume text: Delivered the Xiaodu App's H5 smart-home module in Vue 2, adding native iOS/Android sharing via jsBridge, device detail pages and analytics tracking.
+
+### Core technical points
+
+#### ① Hybrid app architecture
+- **What it is**: a native app embeds a WebView that loads H5 pages. Native owns the shell (launch, accounts, payments, the big features), H5 owns the business screens (fast iteration, consistent across platforms).
+- **Why hybrid**:
+  - Fast iteration (changing H5 doesn't need an app release)
+  - Cross-platform (one set of H5 for iOS and Android)
+  - Live operations (campaign pages, topic pages, A/B tests)
+- **WebView**:
+  - **iOS**: early on UIWebView (deprecated), now everything is **WKWebView** (WebKit, the Safari engine)
+  - **Android**: early on the system WebView (WebKit before 4.4, Chromium from 4.4), later **X5 WebView** (Tencent's fork of Blink, which makes behaviour consistent across handsets)
+
+#### ② jsBridge — how H5 and native talk
+The problem: H5 runs inside the WebView sandbox, and native is **a different world**. To "share to WeChat", "read a Bluetooth device" or "open the camera", H5 can only ask native to do it.
+
+**Four ways H5 can call native**:
+1. **URL scheme** (the oldest): `location.href = 'xiaodu://share?title=xxx'` in H5; native watches URL changes, matches the scheme, intercepts, parses and executes. Downside: asynchronous with no return value, one call at a time.
+2. **iframe.src** (a variant of the URL scheme): `iframe.src = 'xiaodu://...'`, using an iframe so the main page doesn't navigate.
+3. **Intercepting `window.prompt`** (common on Android): H5 calls `window.prompt('xiaodu://...')` and native overrides the WebView's `onJsPrompt` to intercept it.
+4. **Injecting a native object** (the modern mainstream):
+   - **Android**: `webView.addJavascriptInterface(new NativeBridge(), 'AndroidBridge')`, then H5 calls `window.AndroidBridge.share(...)` directly
+   - **iOS (WKWebView)**: `WKUserContentController.add(handler, name: 'iosBridge')`, then H5 calls `window.webkit.messageHandlers.iosBridge.postMessage({...})`, with the callback injected back through `evaluateJavaScript`
+
+**Native calling H5** (the reverse):
+- `webView.evaluateJavascript('window.somefn(data)', null)` (Android)
+- `webView.evaluateJavaScript("window.somefn(...)")` (iOS)
+- H5 has to have attached `window.somefn` beforehand
+
+#### ③ A unified jsBridge wrapper
+The standard industry approach: wrap a layer so the frontend never deals with the iOS/Android difference and just calls `bridge.call('share', {...})`.
+
+Pseudocode:
+```js
+class JSBridge {
+  callbacks = new Map();
+  callId = 0;
+  
+  call(method, params) {
+    return new Promise((resolve, reject) => {
+      const id = ++this.callId;
+      this.callbacks.set(id, { resolve, reject });
+      
+      const payload = { id, method, params };
+      
+      if (isIOS) {
+        window.webkit.messageHandlers.iosBridge.postMessage(payload);
+      } else if (isAndroid) {
+        window.AndroidBridge.call(JSON.stringify(payload));
+      }
+    });
+  }
+  
+  // native calls this to fire the callback
+  _onNativeCallback(id, data, error) {
+    const cb = this.callbacks.get(id);
+    if (!cb) return;
+    error ? cb.reject(error) : cb.resolve(data);
+    this.callbacks.delete(id);
+  }
+}
+```
+The key point: **the callId ties a response back to its request**, because the channel is asynchronous.
+
+#### ④ How sharing is implemented natively
+- **WeChat sharing**: native integrates the WeChat SDK; the bridge receives a "share" command → calls `WXApi.sendReq(...)`
+- **Weibo/QQ**: the same, with their own SDKs
+- **System share sheet**: `UIActivityViewController` on iOS, `Intent.ACTION_SEND` on Android
+
+The frontend only calls `bridge.call('share', { title, desc, imageUrl, link })` and knows nothing about the destination channel.
+
+#### ⑤ The Baidu Analytics API
+- **What it is**: Baidu's own web analytics, roughly the domestic equivalent of Google Analytics
+- **How it's added**:
+  1. Embed the SDK script in the HTML (loaded asynchronously)
+  2. Page views are reported automatically
+  3. Custom events: `_hmt.push(['_trackEvent', 'category', 'action', 'label', value])`
+- **An obscure interview question**: "how does Baidu Analytics avoid losing requests?" → it uses a 1x1 image, `<img src="https://hm.baidu.com/hm.gif?..." />`, rather than XHR, because an image request isn't subject to CORS and still goes out during unload (some browsers optimise this away; `navigator.sendBeacon` is better)
+
+### How it works
+
+#### The key differences between WKWebView and UIWebView
+- **Process model**: WKWebView runs in its own process (isolated, so a crash doesn't take the app down); UIWebView runs in the app's main process
+- **JS engine**: WKWebView uses Nitro (the same one as Safari, fast); UIWebView uses a restricted JavaScriptCore (slow)
+- **Everyone large moved to WKWebView after iOS 8**
+
+#### The traps in URL schemes
+- **iOS**: `window.location.href = 'xiaodu://...'` navigates the page, and if the scheme isn't registered you get a white screen. Hence the iframe isolation
+- **Rapid calls get dropped**: fire a URL scheme twice quickly and native may only receive it once. You need a queue plus a delay
+
+### What you most likely did at the time
+
+1. A Vue 2 project, vue-router for routing, vuex for state
+2. A `utils/bridge.js` wrapper hiding the iOS/Android difference
+3. UA sniffing: checking iOS/Android in `navigator.userAgent`
+4. `import bridge from '@/utils/bridge'` in the page, then `bridge.call('share', {...})`
+5. The device detail page: `bridge.call('getDeviceList')` for the device list → render
+6. Baidu Analytics: load the SDK in main.js, report a pageview from a mixin's `mounted`, and push events with `_hmt.push` at the business points
+
+### Follow-ups to expect
+
+- **How do the iOS and Android bridge implementations differ?**
+  → See ② above: iOS uses `messageHandlers`, Android uses `addJavascriptInterface`. Both are two-way and asynchronous.
+- **Why does a bridge call return a Promise?**
+  → The native → H5 callback is asynchronous, and without a Promise you're in callback hell. callId plus a Promise makes it look like a synchronous call from the H5 side.
+- **An H5 page performs badly inside a native app — how do you fix it?**
+  → ① An offline bundle (native ships the H5 assets, no network). ② Preloading the WebView (warm it up at app launch). ③ SSR / SSG for the first screen. ④ Inlining critical resources (fewer requests). ⑤ Trimming dependencies.
+- **What are the security risks of AndroidBridge?**
+  → Before API 17, `addJavascriptInterface` had an RCE hole (reflection could call arbitrary Java methods). From 17 it requires the `@JavascriptInterface` annotation. Expose only the methods you need and validate input strictly.
+- **How do you handle behaviour that differs between iOS and Android?**
+  → The bridge layer exposes one API and dispatches internally by platform, so the business layer never sees the difference. Special cases (the page being squeezed when the iOS keyboard appears) get a platform-specific fix.
 
 ---
 

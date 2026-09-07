@@ -10,7 +10,7 @@ icon: landmark
 >
 > 每条 bullet 分五段:**原文** / **核心技术点** / **实现原理** / **你当时大概是怎么做的** / **面试预期追问**。
 >
-> **编号和简历对齐**（原来笔记里虚拟列表排第 3、提现排第 2，和简历反着，已互换）。每条开头引的是**该条更早的措辞**，和现简历有出入处以站内笔记为准。
+> **编号和简历对齐**（2026-09-07 重排：五条顺序完全照现简历 Baidu section —— 虚拟列表 / Webpack / 白屏 / 提现 / jsBridge）。每条开头引的是**该条更早的措辞**，和现简历有出入处以站内笔记为准。
 >
 > **已处理（2026-08-19）**：提现那条原本带着 `without a single dollar of financial loss`。零资损是财务对账的结论，不是前端能测出来的东西——已经不在简历上，换成请求锁、幂等 key、不确定按失败处理这三个可证的动作。下面正文里引的原句已同步更新。
 >
@@ -18,125 +18,8 @@ icon: landmark
 
 ---
 
-## Bullet 1:小度 App H5 智能家居模块 —— jsBridge + 混合应用
+## Bullet 1 ⭐ 虚拟列表 —— DOM 节点恒定 ~100,30 FPS → 60 FPS
 
-> 旧版原文：Delivered the Xiaodu App’s H5 smart-home module in Vue 2, adding native iOS/Android sharing via jsBridge, device detail pages and analytics tracking.
-
-### 核心技术点
-
-#### ① Hybrid App(混合应用)架构
-- **是什么**:原生 App(Native)里嵌入 WebView 加载 H5 页面。原生做外壳(启动、账号、支付、大功能),H5 做业务(灵活迭代、跨端一致)。
-- **为什么选混合**:
-  - 快速迭代(改 H5 不用发版 App)
-  - 跨端(iOS/Android 一套 H5)
-  - 动态运营(活动页、专题、AB 测试)
-- **WebView**:
-  - **iOS**:早期 UIWebView(已废弃),现在都是 **WKWebView**(WebKit,基于 Safari 内核)
-  - **Android**:早期是系统 WebView(4.4 前是 WebKit,4.4+ 是 Chromium),后来出 **X5 WebView**(腾讯魔改 Blink,统一多机型行为)
-
-#### ② jsBridge —— H5 和原生怎么通信
-问题:H5 跑在 WebView 沙箱里,和原生是**两个世界**。要"分享到微信"、"读取蓝牙设备"、"调起相机",H5 只能"求"原生做。
-
-**H5 调原生的 4 种方案**:
-1. **URL Scheme**(最古老):H5 里 `location.href = 'xiaodu://share?title=xxx'`,原生监听 URL 变化,匹配 scheme 后拦截 + 解析 + 执行。缺点:异步无返回值,一次只能一个调用。
-2. **iframe.src 触发**(URL Scheme 变体):`iframe.src = 'xiaodu://...'`,用 iframe 是为了不让主页面跳转。
-3. **`window.prompt` 拦截**(Android 常用):H5 调 `window.prompt('xiaodu://...')`,原生重写 WebView 的 `onJsPrompt` 拦截。
-4. **注入原生对象**(现代主流):
-   - **Android**:`webView.addJavascriptInterface(new NativeBridge(), 'AndroidBridge')`,H5 里 `window.AndroidBridge.share(...)` 直接调
-   - **iOS(WKWebView)**:`WKUserContentController.add(handler, name: 'iosBridge')`,H5 里 `window.webkit.messageHandlers.iosBridge.postMessage({...})` 调,回调通过 `evaluateJavaScript` 反向注入
-
-**原生调 H5**(反向):
-- `webView.evaluateJavascript('window.somefn(data)', null)`(Android)
-- `webView.evaluateJavaScript("window.somefn(...)")`(iOS)
-- 需要 H5 提前挂 `window.somefn`
-
-#### ③ 统一 jsBridge 封装
-业界通用做法:封装一层,前端不管 iOS/Android 差异,统一调 `bridge.call('share', {...})`。
-
-伪代码:
-```js
-class JSBridge {
-  callbacks = new Map();
-  callId = 0;
-  
-  call(method, params) {
-    return new Promise((resolve, reject) => {
-      const id = ++this.callId;
-      this.callbacks.set(id, { resolve, reject });
-      
-      const payload = { id, method, params };
-      
-      if (isIOS) {
-        window.webkit.messageHandlers.iosBridge.postMessage(payload);
-      } else if (isAndroid) {
-        window.AndroidBridge.call(JSON.stringify(payload));
-      }
-    });
-  }
-  
-  // 原生调用来触发回调
-  _onNativeCallback(id, data, error) {
-    const cb = this.callbacks.get(id);
-    if (!cb) return;
-    error ? cb.reject(error) : cb.resolve(data);
-    this.callbacks.delete(id);
-  }
-}
-```
-关键点:**用 callId 关联请求和响应**,因为通信是异步的。
-
-#### ④ 分享的原生实现
-- **微信分享**:原生集成微信 SDK,jsBridge 收到"分享"指令 → 调 `WXApi.sendReq(...)`
-- **微博/QQ**:同理,各自 SDK
-- **系统分享**:iOS `UIActivityViewController`,Android `Intent.ACTION_SEND`
-
-前端只管调 `bridge.call('share', { title, desc, imageUrl, link })`,不管落地渠道。
-
-#### ⑤ 百度统计 API
-- **是什么**:百度自家的 Web 分析,类似 Google Analytics 的国内版
-- **接入方式**:
-  1. HTML 里嵌一段 SDK 脚本(异步加载)
-  2. 页面浏览自动上报
-  3. 自定义事件:`_hmt.push(['_trackEvent', 'category', 'action', 'label', value])`
-- **面试冷问**:"百度统计怎么保证请求不丢?" → 用 1x1 图片 `<img src="https://hm.baidu.com/hm.gif?..." />` 而不是 XHR,因为图片请求不受 CORS 限制,且 unload 时也能发出去(有些浏览器优化,更好是用 `navigator.sendBeacon`)
-
-### 实现原理
-
-#### WKWebView vs UIWebView 的关键区别
-- **进程模型**:WKWebView 独立进程(隔离,崩了不影响 App),UIWebView 在 App 主进程
-- **JS 引擎**:WKWebView 用 Nitro(Safari 同款,快),UIWebView 用受限 JavaScriptCore(慢)
-- **iOS 8+ 后大厂都迁到 WKWebView**
-
-#### URL Scheme 的坑
-- **iOS**:`window.location.href = 'xiaodu://...'` 会触发页面跳转,如果 scheme 没注册会白屏。所以用 iframe 隔离
-- **连续调用会丢**:两次快速调用 URL Scheme,原生可能只收到一次。要用队列 + 延迟
-
-### 你当时大概是怎么做的
-
-1. Vue 2 项目结构,路由 vue-router,状态 vuex
-2. 封装 `utils/bridge.js`,统一 iOS/Android 差异
-3. UA 检测:`navigator.userAgent` 里判 iOS/Android
-4. 页面里 `import bridge from '@/utils/bridge'`,调 `bridge.call('share', {...})`
-5. 设备详情页:调 `bridge.call('getDeviceList')` 拿设备列表 → 渲染
-6. 百度统计:main.js 里加载 SDK,mixin 里在 `mounted` 时上报 pageview,业务点用 `_hmt.push` 打事件
-
-### 面试预期追问
-
-- **iOS 和 Android 的 bridge 实现差在哪?**
-  → 见上面 ②,iOS 用 `messageHandlers`,Android 用 `addJavascriptInterface`。都是双向异步。
-- **jsBridge 调用为什么要用 Promise?**
-  → 原生 → H5 的回调是异步的,如果不用 Promise 就得回调地狱。用 callId + Promise 让 H5 侧看起来是"同步调用"。
-- **H5 页面在原生 App 里性能不好怎么优化?**
-  → ① 离线包(原生预置 H5 资源,不走网络)。② 预加载 WebView(App 启动就 warm up)。③ 首屏 SSR / SSG。④ 关键资源内联(减少请求数)。⑤ 精简依赖。
-- **AndroidBridge 有什么安全风险?**
-  → `addJavascriptInterface` 在 API < 17 时有 RCE 漏洞(反射调用任意 Java 方法)。17+ 加了 `@JavascriptInterface` 注解要求。建议只暴露必要的方法,输入严格校验。
-- **怎么处理 iOS 和 Android 上不一致的行为?**
-  → bridge 层统一 API,内部按平台分发。业务层不感知平台差异。特别情况(如 iOS 键盘弹起页面被挤压)加平台特定的 fix。
-
----
-
-
-## Bullet 2 ⭐ 虚拟列表 —— DOM 节点恒定 ~100,30 FPS → 60 FPS
 
 > 旧版原文：Built a virtualized React feed serving 5M+ daily page views on a custom useVirtualList hook over IntersectionObserver: live DOM nodes stay near 100 at any scroll depth, scroll from 30 to a stable 60 FPS.
 >
@@ -351,6 +234,39 @@ TanStack Virtual 就是这么做的(`measureElement` 就是方案 1 + 2 的结�
 3. **`passive: true`**:scroll 事件不阻塞浏览器合成
 4. **IntersectionObserver 替代 scroll 判断**:去掉每次滚动的 `getBoundingClientRect`,避免强制同步布局(FSL,forced sync layout)
 
+### 选型:为什么不用现成的库(⭐ 大概率是开场第一问)
+
+轮子是现成的,你为什么造一个 —— 这条答不上,后面讲得再深也扣分。
+
+**先堵死两条错误答案:**
+
+- **别说「当时还没有」**。react-window `1.0.0` 是 **2018-07-22** 发的;2021 年整年在用的稳定版是 `1.8.6`(2020-10-29),下一版 1.8.7 要等到 2022-04。你写那段代码时它已经上线三年、停在一个一年半没动的稳定版上。
+- **别说「没有别的方案」**。2021 年至少四个可选,面试官随口就能报出两个。
+
+| 库 | 2021 年可用版本 | 形态 | 对这个场景的关键点 |
+|---|---|---|---|
+| **react-window** | 1.8.6(2020-10) | 组件 | 行业默认答案。**要求自己的定高滚动容器** |
+| **react-virtualized** | 9.22.3(2020-12) | 组件 | 同作者的全功能版,**有 `WindowScroller`,能跟着页面滚动** |
+| **react-virtual** | 2.x(2021 全年在更新) | **headless hook** | 只返回索引和 offset,DOM 和容器你自己管 —— **和你写的 `useVirtualList` 是同一形态** |
+| **react-virtuoso** | 2.x | 组件 | 主打自动测量不定高 |
+
+（`@tanstack/react-virtual` 是 **2022-02** 才改的名,v3 也在 2022 年之后。2021 年只有 react-virtual v2,别把两者说混。）
+
+**react-window 的核心约束**:它要你给一个定高的滚动容器 —— `<FixedSizeList height={600} itemCount={...} itemSize={80}>`,滚动条落在那个 div 上,不在页面上。
+
+**这个场景**:小度 App 里的 H5 首页 feed,滚动的是整个页面。下拉刷新、吸顶、触底加载都挂在页面滚动上。把滚动收进一个定高 div,这几样得跟着一起改。
+
+**开场就答这两句,别多说:**
+
+> 当时看过 react-window 和 react-virtualized。react-window 要接管滚动容器,跟页面级滚动打架;react-virtualized 的 WindowScroller 能解,但那个库比我需要的功能重太多,为一个首页 feed 引进来不划算。核心逻辑就一百行,自己写更可控。
+
+**三个追击点,预置好答案:**
+
+- **「那定高呢?」** → 定高不是问题,那正是 react-window 最擅长的场景。问题是它要接管滚动容器。
+- **「react-virtual 呢?它是 headless,不接管容器。」** → 认。「那个当时是 2.x,还没进 TanStack、API 也在动,我没敢上生产。」
+  ⚠️ 这是最硬的反问 —— react-virtual `2.10.0` 的类型里既有 `windowRef`(支持窗口滚动),又有 `measureRef`(自动测高),上面两条理由它**都有解**。所以只能答「当时不敢押一个 API 还在变的库」,别硬撑。
+- **「那你现在会怎么选?」** → 现在直接上 `@tanstack/react-virtual`,headless、维护活跃、窗口滚动和动态高度都支持;当年自己写是因为可选项要么接管容器、要么太重、要么不稳。
+
 ### 你当时大概是怎么做的
 
 1. 数据从后端拿(分页 `page=1&size=20`)
@@ -364,6 +280,7 @@ TanStack Virtual 就是这么做的(`measureElement` 就是方案 1 + 2 的结�
 ### 面试预期追问(⭐ 高频)
 
 **基础层:**
+- **为什么不用 react-window?**(上面「选型」一节 —— 开场第一问,先把这条答顺)
 - **为什么用 transform 不用 top?**(上面第 ④ 点)
 - **IntersectionObserver 和 scroll 监听有什么区别?**(上面第 ⑤ 点)
 - **60 FPS 意味着什么?**(每帧 16.67ms,超了就掉帧)
@@ -399,155 +316,8 @@ TanStack Virtual 就是这么做的(`measureElement` 就是方案 1 + 2 的结�
 ---
 
 
-## Bullet 3:提现功能 QPS 2000+ —— 高并发场景下的前端防御
+## Bullet 2 ⭐ Webpack 3 → 5 迁移 —— 包体积 -15%,构建 -70%
 
-> 旧版原文：Built the withdrawal client on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures, never successes.
-
-### 核心技术点
-
-#### ① 防抖(Debounce)vs 节流(Throttle)—— 常混
-- **Debounce**:多次触发,**最后一次触发后 n 毫秒才执行**。用户不停按按钮,只有停手 300ms 才真正调用。
-  - 场景:搜索框输入、resize、按钮防连点(第一版)
-- **Throttle**:多次触发,**每 n 毫秒最多执行一次**。用户不停触发,匀速执行。
-  - 场景:滚动 scroll、鼠标 mousemove
-- **提现按钮用哪个?**
-  - Debounce 有个问题:"最后一次才生效"意味着用户点了 100 次,只有第 100 次触发 300ms 后发请求。用户可能觉得"没反应"再点更多次。
-  - **更好的做法**:**首次立即执行 + 后续 lock**(下面 ② 讲)。这是"leading edge"防抖 + 请求锁的组合。
-
-#### ② 请求锁(Request Locking / In-flight Tracking)
-问题:用户点提现 → 发请求 → **请求返回之前**用户又点 → 发第二个请求 → 后端可能扣两次款。
-
-解决方案:在**请求发出到响应回来的整个窗口内**,拦截后续的相同请求。
-
-```js
-let inFlight = false;
-
-async function withdraw() {
-  if (inFlight) return; // 锁住,直接忽略
-  inFlight = true;
-  try {
-    const res = await api.withdraw();
-    handleSuccess(res);
-  } catch (err) {
-    handleError(err);
-  } finally {
-    inFlight = false; // 解锁
-  }
-}
-```
-更完整的做法:**按参数 key 去重**(同一笔提现锁,不同笔可以并发):
-```js
-const inFlightMap = new Map();
-
-async function withdraw(orderId) {
-  if (inFlightMap.has(orderId)) return inFlightMap.get(orderId);
-  const promise = api.withdraw(orderId);
-  inFlightMap.set(orderId, promise);
-  try {
-    return await promise;
-  } finally {
-    inFlightMap.delete(orderId);
-  }
-}
-```
-这个模式叫"**Promise 去重**",React Query / SWR 内部就是这么做的。
-
-#### ③ 幂等性(Idempotency)—— 真正的零资金损失靠这个
-前端锁只能防"同一个 tab 快速点击",防不了:
-- 网络超时前端重试
-- 用户在不同设备/tab 同时操作
-- 页面刷新后再点
-
-**真正的零损失必须靠后端幂等**:
-- 每个提现请求带一个**幂等 key**(前端生成的 UUID,或者用 orderId)
-- 后端在数据库里存"已处理的幂等 key",同 key 重复请求返回上次结果,不再执行
-
-前端能做的是:
-- 提前生成幂等 key,存 sessionStorage(刷新也保持)
-- 每次调用都带这个 key
-- **配合后端才是完整方案**
-
-#### ④ 错误兜底(Error Fallbacks)
-金融场景的错误处理原则:**默认失败,只有明确成功才展示成功**。
-- **明确失败**(HTTP 4xx/5xx、业务错误码):UI 显示错误 + 可重试按钮
-- **不确定**(超时、网络中断、请求发出但没响应):**当作失败处理**,但提示用户"网络异常,请稍后查看提现记录",不要直接说"失败"(可能后端处理了)
-- **明确成功**(2xx + 业务成功码):UI 展示成功
-
-**为什么"不确定"要按失败处理?**
-- 显示"失败"用户会去重试,重试有幂等 key 兜底,不会真扣两次
-- 显示"成功"如果实际没到账,用户以为提了但没钱到账,炸锅
-
-#### ⑤ QPS 2000+ 的前端角度理解
-- **QPS = Queries Per Second**,每秒请求数
-- 2000 QPS 通常是**后端指标**,不是前端。前端不"扛" QPS,前端"贡献" QPS(每个用户点一下就贡献 1 QPS)
-- 前端能做的:
-  - 减少不必要的请求(防抖 + 锁)
-  - 排队/限流(不让活动开始那一瞬间 10 万人同时点)
-  - CDN 缓存静态资源,减少动态请求
-
-### 实现原理
-
-#### 前端限流的高级做法 —— 令牌桶 / 漏桶
-真正的高并发场景,前端会自己做"限流":
-- **令牌桶**:每 100ms 生成一个 token,用户点击消耗 token,没 token 时按钮 disabled
-- **漏桶**:请求进队列,以固定速率发送
-- **代码示例**(令牌桶):
-```js
-let tokens = 5;
-setInterval(() => tokens = Math.min(tokens + 1, 5), 200);
-
-async function tryClick() {
-  if (tokens === 0) return alert('操作太频繁');
-  tokens--;
-  await api.doSomething();
-}
-```
-
-### 你当时大概是怎么做的
-
-1. 按钮 onClick 加 `disabled` 状态(点击后立刻 disable,响应回来 enable)—— 视觉锁
-2. 逻辑锁:内存里 `inFlightMap` 或 `Set`,同一 orderId 拦截
-3. 前端生成 idempotency key(uuid),存 sessionStorage
-4. API 层统一注入 idempotency key 到 header 或 body
-5. 错误兜底:统一 error handler,超时/网络错误显示"稍后查看",4xx 显示业务错误
-6. 全局 loading 状态防止用户误以为"没反应"
-
-### 面试预期追问
-
-- **防抖和节流具体怎么实现?**
-  → 手写(高频面试题):
-  ```js
-  const debounce = (fn, ms) => {
-    let timer;
-    return (...args) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn(...args), ms);
-    };
-  };
-  
-  const throttle = (fn, ms) => {
-    let last = 0;
-    return (...args) => {
-      const now = Date.now();
-      if (now - last >= ms) {
-        last = now;
-        fn(...args);
-      }
-    };
-  };
-  ```
-  高级版本:防抖有 `leading` / `trailing` 选项,节流有 `requestAnimationFrame` 版本。
-- **你怎么保证零资金损失的?**
-  → 前端 3 层(视觉 disable + 内存锁 + idempotency key)+ 后端幂等 = 端到端保证。**前端只是"减少无效请求",真正的零损失是后端 + 前端配合**。
-- **QPS 2000 对前端有什么挑战?**
-  → 主要不是 QPS 本身,而是"活动开抢时的峰值",可能瞬间 10 万人涌入首屏。前端做:CDN、SSR/SSG 减少动态请求、按钮进入排队机制、失败降级到静态提示页。
-- **如果用户在两个 tab 同时点提现怎么办?**
-  → 前端内存锁跨 tab 无效,必须靠后端幂等或分布式锁(Redis SETNX + 过期时间)。
-
----
-
-
-## Bullet 4 ⭐ Webpack 3 → 5 迁移 —— 包体积 -15%,构建 -70%
 
 > 旧版原文：Led a Webpack 3-to-5 migration across 10+ incompatible packages, extracting shared runtime through SplitChunksPlugin and turning on persistent caching — bundle size down ~15%, local build times down 70%.
 
@@ -707,7 +477,8 @@ Webpack 5 用**内容哈希 + 依赖哈希**判定 cache 是否有效:
 ---
 
 
-## Bullet 5:P2 白屏事故复盘 —— 依赖锁定与预发布验证
+## Bullet 3:P2 白屏事故复盘 —— 依赖锁定与预发布验证
+
 
 > 旧版原文：First to diagnose a P2 white screen on Haokan Video’s search page (100M+ DAU): mismatched Node versions regenerated package-lock.json, pulling a breaking minor bump — version locks and release checks followed.
 
@@ -848,6 +619,274 @@ node_modules         实际安装的物理文件
     3. 影响(多少用户、多少收入)
     4. 改进项(具体行动、负责人、deadline)
     5. **不追责个人**,追问"为什么系统允许这事发生"
+
+---
+
+
+## Bullet 4:提现功能 QPS 2000+ —— 高并发场景下的前端防御
+
+
+> 旧版原文：Built the withdrawal client on a path peaking above 2,000 QPS: request locking drops in-flight duplicates, client-generated idempotency keys survive reloads, and uncertain outcomes surface as failures, never successes.
+
+### 核心技术点
+
+#### ① 防抖(Debounce)vs 节流(Throttle)—— 常混
+- **Debounce**:多次触发,**最后一次触发后 n 毫秒才执行**。用户不停按按钮,只有停手 300ms 才真正调用。
+  - 场景:搜索框输入、resize、按钮防连点(第一版)
+- **Throttle**:多次触发,**每 n 毫秒最多执行一次**。用户不停触发,匀速执行。
+  - 场景:滚动 scroll、鼠标 mousemove
+- **提现按钮用哪个?**
+  - Debounce 有个问题:"最后一次才生效"意味着用户点了 100 次,只有第 100 次触发 300ms 后发请求。用户可能觉得"没反应"再点更多次。
+  - **更好的做法**:**首次立即执行 + 后续 lock**(下面 ② 讲)。这是"leading edge"防抖 + 请求锁的组合。
+
+#### ② 请求锁(Request Locking / In-flight Tracking)
+问题:用户点提现 → 发请求 → **请求返回之前**用户又点 → 发第二个请求 → 后端可能扣两次款。
+
+解决方案:在**请求发出到响应回来的整个窗口内**,拦截后续的相同请求。
+
+```js
+let inFlight = false;
+
+async function withdraw() {
+  if (inFlight) return; // 锁住,直接忽略
+  inFlight = true;
+  try {
+    const res = await api.withdraw();
+    handleSuccess(res);
+  } catch (err) {
+    handleError(err);
+  } finally {
+    inFlight = false; // 解锁
+  }
+}
+```
+更完整的做法:**按参数 key 去重**(同一笔提现锁,不同笔可以并发):
+```js
+const inFlightMap = new Map();
+
+async function withdraw(orderId) {
+  if (inFlightMap.has(orderId)) return inFlightMap.get(orderId);
+  const promise = api.withdraw(orderId);
+  inFlightMap.set(orderId, promise);
+  try {
+    return await promise;
+  } finally {
+    inFlightMap.delete(orderId);
+  }
+}
+```
+这个模式叫"**Promise 去重**",React Query / SWR 内部就是这么做的。
+
+#### ③ 幂等性(Idempotency)—— 真正的零资金损失靠这个
+前端锁只能防"同一个 tab 快速点击",防不了:
+- 网络超时前端重试
+- 用户在不同设备/tab 同时操作
+- 页面刷新后再点
+
+**真正的零损失必须靠后端幂等**:
+- 每个提现请求带一个**幂等 key**(前端生成的 UUID,或者用 orderId)
+- 后端在数据库里存"已处理的幂等 key",同 key 重复请求返回上次结果,不再执行
+
+前端能做的是:
+- 提前生成幂等 key,存 sessionStorage(刷新也保持)
+- 每次调用都带这个 key
+- **配合后端才是完整方案**
+
+#### ④ 错误兜底(Error Fallbacks)
+金融场景的错误处理原则:**默认失败,只有明确成功才展示成功**。
+- **明确失败**(HTTP 4xx/5xx、业务错误码):UI 显示错误 + 可重试按钮
+- **不确定**(超时、网络中断、请求发出但没响应):**当作失败处理**,但提示用户"网络异常,请稍后查看提现记录",不要直接说"失败"(可能后端处理了)
+- **明确成功**(2xx + 业务成功码):UI 展示成功
+
+**为什么"不确定"要按失败处理?**
+- 显示"失败"用户会去重试,重试有幂等 key 兜底,不会真扣两次
+- 显示"成功"如果实际没到账,用户以为提了但没钱到账,炸锅
+
+#### ⑤ QPS 2000+ 的前端角度理解
+- **QPS = Queries Per Second**,每秒请求数
+- 2000 QPS 通常是**后端指标**,不是前端。前端不"扛" QPS,前端"贡献" QPS(每个用户点一下就贡献 1 QPS)
+- 前端能做的:
+  - 减少不必要的请求(防抖 + 锁)
+  - 排队/限流(不让活动开始那一瞬间 10 万人同时点)
+  - CDN 缓存静态资源,减少动态请求
+
+### 实现原理
+
+#### 前端限流的高级做法 —— 令牌桶 / 漏桶
+真正的高并发场景,前端会自己做"限流":
+- **令牌桶**:每 100ms 生成一个 token,用户点击消耗 token,没 token 时按钮 disabled
+- **漏桶**:请求进队列,以固定速率发送
+- **代码示例**(令牌桶):
+```js
+let tokens = 5;
+setInterval(() => tokens = Math.min(tokens + 1, 5), 200);
+
+async function tryClick() {
+  if (tokens === 0) return alert('操作太频繁');
+  tokens--;
+  await api.doSomething();
+}
+```
+
+### 你当时大概是怎么做的
+
+1. 按钮 onClick 加 `disabled` 状态(点击后立刻 disable,响应回来 enable)—— 视觉锁
+2. 逻辑锁:内存里 `inFlightMap` 或 `Set`,同一 orderId 拦截
+3. 前端生成 idempotency key(uuid),存 sessionStorage
+4. API 层统一注入 idempotency key 到 header 或 body
+5. 错误兜底:统一 error handler,超时/网络错误显示"稍后查看",4xx 显示业务错误
+6. 全局 loading 状态防止用户误以为"没反应"
+
+### 面试预期追问
+
+- **防抖和节流具体怎么实现?**
+  → 手写(高频面试题):
+  ```js
+  const debounce = (fn, ms) => {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), ms);
+    };
+  };
+  
+  const throttle = (fn, ms) => {
+    let last = 0;
+    return (...args) => {
+      const now = Date.now();
+      if (now - last >= ms) {
+        last = now;
+        fn(...args);
+      }
+    };
+  };
+  ```
+  高级版本:防抖有 `leading` / `trailing` 选项,节流有 `requestAnimationFrame` 版本。
+- **你怎么保证零资金损失的?**
+  → 前端 3 层(视觉 disable + 内存锁 + idempotency key)+ 后端幂等 = 端到端保证。**前端只是"减少无效请求",真正的零损失是后端 + 前端配合**。
+- **QPS 2000 对前端有什么挑战?**
+  → 主要不是 QPS 本身,而是"活动开抢时的峰值",可能瞬间 10 万人涌入首屏。前端做:CDN、SSR/SSG 减少动态请求、按钮进入排队机制、失败降级到静态提示页。
+- **如果用户在两个 tab 同时点提现怎么办?**
+  → 前端内存锁跨 tab 无效,必须靠后端幂等或分布式锁(Redis SETNX + 过期时间)。
+
+---
+
+
+## Bullet 5:小度 App H5 智能家居模块 —— jsBridge + 混合应用
+
+
+> 旧版原文：Delivered the Xiaodu App’s H5 smart-home module in Vue 2, adding native iOS/Android sharing via jsBridge, device detail pages and analytics tracking.
+
+### 核心技术点
+
+#### ① Hybrid App(混合应用)架构
+- **是什么**:原生 App(Native)里嵌入 WebView 加载 H5 页面。原生做外壳(启动、账号、支付、大功能),H5 做业务(灵活迭代、跨端一致)。
+- **为什么选混合**:
+  - 快速迭代(改 H5 不用发版 App)
+  - 跨端(iOS/Android 一套 H5)
+  - 动态运营(活动页、专题、AB 测试)
+- **WebView**:
+  - **iOS**:早期 UIWebView(已废弃),现在都是 **WKWebView**(WebKit,基于 Safari 内核)
+  - **Android**:早期是系统 WebView(4.4 前是 WebKit,4.4+ 是 Chromium),后来出 **X5 WebView**(腾讯魔改 Blink,统一多机型行为)
+
+#### ② jsBridge —— H5 和原生怎么通信
+问题:H5 跑在 WebView 沙箱里,和原生是**两个世界**。要"分享到微信"、"读取蓝牙设备"、"调起相机",H5 只能"求"原生做。
+
+**H5 调原生的 4 种方案**:
+1. **URL Scheme**(最古老):H5 里 `location.href = 'xiaodu://share?title=xxx'`,原生监听 URL 变化,匹配 scheme 后拦截 + 解析 + 执行。缺点:异步无返回值,一次只能一个调用。
+2. **iframe.src 触发**(URL Scheme 变体):`iframe.src = 'xiaodu://...'`,用 iframe 是为了不让主页面跳转。
+3. **`window.prompt` 拦截**(Android 常用):H5 调 `window.prompt('xiaodu://...')`,原生重写 WebView 的 `onJsPrompt` 拦截。
+4. **注入原生对象**(现代主流):
+   - **Android**:`webView.addJavascriptInterface(new NativeBridge(), 'AndroidBridge')`,H5 里 `window.AndroidBridge.share(...)` 直接调
+   - **iOS(WKWebView)**:`WKUserContentController.add(handler, name: 'iosBridge')`,H5 里 `window.webkit.messageHandlers.iosBridge.postMessage({...})` 调,回调通过 `evaluateJavaScript` 反向注入
+
+**原生调 H5**(反向):
+- `webView.evaluateJavascript('window.somefn(data)', null)`(Android)
+- `webView.evaluateJavaScript("window.somefn(...)")`(iOS)
+- 需要 H5 提前挂 `window.somefn`
+
+#### ③ 统一 jsBridge 封装
+业界通用做法:封装一层,前端不管 iOS/Android 差异,统一调 `bridge.call('share', {...})`。
+
+伪代码:
+```js
+class JSBridge {
+  callbacks = new Map();
+  callId = 0;
+  
+  call(method, params) {
+    return new Promise((resolve, reject) => {
+      const id = ++this.callId;
+      this.callbacks.set(id, { resolve, reject });
+      
+      const payload = { id, method, params };
+      
+      if (isIOS) {
+        window.webkit.messageHandlers.iosBridge.postMessage(payload);
+      } else if (isAndroid) {
+        window.AndroidBridge.call(JSON.stringify(payload));
+      }
+    });
+  }
+  
+  // 原生调用来触发回调
+  _onNativeCallback(id, data, error) {
+    const cb = this.callbacks.get(id);
+    if (!cb) return;
+    error ? cb.reject(error) : cb.resolve(data);
+    this.callbacks.delete(id);
+  }
+}
+```
+关键点:**用 callId 关联请求和响应**,因为通信是异步的。
+
+#### ④ 分享的原生实现
+- **微信分享**:原生集成微信 SDK,jsBridge 收到"分享"指令 → 调 `WXApi.sendReq(...)`
+- **微博/QQ**:同理,各自 SDK
+- **系统分享**:iOS `UIActivityViewController`,Android `Intent.ACTION_SEND`
+
+前端只管调 `bridge.call('share', { title, desc, imageUrl, link })`,不管落地渠道。
+
+#### ⑤ 百度统计 API
+- **是什么**:百度自家的 Web 分析,类似 Google Analytics 的国内版
+- **接入方式**:
+  1. HTML 里嵌一段 SDK 脚本(异步加载)
+  2. 页面浏览自动上报
+  3. 自定义事件:`_hmt.push(['_trackEvent', 'category', 'action', 'label', value])`
+- **面试冷问**:"百度统计怎么保证请求不丢?" → 用 1x1 图片 `<img src="https://hm.baidu.com/hm.gif?..." />` 而不是 XHR,因为图片请求不受 CORS 限制,且 unload 时也能发出去(有些浏览器优化,更好是用 `navigator.sendBeacon`)
+
+### 实现原理
+
+#### WKWebView vs UIWebView 的关键区别
+- **进程模型**:WKWebView 独立进程(隔离,崩了不影响 App),UIWebView 在 App 主进程
+- **JS 引擎**:WKWebView 用 Nitro(Safari 同款,快),UIWebView 用受限 JavaScriptCore(慢)
+- **iOS 8+ 后大厂都迁到 WKWebView**
+
+#### URL Scheme 的坑
+- **iOS**:`window.location.href = 'xiaodu://...'` 会触发页面跳转,如果 scheme 没注册会白屏。所以用 iframe 隔离
+- **连续调用会丢**:两次快速调用 URL Scheme,原生可能只收到一次。要用队列 + 延迟
+
+### 你当时大概是怎么做的
+
+1. Vue 2 项目结构,路由 vue-router,状态 vuex
+2. 封装 `utils/bridge.js`,统一 iOS/Android 差异
+3. UA 检测:`navigator.userAgent` 里判 iOS/Android
+4. 页面里 `import bridge from '@/utils/bridge'`,调 `bridge.call('share', {...})`
+5. 设备详情页:调 `bridge.call('getDeviceList')` 拿设备列表 → 渲染
+6. 百度统计:main.js 里加载 SDK,mixin 里在 `mounted` 时上报 pageview,业务点用 `_hmt.push` 打事件
+
+### 面试预期追问
+
+- **iOS 和 Android 的 bridge 实现差在哪?**
+  → 见上面 ②,iOS 用 `messageHandlers`,Android 用 `addJavascriptInterface`。都是双向异步。
+- **jsBridge 调用为什么要用 Promise?**
+  → 原生 → H5 的回调是异步的,如果不用 Promise 就得回调地狱。用 callId + Promise 让 H5 侧看起来是"同步调用"。
+- **H5 页面在原生 App 里性能不好怎么优化?**
+  → ① 离线包(原生预置 H5 资源,不走网络)。② 预加载 WebView(App 启动就 warm up)。③ 首屏 SSR / SSG。④ 关键资源内联(减少请求数)。⑤ 精简依赖。
+- **AndroidBridge 有什么安全风险?**
+  → `addJavascriptInterface` 在 API < 17 时有 RCE 漏洞(反射调用任意 Java 方法)。17+ 加了 `@JavascriptInterface` 注解要求。建议只暴露必要的方法,输入严格校验。
+- **怎么处理 iOS 和 Android 上不一致的行为?**
+  → bridge 层统一 API,内部按平台分发。业务层不感知平台差异。特别情况(如 iOS 键盘弹起页面被挤压)加平台特定的 fix。
 
 ---
 
