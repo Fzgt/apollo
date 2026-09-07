@@ -42,7 +42,7 @@ Every frame (16.67ms if you want to hold 60 FPS) has to get through the whole pi
 - **Style**: computes the final CSS properties of every element (inheritance, cascade, selector matching)
 - **Layout (reflow)**: computes the **geometry** of every element (position, size). ⭐ 500 DOM nodes means 500 geometry calculations, and a single layout can take 5–10ms
 - **Paint**: ⚠️ **does not draw pixels**. It produces a **display list of draw commands** ("rounded rect here, line of text there"). Cost grows with the number and complexity of display items
-- **Layerize**: decides how many compositing layers to cut. ⚠️ **Layers are not produced by Paint — this is its own step, and it comes *after* Paint.** Chrome's official RenderingNG architecture doc lists the stages as `… Layout → Pre-paint → Paint → Commit → Layerize → Raster …`; layerization consumes the display list that paint produced (handled by PaintArtifactCompositor)
+- **Layerize**: decides how many compositing layers to cut. ⚠️ **Layers are not produced by Paint — this is its own step, and it comes *after* Paint.** [Chrome's official RenderingNG architecture doc](https://developer.chrome.com/docs/chromium/renderingng-architecture) lists the stages as `… Layout → Pre-paint → Paint → Commit → Layerize → Raster …`; layerization consumes the display list that paint produced (handled by PaintArtifactCompositor)
 - **Raster**: actually executes the draw commands into **bitmap tiles**, on raster threads or the GPU. **Text rasterisation, shadows and rounded corners are slow here, not in paint**
 - **Composite**: the compositor thread turns the rastered tiles into **draw quads**, packs them into a compositor frame and hands it to the GPU process to put on screen
 

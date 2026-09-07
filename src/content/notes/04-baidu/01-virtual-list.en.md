@@ -21,7 +21,7 @@ section: Baidu
 
 **Raster** — actually executing those commands into **bitmap tiles**, on raster threads or the GPU. **Text rasterisation, shadows and rounded corners are slow here.**
 
-**Layerize** — deciding how many compositing layers to cut. **Layers are not produced by paint; this is its own step, and it comes after paint** — Chrome's official RenderingNG architecture doc lists the stages as `Layout → Pre-paint → Paint → Commit → Layerize → Raster`, and layerization consumes the display list paint produced.
+**Layerize** — deciding how many compositing layers to cut. **Layers are not produced by paint; this is its own step, and it comes after paint** — [Chrome's official RenderingNG architecture doc](https://developer.chrome.com/docs/chromium/renderingng-architecture) lists the stages as `Layout → Pre-paint → Paint → Commit → Layerize → Raster`, and layerization consumes the display list paint produced.
 
 **Composite** — the compositor thread turns rastered tiles into draw quads and assembles a frame for the GPU. **The cheapest step.**
 

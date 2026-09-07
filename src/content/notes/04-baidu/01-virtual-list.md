@@ -30,7 +30,7 @@ status: done
 
 **栅格化（raster）**：把绘制指令真正跑成**位图图块（tile）**，在 raster 线程或 GPU 上做。**文字栅格化、阴影、圆角慢在这一步。**
 
-**分层（layerize）**：决定切成几个合成层。**层不是 paint 生成的，是单独一步，而且排在 paint 之后**——Chrome 官方 RenderingNG 架构文档的阶段清单就是 `Layout → Pre-paint → Paint → Commit → Layerize → Raster`，分层吃的正是 paint 产出的那份 display list。
+**分层（layerize）**：决定切成几个合成层。**层不是 paint 生成的，是单独一步，而且排在 paint 之后**——[Chrome 官方 RenderingNG 架构文档](https://developer.chrome.com/docs/chromium/renderingng-architecture)的阶段清单就是 `Layout → Pre-paint → Paint → Commit → Layerize → Raster`，分层吃的正是 paint 产出的那份 display list。
 
 **合成（composite）**：合成线程把栅格化好的图块生成 draw quads、拼成一帧交给 GPU 上屏。**最便宜的一步。**
 

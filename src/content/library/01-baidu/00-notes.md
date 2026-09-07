@@ -43,7 +43,7 @@ JS → Style(样式计算) → Layout(布局) → Paint(记录绘制指令)
 - **Style**:计算每个元素最终的 CSS 属性(继承、层叠、选择器匹配)
 - **Layout(Reflow)**:计算每个元素的**几何信息**(位置、大小)。⭐ 500 个 DOM 节点意味着 500 个几何计算,单次 layout 可能就要 5–10ms
 - **Paint**:⚠️ **不画像素**,产出的是一份**绘制指令列表**(display list / paint ops)——「这里画个圆角矩形、这里画一行文字」。成本随绘制项的数量和复杂度涨
-- **Layerize(分层)**:决定切成几个合成层。⚠️ **层不是 Paint 生成的,这是单独一步,而且排在 Paint 之后** —— Chrome 官方 RenderingNG 架构文档的阶段清单原文就是 `… Layout → Pre-paint → Paint → Commit → Layerize → Raster …`,分层吃的正是 paint 产出的那份 display list(由 PaintArtifactCompositor 处理)
+- **Layerize(分层)**:决定切成几个合成层。⚠️ **层不是 Paint 生成的,这是单独一步,而且排在 Paint 之后** —— [Chrome 官方 RenderingNG 架构文档](https://developer.chrome.com/docs/chromium/renderingng-architecture)的阶段清单原文就是 `… Layout → Pre-paint → Paint → Commit → Layerize → Raster …`,分层吃的正是 paint 产出的那份 display list(由 PaintArtifactCompositor 处理)
 - **Raster(栅格化)**:把绘制指令真正跑成**位图图块(tile)**,在 raster 线程或 GPU 上做。**文字栅格化、阴影、圆角慢在这一步,不是 paint**
 - **Composite**:合成线程把栅格化好的图块生成 **draw quads**、打包成一帧(compositor frame)交给 GPU 进程合成上屏
 
