@@ -49,19 +49,32 @@ Every frame (16.67ms if you want to hold 60 FPS) has to get through the whole pi
 - Memory: each node costs kilobytes, so 500 of them can be several MB
 
 #### ② The core idea of a virtualized list
-**A user can only see 10–20 items in the viewport at once**, so keep only those in the DOM and let the rest merely "pretend" to exist.
+**A user can only see a dozen or so rows in the viewport at once**, so keep only those in the DOM and let the rest merely "pretend" to exist.
 
 ```
 data (1000 rows)
     ↓
 visible region (0–800px) ← what the user sees
     ↓
-the DOM holds the 10 visible items + 2 overscan above and below = about 14
+the DOM holds the visible rows + a few overscan rows above and below = about 15 rows
 ```
 
-**Two numbers that matter**:
+The number of rendered rows is computed:
+
+```
+rendered rows = ceil(viewport height / row height) + overscan × 2 + 1
+```
+
+With typical mobile values — viewport 600, row 80, overscan 3 — that is `8 + 6 + 1 = 15 rows`.
+
+⚠️ **A "row" is not a "node", and the 100 on your résumé counts nodes.** One feed card contains an outer wrapper, a thumbnail wrapper, the image itself, a duration badge, a right-hand column, the title, a footer, the author and the view count — **eight or nine elements at a minimum**. So **15 rows × 8–9 elements ≈ 110 nodes**, and that is what `live DOM nodes stay near 100` refers to.
+
+**Three numbers that matter**:
 - rows of data: 1000
-- DOM nodes: ~14
+- rendered rows: ~15
+- **DOM nodes: ~100 (= 15 rows × eight or nine elements each)**
+
+**Overscan is a trade-off, not something to minimise**: drop it to 0 or 1 and you hold fewer nodes, but during a fast flick the new rows are not mounted yet and the user sees blank space first (a blank flash); push it to 5–10 and scrolling is smooth, but the node count and memory climb back up. When asked "why not set overscan to 0 and hold even fewer nodes", the answer is the blank flash.
 
 While scrolling:
 1. Compute the scroll position
@@ -70,7 +83,7 @@ While scrolling:
 4. Use `translateY` to put the new items at the right scroll offset
 
 #### ③ The spacer trick that keeps the scrollbar honest
-The problem: there are only 14 items in the DOM, so how does the browser know the scrollbar should be as long as 1000 rows?
+The problem: there are only a dozen or so rows in the DOM, so how does the browser know the scrollbar should be as long as 1000 rows?
 
 The answer: **set the outer container's height to `1000 × itemHeight`** (the total height of every row) and position the inner items with `position: absolute` plus `translateY`.
 
