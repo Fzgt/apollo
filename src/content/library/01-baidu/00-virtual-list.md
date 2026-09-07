@@ -351,56 +351,29 @@ TanStack Virtual 就是这么做的(`measureElement` 就是方案 1 + 2 的结�
 
 ### 选型:为什么不用现成的库(⭐ 大概率是开场第一问)
 
-轮子是现成的,你为什么造一个 —— 这条答不上,后面讲得再深也扣分。
-
-**先堵死两条错误答案:**
-
-- **别说「当时还没有」**。react-window `1.0.0` 是 **2018-07-22** 发的;2021 年整年在用的稳定版是 `1.8.6`(2020-10-29),下一版 1.8.7 要等到 2022-04。你写那段代码时它已经上线三年、停在一个一年半没动的稳定版上。
-- **别说「没有别的方案」**。2021 年至少四个可选,面试官随口就能报出两个。
-
-| 库 | 2021 年可用版本 | 形态 | 对这个场景的关键点 |
-|---|---|---|---|
-| **react-window** | 1.8.6(2020-10) | 组件 | 行业默认答案。**要求自己的定高滚动容器** |
-| **react-virtualized** | 9.22.3(2020-12) | 组件 | 同作者的全功能版,**有 `WindowScroller`,能跟着页面滚动** |
-| **react-virtual** | 2.x(2021 全年在更新) | **headless hook** | 只返回索引和 offset,DOM 和容器你自己管 —— **和你写的 `useVirtualList` 是同一形态** |
-| **react-virtuoso** | 2.x | 组件 | 主打自动测量不定高 |
-
-（`@tanstack/react-virtual` 是 **2022-02** 才改的名,v3 也在 2022 年之后。2021 年只有 react-virtual v2,别把两者说混。）
-
-**先划掉一条你不能用的理由。** react-window 的核心约束是它要接管滚动容器 —— `<FixedSizeList height={600} itemCount={...} itemSize={80}>`,滚动条落在那个 div 上,不在页面上。**这条对这个场景不成立**:你的 feed 本来就是容器滚(外层还有吸顶 tabbar,滚动收在列表容器里),卡片也是定高。拿「它要接管容器」当理由,面试官对一眼你自己的实现就穿了。
-
-**真正的理由在埋点这一侧。** 这个 feed 每张卡都要上报曝光 —— 推荐模型的负样本(曝光未点击)、坑位 CTR 都靠它,判定标准是「露出面积 ≥50% 且停留 ≥1s」。
-
-- react-window 的 `onItemsRendered` 确实会回给你 `visibleStartIndex` / `visibleStopIndex`,能告诉你「第 10–18 条在视口里」。**别说它拿不到可见范围,那是错的。**
-- 但它给的是**索引边界,不是几何**。第 10 条只露出 20% 算不算有效曝光、它停留了 800ms 还是 3s —— 这两个数它一个都给不了。
-- 所以曝光那层,用不用 react-window 都得自己上 IntersectionObserver(`intersectionRatio` + 进出时间戳)。
-- 而卡片定高,窗口化只剩三行算术:`floor(scrollTop / h)`、`ceil(containerH / h)`、`total * h`。引一个库,省的就是这三行。
-
-**再加一笔小账:它的 `height` 必须是一个数字。** 不是建议,是硬校验 —— 传 `'100%'` 直接抛:
-
-```
-An invalid "height" prop has been specified. Vertical lists must specify a number for height.
-```
-
-而 feed 容器的高度是 CSS 撑出来的(外层吸顶 tabbar、不同机型、横竖屏),手里根本没有那个数字。要么再引 `react-virtualized-auto-sizer`(2021 年可用版 `1.0.6`,2021-08-13),它首帧拿不到尺寸、测完才渲第二次;要么自己写一层 `ResizeObserver` 测量 —— 那就又回到「库外面还得再写一层」。
-
-⚠️ **这条别当主理由**,它扛不住一句「那也就多装一个包」。放在曝光那条后面当成本账,被追问时才拿出来。
-
-⚠️ **也别说「它不支持无限滚动」** —— 说了就露怯。翻页不需要额外的包:`onItemsRendered` 回的 `visibleStopIndex` 判一句「快到底了」就能 fetch,数据 append 进 list、`itemCount` 变大,它自己就接上了。`react-window-infinite-loader` 只是把这段封装了一层,外带一个「哪些区间已加载」的位图防重复请求。
-
-**一句话:曝光那层跑不掉,窗口化那层又太便宜,库夹在中间没位置。**
-
-**开场就答这段,别多说:**
+**开场就背这段,别多说:**
 
 > 这个 feed 每张卡要上报有效曝光,得按露出面积比例和停留时长判,所以 IntersectionObserver 那层无论如何得自己写 —— react-window 的 `onItemsRendered` 只给可见索引范围,给不了面积比例和停留时长。而卡片是定高的,窗口化本身就是三行算术。引库只省掉那三行,却要把所有卡片组件绑上它的 style 契约,不划算。
 
-**四个追击点,预置好答案:**
+**理由只有一条:曝光跑不掉,窗口化太便宜,库夹在中间没位置。**
 
-- **「定高不正是 react-window 最擅长的场景吗?」** → 认,而且主动把它说成理由:**定高恰恰是我不引它的原因**。不定高我大概率会用现成的,测量和 offset table 自己写容易出错;定高把窗口化压到三行,库剩下的价值就只有「别人替我维护」。
-- **「react-window 里也能挂 IO 啊,item 组件里再包一层就行。」** → 能,别否认。区别是那样有**两套可见判定**:库按索引算渲染范围(含 overscan),我按几何算曝光范围,两套对同一件事各算各的,overscan 一改就得重新对一遍。自己写只有一个 `scrollTop` 作为唯一真相。
-- **「react-virtual 呢?它是 headless,不接管容器。」** → 认。「那个当时是 2.x,还没进 TanStack、API 也在动,我没敢上生产。」
-  ⚠️ 这仍是最硬的反问 —— react-virtual `2.10.0` 的类型里既有 `windowRef`,又有 `measureRef`,形态和你写的一模一样。只能答「当时不敢押一个 API 还在变的库」,认完立刻转回曝光那条,别硬撑。
-- **「那你现在会怎么选?」** → 还是定高 + 自己做曝光的话,仍然自己写。卡片要是改成不定高,直接上 `@tanstack/react-virtual`,把测量交出去 —— 但曝光那层照样得自己挂 IO。
+- 曝光判定要几何(`intersectionRatio`)和时间(进出时间戳),库只给索引边界 —— 用不用库都得自己挂 IO。
+- 卡片定高,窗口化就三行:`floor(scrollTop / h)`、`ceil(containerH / h)`、`total * h`。
+- (成本账,别当主理由:react-window 的 `height` 必须是数字,传 `'100%'` 直接抛,容器高度是 CSS 撑的,还得再引 auto-sizer。被追问再拿出来。)
+
+**四条不能说的话:**
+
+- ❌「当时还没有」—— react-window 2018-07 就发了,2021 年整年在用 `1.8.6`。
+- ❌「没有别的方案」—— 2021 年至少四个:react-window(组件,定高)/ react-virtualized(有 `WindowScroller`)/ react-virtual v2(**headless hook,和你的写法同形态**)/ react-virtuoso(不定高)。`@tanstack/react-virtual` 是 2022-02 才改的名,别说混。
+- ❌「它要接管滚动容器」—— 你的 feed 本来就是容器滚 + 定高,这条对你不成立,说了当场被拆。
+- ❌「它不支持无限滚动」—— `visibleStopIndex` 判一句就能翻页,`react-window-infinite-loader` 只是封装。
+
+**四个追击点:**
+
+- **「定高不正是它最擅长的场景?」** → 认,并反过来用:定高把窗口化压到三行,库只剩「别人替我维护」的价值;不定高我大概率会用现成的。
+- **「item 里再包一层 IO 不就行了?」** → 能,但那样有两套可见判定(库按索引算、含 overscan,我按几何算),overscan 一改就得重对。自己写只有 `scrollTop` 一个真相。
+- **「react-virtual 是 headless,不接管容器啊?」** → 最硬的一问,认。「当时是 2.x,API 还在动,没敢上生产。」认完立刻转回曝光,别硬撑。
+- **「那你现在会怎么选?」** → 定高仍自己写;改成不定高就上 `@tanstack/react-virtual`,但曝光那层照样自己挂 IO。
 
 ### 你当时大概是怎么做的
 
