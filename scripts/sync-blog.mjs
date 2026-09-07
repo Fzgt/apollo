@@ -224,6 +224,22 @@ function isGitHubHost(url) {
 }
 
 /**
+ * 私有仓库里的图在 GitHub 页面上要写成 `github.com/<o>/<r>/blob/<ref>/<path>?raw=true`
+ * 才渲染得出来（浏览器带着会话 cookie，raw.githubusercontent 那个域名没有 cookie）。
+ * 但那条网页地址不认 token，脚本这边下不动——换成 Contents API 就好，同一个文件。
+ */
+function downloadUrlOf(url) {
+  const parsed = new URL(url);
+  if (parsed.hostname !== 'github.com') return url;
+
+  const match = parsed.pathname.match(/^\/([^/]+)\/([^/]+)\/(?:blob|raw)\/([^/]+)\/(.+)$/);
+  if (!match) return url;
+
+  const [, owner, repo, ref, filePath] = match;
+  return `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${ref}`;
+}
+
+/**
  * 把远端图片抓到本地，返回 URL → 站内路径 的映射。
  * 抓不动的那张原样留着外链——少一张图，好过整篇正文报错。
  */
@@ -248,9 +264,9 @@ async function mirrorImages(urls, existing) {
     try {
       // 私有仓库的图要带 token；外站图不发我们的凭证
       const headers = isGitHubHost(url)
-        ? githubHeaders('image/*')
+        ? githubHeaders('application/vnd.github.raw, image/*')
         : { 'User-Agent': 'apollo-blog-sync', Accept: 'image/*' };
-      const res = await fetch(url, { headers, redirect: 'follow' });
+      const res = await fetch(downloadUrlOf(url), { headers, redirect: 'follow' });
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
 
       const original = Buffer.from(await res.arrayBuffer());
