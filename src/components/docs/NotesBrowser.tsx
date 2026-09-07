@@ -24,6 +24,11 @@ interface NotesBrowserProps {
   navTitle: Text;
   /** 复习计划才有进度/日程标签，资料那套没有 */
   showProgress?: boolean;
+  /**
+   * 这套内容是否打算出英文版。算法题解是代码，没有译文可言——那条「还没翻译」
+   * 的提示挂在 150 多篇代码上只是噪音，所以那一套关掉。
+   */
+  bilingual?: boolean;
   /** 这套内容的身份（docs / library），侧边栏展开状态按它分开存 */
   storageKey: string;
 }
@@ -38,6 +43,7 @@ export function NotesBrowser({
   getNote,
   navTitle,
   showProgress = false,
+  bilingual = true,
   storageKey,
 }: NotesBrowserProps) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -78,7 +84,7 @@ export function NotesBrowser({
 
   // 英文模式下还没翻的那一篇给中文原文兜底 —— 空页面比一页中文糟得多。
   // 中文模式不存在这个问题：原文就是中文那一份。
-  const missingTranslation = lang === 'en' && Boolean(note) && !note?.contentEn;
+  const missingTranslation = bilingual && lang === 'en' && Boolean(note) && !note?.contentEn;
   const body = note ? noteView(note, lang).content : undefined;
 
   // Cmd+K / Ctrl+K 打开搜索

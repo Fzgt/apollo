@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+  Binary,
   BookMarked,
   BookOpen,
   CalendarCheck,
@@ -39,6 +40,7 @@ const NAV_LINKS = [
   { label: UI.nav.plan, href: '/docs', Icon: CalendarCheck },
   { label: UI.nav.notes, href: '/library', Icon: BookOpen },
   { label: UI.nav.questions, href: '/questions', Icon: MessageCircleQuestion },
+  { label: UI.nav.algorithms, href: '/algorithms', Icon: Binary },
   { label: UI.nav.fetch, href: '/fetch', Icon: PawPrint },
   { label: UI.nav.applications, href: '/apply', Icon: Send },
   { label: UI.nav.blog, href: '/blog', Icon: PenLine },
@@ -158,8 +160,8 @@ export function SiteNavbar() {
             <div className="flex-1" />
 
             <div className="hidden items-center gap-3 md:flex">
-              {/* 导航挤到 lg 以下就先让位，移动端菜单里还有一份 */}
-              <BuildStamp className="hidden lg:flex" />
+              {/* 页签排到第十个，1280 那档已经顶到语言/主题按钮：构建时间让到 2xl 才出现 */}
+              <BuildStamp className="hidden 2xl:flex" />
               {langButton}
               {themeButton}
               <a

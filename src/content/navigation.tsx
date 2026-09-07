@@ -1,20 +1,33 @@
 import type { ReactNode } from 'react';
 import {
+  ArrowDownNarrowWide,
   Calculator,
+  Coins,
   Database,
   FileText,
   Gamepad2,
+  GitFork,
+  Hash,
   Landmark,
+  Layers,
+  LayoutGrid,
+  Link2,
   List,
   Map,
   Mic2,
   Microscope,
+  MoveHorizontal,
+  Network,
   PawPrint,
   Radio,
   Repeat,
   Scale,
+  Search,
+  Type,
+  Undo2,
   Workflow,
   Wrench,
+  Zap,
 } from 'lucide-react';
 import type { Lang } from '@/lib/i18n';
 import type { NoteSection } from './collection';
@@ -47,6 +60,20 @@ const ICONS: Record<string, ReactNode> = {
   repeat: <Repeat className="w-4 h-4" />,
   'file-text': <FileText className="w-4 h-4" />,
   scale: <Scale className="w-4 h-4" />,
+  // 算法那套分类的图标
+  'arrow-down-narrow-wide': <ArrowDownNarrowWide className="w-4 h-4" />,
+  'link-2': <Link2 className="w-4 h-4" />,
+  layers: <Layers className="w-4 h-4" />,
+  hash: <Hash className="w-4 h-4" />,
+  'git-fork': <GitFork className="w-4 h-4" />,
+  search: <Search className="w-4 h-4" />,
+  'move-horizontal': <MoveHorizontal className="w-4 h-4" />,
+  'layout-grid': <LayoutGrid className="w-4 h-4" />,
+  coins: <Coins className="w-4 h-4" />,
+  network: <Network className="w-4 h-4" />,
+  zap: <Zap className="w-4 h-4" />,
+  type: <Type className="w-4 h-4" />,
+  'undo-2': <Undo2 className="w-4 h-4" />,
 };
 
 /**
@@ -70,6 +97,19 @@ const SECTION_TITLES_EN: Record<string, string> = {
   speak: 'Talk track',
   english: 'Interview English',
   course: 'Course and older notes',
+  'basic-sorting': 'Basic sorting',
+  'linked-list': 'Linked list',
+  'stack-queue': 'Stack and queue',
+  'hash-map': 'Hash map',
+  'binary-tree': 'Binary tree',
+  'binary-search': 'Binary search',
+  'two-pointers': 'Sliding window and two pointers',
+  dp: 'Dynamic programming',
+  greedy: 'Greedy',
+  graph: 'Graph',
+  'advanced-sorting': 'Advanced sorting',
+  'array-string': 'Array and string',
+  backtracking: 'Backtracking',
 };
 
 /**

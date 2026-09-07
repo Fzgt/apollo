@@ -21,6 +21,7 @@
 | 加一页复习笔记   | 丢一个 `.md` 进 `src/content/notes/<NN>-<分组>/`，见 [内容在哪](#内容在哪) |
 | 加一页资料       | 丢一个 `.md` 进 `src/content/library/<NN>-<分组>/`，见 [内容在哪](#内容在哪) |
 | 加一篇博客       | 去 [Fzgt/Blog](https://github.com/Fzgt/Blog) 开个 issue，见 [博客](#博客blog) |
+| 加一道算法题     | 写进本机题解目录，再跑 `npm run sync:algorithms`，见 [算法](#算法algorithms) |
 | 改一页现有笔记   | 页面底部「在 GitHub 上编辑这一页」，见 [怎么改](#怎么改)                  |
 | 本地跑起来       | `npm install && npm run dev`，见 [本地开发](#本地开发)                    |
 
@@ -28,11 +29,12 @@
 
 ## 内容在哪
 
-站里有两套 Markdown 内容，规则一样，各占一个 tab：
+站里有三套 Markdown 内容，规则一样，各占一个 tab：
 
 ```
 src/content/notes/<NN>-<分组>/<NN>-<笔记>.md      # 复习（/docs）——十四天复习计划，带进度和 Day 标签
 src/content/library/<NN>-<分组>/<NN>-<笔记>.md    # 资料（/library）——简历走查笔记，不带进度
+src/content/algorithms/<NN>-<分类>/<NNN>-<题>.md  # 算法（/algorithms）——脚本生成，别手改
 ```
 
 目录名去掉数字前缀就是分组 id，文件名去掉数字前缀就是页面 id，数字前缀只决定顺序。
@@ -108,6 +110,28 @@ npm run dev
 | `npm run dev`       | http://localhost:8080             |
 | `npm run check`     | lint + typecheck + build          |
 | `npm run sync:blog` | 重新抓一份 Blog issues 快照       |
+| `npm run sync:algorithms` | 重新生成算法题解那一套内容  |
+
+---
+
+## 算法（/algorithms）
+
+题解写在本机的 `Algorithm/既然巅峰留不住，那就重走来时路`：13 个分类目录，一题一个 `.ts`/`.js`，
+少数几题另有一份写思路的 `.md`（带截图）。Vercel 的构建机上没有这个目录，所以内容是
+**生成进仓库再提交**的——跟博客快照一个路子，源在别处，仓库里存一份。
+
+```bash
+npm run sync:algorithms   # 源目录可用 ALGO_SRC 覆盖
+```
+
+脚本（`scripts/sync-algorithms.mjs`）做四件事：按 `lc<题号>` 把同一题的思路笔记、多份写法
+合成一篇；截图搬进 `public/algorithms/` 并改写正文里的相对路径；标题从文件名还原成
+「70. 爬楼梯」；没题号的（冒泡/选择/快排）走脚本里的别名表。
+
+> [!WARNING]
+> `src/content/algorithms/` 下的 `.md` 全是生成物，手改会被下一次同步覆盖。要改就改源目录里的题解。
+
+这一套没有英文版：题解正文是代码，`bilingual={false}` 关掉了「还没翻译」那条提示。
 
 ---
 
@@ -125,7 +149,7 @@ React 18 · TypeScript · Vite · Tailwind CSS · shadcn/ui · Framer Motion · 
 部署：Vercel，连着 `main` 分支，push 即构建。配置全在 `vercel.json` 里：
 
 - **构建**：先跑一次 `scripts/sync-blog.mjs` 刷新博客快照（失败不阻断，回落到仓库里已提交的那份），再 `npm run build`。
-- **SPA 回退**：所有未命中静态文件的请求 rewrite 到 `index.html`，`/docs`、`/library`、`/blog` 刷新才不会 404。
+- **SPA 回退**：所有未命中静态文件的请求 rewrite 到 `index.html`，`/docs`、`/library`、`/blog`、`/algorithms` 刷新才不会 404。
 - **响应头**：`nosniff`、`Referrer-Policy`、`Permissions-Policy`，以及 `X-Robots-Tag: noindex, nofollow`。
 
 站挂在根路径，所以 `vite.config.ts` 的 `base` 是 `/`；真要换回子路径部署，把 `VITE_BASE` 传进构建，
