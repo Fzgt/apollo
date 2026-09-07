@@ -30,7 +30,7 @@ status: done
 
 **栅格化（raster）**：把绘制指令真正跑成**位图图块（tile）**，在 raster 线程或 GPU 上做。**文字栅格化、阴影、圆角慢在这一步。**
 
-**分层（layerize）**：决定切成几个合成层。**层不是 paint 生成的，是单独一步**——Chromium 从 90 前后的 CompositeAfterPaint 起，先 paint 出整份指令列表、再据此分层。
+**分层（layerize）**：决定切成几个合成层。**层不是 paint 生成的，是单独一步，而且排在 paint 之后**——Chrome 官方 RenderingNG 架构文档的阶段清单就是 `Layout → Pre-paint → Paint → Commit → Layerize → Raster`，分层吃的正是 paint 产出的那份 display list。
 
 **合成（composite）**：合成线程把栅格化好的图块生成 draw quads、拼成一帧交给 GPU 上屏。**最便宜的一步。**
 
@@ -67,6 +67,8 @@ status: done
 7. **Composite（合成）** —— 合成线程拼帧交给 GPU，成本随图层数涨。
 
 **面试里说「五步」也没人挑，但被追问 Paint 和 Composite 之间发生了什么，答不出 Raster 就露怯。**
+
+⚠️ **准备被那张老图质疑。** 中文博客通用的那张 Chrome 帧流水线图，主线程一排是 `Recalc Styles → Layout → Update Layer Tree → Paint → Composite`，**分层画在 Paint 前面**。图没错，它画的是 CompositeAfterPaint 重构之前的架构：先决定切几层，再往每层里分别记录绘制指令。重构之后 `Update Layer Tree` 这个阶段没了，改成整份文档先 paint 成一份 display list，再由 PaintArtifactCompositor 据此分层。被质疑时直接点名 CompositeAfterPaint，**这一句比背对顺序值钱**。
 
 **重排之所以贵，是因为一个节点的位置会影响它后面所有节点的位置**，所以成本随节点总数线性增长。
 
@@ -222,7 +224,7 @@ status: done
 ## 自检
 
 1. 能否说清三个数字各自的性质和来源？
-2. 能否讲出渲染五步流水线，以及为什么布局的成本随节点数涨？
+2. 能否讲出渲染流水线（至少到 Paint → Layerize → Raster → Composite 这一段），以及为什么布局的成本随节点数涨？
 3. 能否解释为什么掉帧是踩台阶到 30，而不是线性变慢？
 4. 能否说出渲染条数的公式，并解释 overscan 为什么不能调到 0？
 5. 能否说清 stable 的定义是「没有长帧」，而不是平均值高？

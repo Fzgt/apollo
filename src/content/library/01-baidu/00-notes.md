@@ -43,11 +43,15 @@ JS → Style(样式计算) → Layout(布局) → Paint(记录绘制指令)
 - **Style**:计算每个元素最终的 CSS 属性(继承、层叠、选择器匹配)
 - **Layout(Reflow)**:计算每个元素的**几何信息**(位置、大小)。⭐ 500 个 DOM 节点意味着 500 个几何计算,单次 layout 可能就要 5–10ms
 - **Paint**:⚠️ **不画像素**,产出的是一份**绘制指令列表**(display list / paint ops)——「这里画个圆角矩形、这里画一行文字」。成本随绘制项的数量和复杂度涨
-- **Layerize(分层)**:决定切成几个合成层。⚠️ **层不是 Paint 生成的,这是单独一步**;Chromium 从 90 前后的 CompositeAfterPaint 起,顺序是先 paint 出整份指令列表、再据此分层
+- **Layerize(分层)**:决定切成几个合成层。⚠️ **层不是 Paint 生成的,这是单独一步,而且排在 Paint 之后** —— Chrome 官方 RenderingNG 架构文档的阶段清单原文就是 `… Layout → Pre-paint → Paint → Commit → Layerize → Raster …`,分层吃的正是 paint 产出的那份 display list(由 PaintArtifactCompositor 处理)
 - **Raster(栅格化)**:把绘制指令真正跑成**位图图块(tile)**,在 raster 线程或 GPU 上做。**文字栅格化、阴影、圆角慢在这一步,不是 paint**
 - **Composite**:合成线程把栅格化好的图块生成 **draw quads**、打包成一帧(compositor frame)交给 GPU 进程合成上屏
 
 **背这一句就够**:Paint 记录绘制指令,Raster 把指令栅格化成图块位图,Composite 由合成线程把图块拼成一帧交给 GPU 上屏。**说「Paint 画像素、Paint 产生图层」是错的,这两句最常被拿来判断你是背的还是懂的。**
+
+**⚠️ 那张流传最广的老图跟这里是反的,先把话说在前面。** 中文博客里到处都是的那张 Chrome 帧流水线图,主线程一排画的是 `Recalc Styles → Layout → Update Layer Tree → Paint → Composite` —— **分层在 Paint 前面**。图没画错,它画的是 CompositeAfterPaint 重构**之前**的架构:那个年代先决定切几层,再往每一层里分别记录绘制指令。重构之后 `Update Layer Tree` 这个阶段本身就不存在了,改成整份文档先 paint 成一份 display list,再由 PaintArtifactCompositor 据此分层。
+
+被拿这张图质疑时就这么答:「那张图是 CompositeAfterPaint 之前的,老架构确实先分层再 paint;现在反过来,先 paint 出 display list 再据此分层,`Update Layer Tree` 这个阶段已经没了。」**主动点名 CompositeAfterPaint 比顺序本身值钱** —— 顺序谁都可能记反,知道它哪一年为什么改的没几个。
 
 **⚠️ 这不是首屏问题,是累积问题 —— 讲错因果会被当场看穿。**
 

@@ -42,11 +42,15 @@ Every frame (16.67ms if you want to hold 60 FPS) has to get through the whole pi
 - **Style**: computes the final CSS properties of every element (inheritance, cascade, selector matching)
 - **Layout (reflow)**: computes the **geometry** of every element (position, size). ⭐ 500 DOM nodes means 500 geometry calculations, and a single layout can take 5–10ms
 - **Paint**: ⚠️ **does not draw pixels**. It produces a **display list of draw commands** ("rounded rect here, line of text there"). Cost grows with the number and complexity of display items
-- **Layerize**: decides how many compositing layers to cut. ⚠️ **Layers are not produced by Paint — this is its own step.** Since CompositeAfterPaint (around Chromium 90) the order is: paint the whole document into one display list, then decide the layers from it
+- **Layerize**: decides how many compositing layers to cut. ⚠️ **Layers are not produced by Paint — this is its own step, and it comes *after* Paint.** Chrome's official RenderingNG architecture doc lists the stages as `… Layout → Pre-paint → Paint → Commit → Layerize → Raster …`; layerization consumes the display list that paint produced (handled by PaintArtifactCompositor)
 - **Raster**: actually executes the draw commands into **bitmap tiles**, on raster threads or the GPU. **Text rasterisation, shadows and rounded corners are slow here, not in paint**
 - **Composite**: the compositor thread turns the rastered tiles into **draw quads**, packs them into a compositor frame and hands it to the GPU process to put on screen
 
 **The one sentence to memorise**: Paint records draw commands, Raster rasterises them into bitmap tiles, and Composite has the compositor thread assemble the tiles into a frame for the GPU. **"Paint draws the pixels" and "Paint produces the layers" are both wrong, and they are the two lines interviewers use to tell whether you memorised this or understand it.**
+
+**⚠️ The famous old diagram contradicts this — get ahead of it.** The Chrome frame-pipeline diagram that every blog post uses draws the main thread as `Recalc Styles → Layout → Update Layer Tree → Paint → Composite` — **layerization before Paint**. The diagram is not wrong; it shows the architecture *before* the CompositeAfterPaint rewrite, when the browser decided the layers first and then recorded draw commands into each one separately. After the rewrite the `Update Layer Tree` stage does not exist at all: the whole document is painted into one display list first, and PaintArtifactCompositor decides the layers from it.
+
+If an interviewer waves that diagram at you: "That diagram predates CompositeAfterPaint. The old architecture really did layerize first and paint second; now it is the other way round — paint produces the display list, layers are decided from it, and `Update Layer Tree` is gone." **Naming CompositeAfterPaint is worth more than the ordering itself** — anyone can get the order backwards, but few know why it changed.
 
 **⚠️ This is not a first-render problem, it is an accumulation problem — getting the causality wrong gives you away.**
 

@@ -21,7 +21,7 @@ section: Baidu
 
 **Raster** — actually executing those commands into **bitmap tiles**, on raster threads or the GPU. **Text rasterisation, shadows and rounded corners are slow here.**
 
-**Layerize** — deciding how many compositing layers to cut. **Layers are not produced by paint; this is its own step** — since CompositeAfterPaint (around Chromium 90) the document is painted into one display list first, and the layers are decided from it.
+**Layerize** — deciding how many compositing layers to cut. **Layers are not produced by paint; this is its own step, and it comes after paint** — Chrome's official RenderingNG architecture doc lists the stages as `Layout → Pre-paint → Paint → Commit → Layerize → Raster`, and layerization consumes the display list paint produced.
 
 **Composite** — the compositor thread turns rastered tiles into draw quads and assembles a frame for the GPU. **The cheapest step.**
 
@@ -47,7 +47,7 @@ Virtualized lists are a solved problem with libraries; **"I built a virtualized 
 
 ## Why more nodes means dropped frames
 
-A browser frame goes through five steps, and **that pipeline is the foundation of every frontend performance problem**:
+A browser frame goes through the following pipeline, and **that pipeline is the foundation of every frontend performance problem**:
 
 1. **JS** — cost grows with code.
 2. **Style** — which CSS rules apply to each node; **cost grows with node count.**
@@ -58,6 +58,8 @@ A browser frame goes through five steps, and **that pipeline is the foundation o
 7. **Composite** — the compositor thread assembles the frame for the GPU; cost grows with layer count.
 
 **Saying "five steps" passes unchallenged, but if you are asked what happens between Paint and Composite and cannot name Raster, it shows.**
+
+⚠️ **Be ready to be challenged with the old diagram.** The Chrome frame-pipeline diagram everyone reproduces draws the main thread as `Recalc Styles → Layout → Update Layer Tree → Paint → Composite`, with **layerization before Paint**. The diagram is not wrong; it predates the CompositeAfterPaint rewrite, when layers were decided first and draw commands were recorded into each one separately. After the rewrite the `Update Layer Tree` stage is gone: the document is painted into one display list first, and PaintArtifactCompositor decides the layers from it. Name CompositeAfterPaint when challenged — **that sentence is worth more than getting the order right.**
 
 **Layout is expensive because one node's position affects the position of everything after it**, so the cost is linear in total nodes.
 
@@ -205,7 +207,7 @@ One honest addition: **the card heights were never uniform** — some have cover
 ## Self-check
 
 1. Can you state each of the three numbers' nature and source?
-2. Can you name the five rendering steps and explain why layout scales with node count?
+2. Can you walk the render pipeline (at least Paint → Layerize → Raster → Composite) and explain why layout scales with node count?
 3. Can you explain why dropped frames step down to 30 rather than degrading smoothly?
 4. Can you give the rendered-row formula and explain why overscan cannot be zero?
 5. Can you define "stable" as "no long frames" rather than a high average?
