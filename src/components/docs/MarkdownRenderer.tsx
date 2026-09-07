@@ -322,19 +322,30 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           // 正文里的图都是截图，动辄一两百 KB，且基本都在首屏之外
           img: ({ src, alt }) => {
             const index = images.findIndex((image) => image.src === src);
+            // 截图都是 retina 的，原始像素两三倍于该显示的尺寸。issue 里写过 width 的
+            // （inlineHtmlImages 编进了 ?w=）按那个宽度收；没写的兜底不超过 70vh，
+            // 免得一张竖图占掉整屏。要看细节点开灯箱。
+            const declaredWidth = Number(
+              new URLSearchParams(String(src ?? '').split('?')[1] ?? '').get('w'),
+            );
             return (
               <button
                 type="button"
                 onClick={() => setZoomed(index >= 0 ? index : 0)}
                 aria-label={alt ? `Zoom: ${alt}` : 'Zoom image'}
-                className="my-6 block w-full cursor-zoom-in rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="my-6 block w-fit max-w-full cursor-zoom-in rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
                 <img
                   src={src}
                   alt={alt}
                   loading="lazy"
                   decoding="async"
-                  className="max-w-full rounded-xl border border-border shadow-lg transition-shadow hover:shadow-xl"
+                  style={
+                    Number.isFinite(declaredWidth) && declaredWidth > 0
+                      ? { maxWidth: declaredWidth }
+                      : undefined
+                  }
+                  className="h-auto max-h-[70vh] w-auto max-w-full rounded-xl border border-border shadow-lg transition-shadow hover:shadow-xl"
                 />
               </button>
             );

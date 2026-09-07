@@ -20,8 +20,17 @@ const rewriteImgTags = (text: string) =>
     const src = attrValue(tag, 'src').trim();
     if (!src) return tag;
     const alt = attrValue(tag, 'alt').replace(/[[\]]/g, '');
+    // `width` on the original tag is the display size the author picked in the issue —
+    // the files themselves are retina screenshots (1172px wide for a 400px picture).
+    // Markdown has nowhere to put it, so carry it in the query string and let the
+    // renderer turn it back into a max-width.
+    const width = attrValue(tag, 'width').trim();
+    const sized =
+      /^\d+$/.test(width) && !/[?&]w=/.test(src)
+        ? `${src}${src.includes('?') ? '&' : '?'}w=${width}`
+        : src;
     // Pointy-bracket destination keeps URLs containing parentheses intact.
-    return `![${alt}](<${src}>)`;
+    return `![${alt}](<${sized}>)`;
   });
 
 // Backtick-delimited spans are code, not markup — leave them exactly as written.
