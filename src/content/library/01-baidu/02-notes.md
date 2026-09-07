@@ -444,23 +444,3 @@ class JSBridge {
 
 ### 必须能开口就讲(每个 30 秒简述)
 - [ ] 那次白屏事故你怎么定位的?(Sentry → sourcemap → git diff → lock file → 依赖 changelog)
-
-## 需要单独刷一遍的知识点
-
-按优先级:
-
-1. **浏览器渲染原理 + 60 FPS 预算**(虚拟列表回答的基础)
-2. **Composite-only CSS properties**(必背清单)
-3. **IntersectionObserver 用法 + 和 scroll 事件对比**(高频面试点)
-4. **Webpack 打包全流程 + 关键 Plugin 原理**
-5. **SplitChunksPlugin 详细配置**(简历直接提到)
-6. **Semver 和 lock file 机制**(事故复盘基础)
-7. **Chrome DevTools Performance 面板使用**(每个前端应该会)
-8. **jsBridge 常见实现方式**(hybrid app 岗必问,你有百度 App 经验是加分)
-
-## 深入学习资源(选看)
-
-- **虚拟列表**:直接读 `react-window` 或 `@tanstack/virtual` 源码,一两百行,读完什么都懂
-- **Webpack**:官方文档 "Concepts" 和 "Optimization" 章节;Tobias Koppers(Webpack 作者)的博客
-- **渲染原理**:Google Web Fundamentals 的 "Rendering Performance" 系列
-- **Chrome DevTools**:官方 Performance 面板教程

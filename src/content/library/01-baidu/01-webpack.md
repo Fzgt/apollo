@@ -185,3 +185,10 @@ Webpack 5 用**内容哈希 + 依赖哈希**判定 cache 是否有效:
 
 ### 必须能开口就讲(30 秒)
 - [ ] Webpack 5 相比 3 有什么大改动?(cache、asset modules、tree shaking、no Node polyfill、hash 稳定)
+
+
+---
+
+## 深入学习资源(选看)
+- 官方文档 "Concepts" 和 "Optimization" 两章
+- Tobias Koppers(Webpack 作者)的博客

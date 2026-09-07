@@ -185,3 +185,10 @@ Webpack 5 decides whether a cache entry is valid from **content hashes plus depe
 
 ### Must be able to say on demand (30 seconds)
 - [ ] What changed between Webpack 3 and 5? (cache, asset modules, tree shaking, no Node polyfills, stable hashes)
+
+
+---
+
+## Further reading (optional)
+- The "Concepts" and "Optimization" chapters of the official docs
+- Tobias Koppers's (Webpack's author) blog

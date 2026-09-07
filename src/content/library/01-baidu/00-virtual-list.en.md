@@ -356,3 +356,11 @@ The wheel already exists — why did you build one? Miss this and the depth late
 ### Must be able to say on demand (30 seconds each)
 - [ ] Why is a virtualized list fast? (three reasons: fewer DOM nodes, transform is cheap, IntersectionObserver doesn't block)
 - [ ] Why not react-window? (the "choosing" section above)
+
+
+---
+
+## Further reading (optional)
+- Read the source of `react-window` or `@tanstack/virtual` — a couple of hundred lines, and everything falls into place
+- Google Web Fundamentals' "Rendering Performance" series
+- The official Chrome DevTools Performance panel tutorial

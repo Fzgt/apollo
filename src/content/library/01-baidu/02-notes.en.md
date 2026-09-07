@@ -444,23 +444,3 @@ The frontend only calls `bridge.call('share', { title, desc, imageUrl, link })` 
 
 ### Must be able to say on demand (30 seconds each)
 - [ ] How did you diagnose that white screen? (Sentry → source map → git diff → lockfile → the dependency's changelog)
-
-## Topics worth a separate pass
-
-In priority order:
-
-1. **Browser rendering and the 60 FPS budget** (the foundation of the virtualized-list answer)
-2. **Composite-only CSS properties** (a list to memorise)
-3. **IntersectionObserver and how it compares to scroll listeners** (asked constantly)
-4. **The full Webpack build flow and how the key plugins work**
-5. **SplitChunksPlugin configuration in detail** (named on the resume)
-6. **Semver and the lockfile mechanism** (the basis of the incident review)
-7. **Using the Chrome DevTools Performance panel** (every frontend engineer should)
-8. **Common jsBridge implementations** (always asked for hybrid-app roles, and your Baidu App experience is a plus)
-
-## Further reading (optional)
-
-- **Virtualized lists**: read the source of `react-window` or `@tanstack/virtual` — a couple of hundred lines, and everything falls into place
-- **Webpack**: the "Concepts" and "Optimization" chapters of the official docs; Tobias Koppers's (Webpack's author) blog
-- **Rendering**: Google Web Fundamentals' "Rendering Performance" series
-- **Chrome DevTools**: the official Performance panel tutorial

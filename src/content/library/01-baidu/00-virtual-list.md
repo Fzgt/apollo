@@ -483,3 +483,11 @@ An invalid "height" prop has been specified. Vertical lists must specify a numbe
 - [ ] 虚拟列表为什么快?(3 层原因:DOM 少了、transform 便宜、IntersectionObserver 非阻塞)
 - [ ] 为什么不用 react-window?(上面「选型」一节)
 - [ ] 这条最大的难点是什么?(上面「两个难点」一节)
+
+
+---
+
+## 深入学习资源(选看)
+- 直接读 `react-window` 或 `@tanstack/virtual` 源码,一两百行,读完什么都懂
+- Google Web Fundamentals 的 "Rendering Performance" 系列
+- Chrome DevTools 官方 Performance 面板教程
