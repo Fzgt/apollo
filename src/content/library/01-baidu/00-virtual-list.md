@@ -118,15 +118,21 @@ DOM 里只留可视区的卡 + 上下各几张 overscan ≈ 9 张
 |---|---|
 | `top` / `left` / `width` / `height` / `margin` / `padding` | Layout(重排,最贵)+ Paint + Composite |
 | `color` / `background` / `border-radius` | Paint(重绘)+ Composite |
-| `transform` / `opacity` | **只有 Composite**(GPU 加速,跳过 Layout 和 Paint) |
+| `transform` / `opacity` | **不触发 Layout**;要「只走 Composite」得先有自己的合成层 |
 
-滚动时几百次位置变化,如果用 `top`,每次都 layout + paint,直接卡死。用 `transform` 只 composite,GPU 做,主线程无压力。
+⚠️ **先说清这个实现里的一个事实,不然下面全讲反。** hook 里 `offsetTop = i * itemHeight` 是第 i 条在**整份列表**里的绝对位置,跟 `scrollTop` 无关 —— **卡片挂上之后 transform 值到被回收都不变**,滚动时变的是原生 `scrollTop`。所以这里**不存在「滚动时每帧改 transform」**。
 
-**深入原理**:`transform` 会创建 GPU 合成层(compositor layer),浏览器把这个元素单独栅格化到一张 GPU 纹理上,滚动时只是改这层的变换矩阵重新拼帧,**既不重新 paint 也不重新 raster**。
+**那 `transform` 比 `top` 省在哪?省在新卡挂载那一刻。** 窗口往下滑、9 张卡要定位:用 `top` 这一次走 layout(重排),用 `transform` 不进 layout。**是每次窗口切换省一次重排,不是每帧省。**
 
-⭐ **加分的半句**:改 `transform` 可以**完全跑在合成线程上,不需要主线程参与**——所以主线程被长任务卡住时,合成层上的 transform 动画照样流畅。这半句大部分人答不到,被问「为什么 transform 只走 composite」时补上去。
+**⭐ 别答「GPU 加速」。** 一说就会被追「那你提层了吗」,答不上就露。准确的三句:
 
-**副作用**:大量 layer 也会耗内存,不能滥用 `will-change: transform`。
+- **Layout 永远跳过** —— 这是 `transform` 相对 `top` 的全部优势,提不提层都成立。
+- **提了层**(`will-change: transform`、3D 变换、合成线程接管的动画),改变换矩阵能完全在合成线程上做,主线程被长任务卡住动画照样流畅 —— **前提是那个元素真有自己的合成层**。
+- **没提层**,内容和别人共用一层,位置一变那层的图块就得重新栅格化,主线程照样得参与。
+
+**这个场景提层没收益,反而有害**:transform 值根本不变,没有「反复改变换矩阵」这回事;给几十张卡挂 `will-change: transform` 只换来几十个层和一堆显存。提层只在同一元素的 transform 反复变时才值 —— 动画、拖拽、自己实现的惯性滚动。
+
+**滚动本身的 GPU 加速是白拿的**:原生容器滚动由合成线程平移已栅格化的图块,不需要你做任何事,跟用不用 `transform` 无关。
 
 #### ⑤ IntersectionObserver 是什么
 以前的做法:监听 `scroll` 事件,里面用 `getBoundingClientRect()` 判断元素是否在视口。**每次滚动都可能触发几十次判断,主线程压力大,而且 `getBoundingClientRect` 会强制 layout**。
@@ -337,7 +343,7 @@ TanStack Virtual 就是这么做的(`measureElement` 就是方案 1 + 2 的结�
 #### 30 FPS → 60 FPS 的量化归因
 面试官可能问"具体是哪一步让 FPS 提升了?":
 1. **DOM 节点数量下降**:五百多个 → 恒定一百上下(渲染 9 张卡 × 每卡十来个元素),layout 时间从 ~10ms 降到 ~0.5ms,单帧 JS/Layout 阶段释放
-2. **`translateY` 替代 `top`**:每次滚动只做 composite,GPU 处理,主线程无压力
+2. **`translateY` 替代 `top`**:窗口每往前滑一格,新挂载的卡定位不触发 layout —— 省的是每次窗口切换的那一次重排(不是每帧,transform 值挂上就不变了)
 3. **`passive: true`**:scroll 事件不阻塞浏览器合成
 4. **IntersectionObserver 替代 scroll 判断**:去掉每次滚动的 `getBoundingClientRect`,避免强制同步布局(FSL,forced sync layout)
 
@@ -474,13 +480,13 @@ An invalid "height" prop has been specified. Vertical lists must specify a numbe
 - [ ] 浏览器渲染流水线:JS → Style → Layout → Paint → Composite
 
 ### 必须能背下来
-- [ ] `transform`/`opacity` 只触发 composite,`top`/`width` 触发 layout + paint + composite
+- [ ] `transform`/`opacity` 不触发 layout,`top`/`width` 触发 layout + paint;「只走 composite」要元素真有自己的合成层
 - [ ] 16.67ms 一帧,超了掉帧
 - [ ] IntersectionObserver 异步、不阻塞、不触发 layout;scroll 事件 + getBoundingClientRect 会强制 layout
 - [ ] `passive: true` 让浏览器不等 JS 处理完就滚动
 
 ### 必须能开口就讲(每个 30 秒)
-- [ ] 虚拟列表为什么快?(3 层原因:DOM 少了、transform 便宜、IntersectionObserver 非阻塞)
+- [ ] 虚拟列表为什么快?(3 层原因:DOM 少了、定位不触发重排、IntersectionObserver 非阻塞 —— 都是省主线程,别答 GPU)
 - [ ] 为什么不用 react-window?(上面「选型」一节)
 - [ ] 这条最大的难点是什么?(上面「两个难点」一节)
 

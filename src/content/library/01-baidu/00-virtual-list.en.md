@@ -118,15 +118,21 @@ The answer: **set the outer container's height to `1000 × itemHeight`** (the to
 |---|---|
 | `top` / `left` / `width` / `height` / `margin` / `padding` | Layout (reflow, the most expensive) + Paint + Composite |
 | `color` / `background` / `border-radius` | Paint (repaint) + Composite |
-| `transform` / `opacity` | **Composite only** (GPU accelerated, skipping Layout and Paint) |
+| `transform` / `opacity` | **No Layout**; "composite only" needs the element to own a compositor layer |
 
-Scrolling means hundreds of position changes; with `top` each one is a layout plus a paint, and it locks up. With `transform` it's composite only, done on the GPU, with no pressure on the main thread.
+⚠️ **One fact about this implementation first, or everything below reads backwards.** In the hook, `offsetTop = i * itemHeight` is item i's absolute position in the **whole list**, independent of `scrollTop` — so **once a card mounts, its transform value never changes until it's recycled**, and what moves while you scroll is the native `scrollTop`. There is **no "transform changing every frame" here**.
 
-**The mechanism**: `transform` creates a GPU compositor layer, the browser rasters that element into its own GPU texture, and scrolling just changes that layer's transform matrix and reassembles the frame — **no repaint and no re-raster**.
+**So where does `transform` beat `top`? At the moment a new card mounts.** The window slides down and 9 cards need positioning: with `top` that one pass goes through layout (reflow); with `transform` it never enters layout. **One reflow saved per window shift — not per frame.**
 
-⭐ **The half-sentence that scores**: a `transform` change can run **entirely on the compositor thread, with no main-thread involvement** — so when the main thread is blocked by a long task, a transform animation on a composited layer keeps running smoothly. Most candidates never get this far; add it when asked "why does transform only hit composite".
+⭐ **Don't say "GPU accelerated".** The follow-up is "so did you promote it to its own layer?", and that's where people fall over. The accurate version is three sentences:
 
-**The downside**: many layers also cost memory, so don't scatter `will-change: transform` everywhere.
+- **Layout is always skipped** — that is the entire advantage of `transform` over `top`, promoted or not.
+- **If it is promoted** (`will-change: transform`, a 3D transform, an animation the compositor takes over), changing the matrix can run entirely on the compositor thread, so the animation survives a blocked main thread — **but only if that element really has its own layer**.
+- **If it isn't promoted**, the content shares a layer with everything else, so moving it means re-rastering that layer's tiles, and the main thread is involved again.
+
+**Promotion buys nothing here and actively costs**: the transform value never changes, so there is no matrix to re-apply; putting `will-change: transform` on dozens of cards only buys dozens of layers and a pile of GPU memory. Promotion pays off when one element's transform changes repeatedly — animation, dragging, hand-rolled momentum scrolling.
+
+**The scroll itself is GPU-accelerated for free**: native container scrolling is the compositor thread translating already-rastered tiles, with nothing required from you and nothing to do with `transform`.
 
 #### ⑤ What IntersectionObserver is
 The old way: listen for `scroll` and use `getBoundingClientRect()` inside the handler to decide whether an element is in the viewport. **Every scroll can trigger dozens of those checks, it loads the main thread, and `getBoundingClientRect` forces a layout.**
@@ -260,7 +266,7 @@ The `passive: true` in `el.addEventListener('scroll', fn, { passive: true })`:
 #### Attributing 30 FPS → 60 FPS to specific changes
 An interviewer may ask "which step actually raised the frame rate?":
 1. **Fewer DOM nodes**: from over five hundred down to a constant hundred or so (9 cards rendered × about ten elements per card), so layout time falls from ~10ms to ~0.5ms and the JS/Layout part of the frame is freed
-2. **`translateY` instead of `top`**: each scroll is composite only, done on the GPU, with no main-thread cost
+2. **`translateY` instead of `top`**: every time the window shifts, positioning the newly mounted cards doesn't trigger layout — one reflow saved per window shift (not per frame; a card's transform value never changes once mounted)
 3. **`passive: true`**: the scroll event no longer blocks compositing
 4. **IntersectionObserver instead of scroll checks**: no `getBoundingClientRect` per scroll, so no forced synchronous layout (FSL)
 
@@ -348,13 +354,13 @@ The wheel already exists — why did you build one? Miss this and the depth late
 - [ ] The browser rendering pipeline: JS → Style → Layout → Paint → Composite
 
 ### Must know by heart
-- [ ] `transform`/`opacity` are composite only; `top`/`width` trigger layout + paint + composite
+- [ ] `transform`/`opacity` don't trigger layout; `top`/`width` do layout + paint. "Composite only" requires the element to own a compositor layer
 - [ ] 16.67ms per frame; over that, you drop one
 - [ ] IntersectionObserver is asynchronous, non-blocking and doesn't force layout; a scroll listener plus getBoundingClientRect does force layout
 - [ ] `passive: true` lets the browser scroll without waiting for your JS
 
 ### Must be able to say on demand (30 seconds each)
-- [ ] Why is a virtualized list fast? (three reasons: fewer DOM nodes, transform is cheap, IntersectionObserver doesn't block)
+- [ ] Why is a virtualized list fast? (three reasons: fewer DOM nodes, positioning doesn't reflow, IntersectionObserver doesn't block — all main-thread savings, don't say GPU)
 - [ ] Why not react-window? (the "choosing" section above)
 
 
