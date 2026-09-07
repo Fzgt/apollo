@@ -284,6 +284,8 @@ function useExposure(report: (id: string) => void) {
 }
 ```
 
+> 一个共享的 IntersectionObserver 实例监听所有卡片,卡片通过返回的 callback ref 挂载时把 id 写进 dataset 再 observe。回调里按 `intersectionRatio >= 0.5` 判定进入,用 `e.time` 记下进入时刻存进 Map。离开时取出进入时刻做减法,停留够 1 秒且没报过才上报,并写入 Set 去重。`threshold: [0, 0.5]` 是为了让浏览器在跨越 50% 这条线时也回调,否则拿不到判定时机。
+
 **三个坑,面试官爱问:**
 
 1. **别用「挂载即曝光」。** overscan 预渲染的卡在 DOM 里但在视口外,overscan 开 3 就每屏多报 3 张。曝光必须独立于渲染判定。
