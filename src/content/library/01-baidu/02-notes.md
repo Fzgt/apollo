@@ -430,28 +430,19 @@ class JSBridge {
 ---
 
 
-## 面试前 Checklist(百度部分)
+## 面试前 Checklist(这三条)
+
+> 虚拟列表和 Webpack 的 checklist 在各自那篇里,不在这。
 
 ### 必须能画出来
-- [ ] 浏览器渲染流水线:JS → Style → Layout → Paint → Composite
-- [ ] 虚拟列表结构:外层 spacer + absolute item + translateY
 - [ ] jsBridge 双向通信:H5 ↔ WebView ↔ 原生
-- [ ] Webpack build 流程:Entry → Loader → AST → 依赖图 → Plugin → Chunk → Output
 
 ### 必须能背下来
-- [ ] `transform`/`opacity` 只触发 composite,`top`/`width` 触发 layout + paint + composite
-- [ ] 16.67ms 一帧,超了掉帧
-- [ ] IntersectionObserver 异步、不阻塞、不触发 layout;scroll 事件 + getBoundingClientRect 会强制 layout
-- [ ] `passive: true` 让浏览器不等 JS 处理完就滚动
 - [ ] `npm ci` 用于 CI,`npm install` 用于本地
 - [ ] `^` 允许 minor + patch,`~` 只 patch
 - [ ] Semver 里 MINOR 理论兼容但实际经常被破坏
-- [ ] SplitChunks 里 vendor / common / runtime 各拆的目的
-- [ ] Persistent Cache 首次慢、二次快的原因
 
 ### 必须能开口就讲(每个 30 秒简述)
-- [ ] 虚拟列表为什么快?(3 层原因:DOM 少了、transform 便宜、IntersectionObserver 非阻塞)
-- [ ] Webpack 5 相比 3 有什么大改动?(cache、asset modules、tree shaking、no Node polyfill、hash 稳定)
 - [ ] 那次白屏事故你怎么定位的?(Sentry → sourcemap → git diff → lock file → 依赖 changelog)
 
 ## 需要单独刷一遍的知识点

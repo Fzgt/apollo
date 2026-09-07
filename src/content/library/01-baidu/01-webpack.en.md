@@ -171,3 +171,17 @@ Webpack 5 decides whether a cache entry is valid from **content hashes plus depe
   → Cache poisoning (in some cases a wrong cache entry hits and the build is wrong). The fix: put a version in the cache key and bump it when something goes wrong. And in CI, a cache that is never cleared accumulates stale entries.
 - **What is Module Federation?**
   → The micro-frontend answer. One application can **load at runtime** the modules another application exposes (sharing the React instance, sharing UI components). It suits large organisations with several teams.
+
+---
+
+## Checklist before the interview (this bullet)
+
+### Must be able to draw
+- [ ] The Webpack build flow: Entry → Loader → AST → dependency graph → Plugin → Chunk → Output
+
+### Must know by heart
+- [ ] What splitting vendor / common / runtime each achieves in SplitChunks
+- [ ] Why the persistent cache makes the first build slow and the second fast
+
+### Must be able to say on demand (30 seconds)
+- [ ] What changed between Webpack 3 and 5? (cache, asset modules, tree shaking, no Node polyfills, stable hashes)

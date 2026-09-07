@@ -171,3 +171,17 @@ Webpack 5 用**内容哈希 + 依赖哈希**判定 cache 是否有效:
   → 缓存污染(某些情况下命中错误 cache 导致 build 错)。解决:cache key 加版本号,遇到问题 bump。CI 里如果不清 cache 会累积失效。
 - **Module Federation 是什么?**
   → 微前端方案。一个应用可以在运行时**动态加载**另一个应用暴露的模块(共享 React 实例、共享 UI 组件)。适合大组织多团队协作。
+
+---
+
+## 面试前 Checklist(这条)
+
+### 必须能画出来
+- [ ] Webpack build 流程:Entry → Loader → AST → 依赖图 → Plugin → Chunk → Output
+
+### 必须能背下来
+- [ ] SplitChunks 里 vendor / common / runtime 各拆的目的
+- [ ] Persistent Cache 首次慢、二次快的原因
+
+### 必须能开口就讲(30 秒)
+- [ ] Webpack 5 相比 3 有什么大改动?(cache、asset modules、tree shaking、no Node polyfill、hash 稳定)

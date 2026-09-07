@@ -465,6 +465,21 @@ An invalid "height" prop has been specified. Vertical lists must specify a numbe
 - **无限滚动 vs 分页有什么权衡?**
   → 无限滚动:体验流畅,不易返回特定位置;分页:清晰,可分享/回访 URL;混合:滚动到某个位置带 hash 更新 URL 支持后退。
 
-**必须能画图的**:
-- 虚拟列表结构:外层 spacer(容器 height=totalHeight)、内层 absolute item + translateY
-- 浏览器渲染流水线:JS → Style → Layout → Paint → Composite
+---
+
+## 面试前 Checklist(这条)
+
+### 必须能画出来
+- [ ] 虚拟列表结构:外层 spacer(容器 height=totalHeight)、内层 absolute item + translateY
+- [ ] 浏览器渲染流水线:JS → Style → Layout → Paint → Composite
+
+### 必须能背下来
+- [ ] `transform`/`opacity` 只触发 composite,`top`/`width` 触发 layout + paint + composite
+- [ ] 16.67ms 一帧,超了掉帧
+- [ ] IntersectionObserver 异步、不阻塞、不触发 layout;scroll 事件 + getBoundingClientRect 会强制 layout
+- [ ] `passive: true` 让浏览器不等 JS 处理完就滚动
+
+### 必须能开口就讲(每个 30 秒)
+- [ ] 虚拟列表为什么快?(3 层原因:DOM 少了、transform 便宜、IntersectionObserver 非阻塞)
+- [ ] 为什么不用 react-window?(上面「选型」一节)
+- [ ] 这条最大的难点是什么?(上面「两个难点」一节)

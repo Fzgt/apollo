@@ -339,6 +339,20 @@ The wheel already exists — why did you build one? Miss this and the depth late
 - **Infinite scroll vs pagination — what's the trade-off?**
   → Infinite scroll: smooth, but hard to return to a specific position. Pagination: clear, and the URL can be shared or revisited. Hybrid: update a hash in the URL as you scroll so the back button works.
 
-**Things you must be able to draw**:
-- The structure of a virtualized list: the outer spacer (container height = totalHeight), the inner absolute items with translateY
-- The browser rendering pipeline: JS → Style → Layout → Paint → Composite
+---
+
+## Checklist before the interview (this bullet)
+
+### Must be able to draw
+- [ ] The structure of a virtualized list: the outer spacer (container height = totalHeight), the inner absolute items with translateY
+- [ ] The browser rendering pipeline: JS → Style → Layout → Paint → Composite
+
+### Must know by heart
+- [ ] `transform`/`opacity` are composite only; `top`/`width` trigger layout + paint + composite
+- [ ] 16.67ms per frame; over that, you drop one
+- [ ] IntersectionObserver is asynchronous, non-blocking and doesn't force layout; a scroll listener plus getBoundingClientRect does force layout
+- [ ] `passive: true` lets the browser scroll without waiting for your JS
+
+### Must be able to say on demand (30 seconds each)
+- [ ] Why is a virtualized list fast? (three reasons: fewer DOM nodes, transform is cheap, IntersectionObserver doesn't block)
+- [ ] Why not react-window? (the "choosing" section above)

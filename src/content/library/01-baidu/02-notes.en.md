@@ -430,28 +430,19 @@ The frontend only calls `bridge.call('share', { title, desc, imageUrl, link })` 
 ---
 
 
-## Checklist before the interview (the Baidu part)
+## Checklist before the interview (these three bullets)
+
+> The virtualized-list and Webpack checklists live in their own notes, not here.
 
 ### Must be able to draw
-- [ ] The browser rendering pipeline: JS → Style → Layout → Paint → Composite
-- [ ] The structure of a virtualized list: outer spacer + absolute items + translateY
 - [ ] The two-way jsBridge: H5 ↔ WebView ↔ native
-- [ ] The Webpack build flow: Entry → Loader → AST → dependency graph → Plugin → Chunk → Output
 
 ### Must know by heart
-- [ ] `transform`/`opacity` are composite only; `top`/`width` trigger layout + paint + composite
-- [ ] 16.67ms per frame; over that, you drop one
-- [ ] IntersectionObserver is asynchronous, non-blocking and doesn't force layout; a scroll listener plus getBoundingClientRect does force layout
-- [ ] `passive: true` lets the browser scroll without waiting for your JS
 - [ ] `npm ci` in CI, `npm install` locally
 - [ ] `^` allows minor and patch, `~` only patch
 - [ ] MINOR is compatible in theory and broken often in practice
-- [ ] What splitting vendor / common / runtime each achieves in SplitChunks
-- [ ] Why the persistent cache makes the first build slow and the second fast
 
 ### Must be able to say on demand (30 seconds each)
-- [ ] Why is a virtualized list fast? (three reasons: fewer DOM nodes, transform is cheap, IntersectionObserver doesn't block)
-- [ ] What changed between Webpack 3 and 5? (cache, asset modules, tree shaking, no Node polyfills, stable hashes)
 - [ ] How did you diagnose that white screen? (Sentry → source map → git diff → lockfile → the dependency's changelog)
 
 ## Topics worth a separate pass
