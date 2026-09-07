@@ -33,7 +33,8 @@ icon: landmark
 浏览器渲染流水线(**必背**):
 
 ```
-JS → Style(样式计算) → Layout(布局) → Paint(绘制) → Composite(合成)
+JS → Style(样式计算) → Layout(布局) → Paint(记录绘制指令)
+   → Layerize(分层) → Raster(栅格化) → Composite(合成) → Display(上屏)
 ```
 
 每一帧(16.67ms 才能保持 60 FPS)内必须走完这条流水线。
@@ -41,8 +42,12 @@ JS → Style(样式计算) → Layout(布局) → Paint(绘制) → Composite(�
 - **JS**:执行你的代码,React 触发 reconciliation,状态更新
 - **Style**:计算每个元素最终的 CSS 属性(继承、层叠、选择器匹配)
 - **Layout(Reflow)**:计算每个元素的**几何信息**(位置、大小)。⭐ 500 个 DOM 节点意味着 500 个几何计算,单次 layout 可能就要 5–10ms
-- **Paint**:把每一层像素画出来。文字栅格化、边框、阴影都算 paint,阴影/圆角 paint 慢
-- **Composite**:把多个绘制层合并成最终画面(GPU)
+- **Paint**:⚠️ **不画像素**,产出的是一份**绘制指令列表**(display list / paint ops)——「这里画个圆角矩形、这里画一行文字」。成本随绘制项的数量和复杂度涨
+- **Layerize(分层)**:决定切成几个合成层。⚠️ **层不是 Paint 生成的,这是单独一步**;Chromium 从 90 前后的 CompositeAfterPaint 起,顺序是先 paint 出整份指令列表、再据此分层
+- **Raster(栅格化)**:把绘制指令真正跑成**位图图块(tile)**,在 raster 线程或 GPU 上做。**文字栅格化、阴影、圆角慢在这一步,不是 paint**
+- **Composite**:合成线程把栅格化好的图块生成 **draw quads**、打包成一帧(compositor frame)交给 GPU 进程合成上屏
+
+**背这一句就够**:Paint 记录绘制指令,Raster 把指令栅格化成图块位图,Composite 由合成线程把图块拼成一帧交给 GPU 上屏。**说「Paint 画像素、Paint 产生图层」是错的,这两句最常被拿来判断你是背的还是懂的。**
 
 **500 个节点的痛**:
 - 首屏渲染:Style + Layout + Paint 都乘以 500,首屏可能几百毫秒
@@ -107,7 +112,9 @@ DOM 中只保留可视区域的十来行 + 上下各几行 overscan = 约 15 行
 
 滚动时几百次位置变化,如果用 `top`,每次都 layout + paint,直接卡死。用 `transform` 只 composite,GPU 做,主线程无压力。
 
-**深入原理**:`transform` 会创建 GPU 合成层(compositor layer),浏览器把这个元素单独渲染到一个 GPU 纹理上,滚动时只是 GPU 移动纹理位置,不用重新绘制像素。
+**深入原理**:`transform` 会创建 GPU 合成层(compositor layer),浏览器把这个元素单独栅格化到一张 GPU 纹理上,滚动时只是改这层的变换矩阵重新拼帧,**既不重新 paint 也不重新 raster**。
+
+⭐ **加分的半句**:改 `transform` 可以**完全跑在合成线程上,不需要主线程参与**——所以主线程被长任务卡住时,合成层上的 transform 动画照样流畅。这半句大部分人答不到,被问「为什么 transform 只走 composite」时补上去。
 
 **副作用**:大量 layer 也会耗内存,不能滥用 `will-change: transform`。
 

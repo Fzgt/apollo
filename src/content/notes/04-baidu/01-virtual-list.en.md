@@ -17,9 +17,13 @@ section: Baidu
 
 **Layout (reflow)** — the browser recomputing every node's position and size. **Cost grows linearly with node count, and it is the most expensive step.**
 
-**Paint** — turning nodes into pixels.
+**Paint** — **does not draw pixels**. It produces a **display list of draw commands** ("rounded rect here, line of text there").
 
-**Composite** — assembling painted layers and handing them to the GPU. **The cheapest step.**
+**Raster** — actually executing those commands into **bitmap tiles**, on raster threads or the GPU. **Text rasterisation, shadows and rounded corners are slow here.**
+
+**Layerize** — deciding how many compositing layers to cut. **Layers are not produced by paint; this is its own step** — since CompositeAfterPaint (around Chromium 90) the document is painted into one display list first, and the layers are decided from it.
+
+**Composite** — the compositor thread turns rastered tiles into draw quads and assembles a frame for the GPU. **The cheapest step.**
 
 **Forced synchronous layout (layout thrashing)** — reading a geometric property in JS (`offsetTop`, `getBoundingClientRect`) forces the browser to **run layout synchronously right now** to give you an accurate answer.
 
@@ -48,8 +52,12 @@ A browser frame goes through five steps, and **that pipeline is the foundation o
 1. **JS** — cost grows with code.
 2. **Style** — which CSS rules apply to each node; **cost grows with node count.**
 3. **Layout (reflow)** — positions and sizes; **cost grows with node count, and this is the expensive one.**
-4. **Paint** — cost grows with pixel area.
-5. **Composite** — cost grows with layer count.
+4. **Paint** — records draw commands; cost grows with the number and complexity of display items.
+5. **Layerize** — decides how many compositing layers to cut.
+6. **Raster** — executes the commands into bitmap tiles; cost grows with pixel area.
+7. **Composite** — the compositor thread assembles the frame for the GPU; cost grows with layer count.
+
+**Saying "five steps" passes unchallenged, but if you are asked what happens between Paint and Composite and cannot name Raster, it shows.**
 
 **Layout is expensive because one node's position affects the position of everything after it**, so the cost is linear in total nodes.
 
@@ -98,7 +106,9 @@ So it is two layers:
 - Changing background colour or shadow → **paint + composite**.
 - Changing **`transform` or `opacity`** → **composite only**; the GPU moves the layer and **the CPU is barely involved.**
 
-Because changing `top` changes the element's **position in document flow, which affects others, so layout must rerun**; changing `transform` **moves an already-painted image**, and in document flow the element never moved, so nothing else is affected and the browser can hand the translation to the GPU.
+Because changing `top` changes the element's **position in document flow, which affects others, so layout must rerun**; changing `transform` **moves an already-rastered image**, and in document flow the element never moved, so nothing else is affected — the browser only updates that layer's transform matrix and reassembles the frame.
+
+**The half-sentence that scores**: a transform change can run **entirely on the compositor thread, with no main-thread involvement** — when the main thread is blocked by a long task, a transform animation on a composited layer keeps running smoothly.
 
 ## Where "100" comes from
 
@@ -184,7 +194,7 @@ One honest addition: **the card heights were never uniform** — some have cover
 
 ## The 30-second answer
 
-> It is a feed page in the range of five million daily page views. The problem is that infinite scroll grows the DOM without bound — ten screens is two hundred-odd items, and after a while five hundred or more, and scrolling drops to thirty frames. The key realisation is that the user can only see about a dozen items at once, and the rest only have to pretend to exist. So I wrote a useVirtualList that renders the visible window plus a few items of overscan, with an outer spacer holding the scrollbar honest and each item positioned by a transform translate. The real win is not the node count, it is the change in growth: before, DOM count grew with how much had been loaded; after, it is a function of viewport height and independent of data volume, so ten thousand items still means twenty-odd nodes. Scrolling returned to a stable sixty.
+> It is a feed page in the range of five million daily page views. The problem is that infinite scroll grows the DOM without bound — ten screens is two hundred-odd items, and after a while five hundred or more, and scrolling drops to thirty frames. The key realisation is that the user can only see about a dozen items at once, and the rest only have to pretend to exist. So I wrote a useVirtualList that renders the visible window plus a few items of overscan, with an outer spacer holding the scrollbar honest and each item positioned by a transform translate. The real win is not the node count, it is the change in growth: before, DOM count grew with how much had been loaded; after, it is a function of viewport height and independent of data volume, so ten thousand items still means the same dozen-odd rows, around a hundred nodes. Scrolling returned to a stable sixty.
 
 ## Self-check
 

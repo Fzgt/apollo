@@ -32,7 +32,8 @@ section: Baidu
 The browser rendering pipeline (**memorise this**):
 
 ```
-JS → Style (style calculation) → Layout → Paint → Composite
+JS → Style → Layout → Paint (record draw commands)
+   → Layerize → Raster → Composite → Display
 ```
 
 Every frame (16.67ms if you want to hold 60 FPS) has to get through the whole pipeline.
@@ -40,8 +41,12 @@ Every frame (16.67ms if you want to hold 60 FPS) has to get through the whole pi
 - **JS**: runs your code, React triggers reconciliation, state updates
 - **Style**: computes the final CSS properties of every element (inheritance, cascade, selector matching)
 - **Layout (reflow)**: computes the **geometry** of every element (position, size). ⭐ 500 DOM nodes means 500 geometry calculations, and a single layout can take 5–10ms
-- **Paint**: draws the pixels of each layer. Text rasterisation, borders and shadows are all paint; shadows and rounded corners paint slowly
-- **Composite**: merges the painted layers into the final image (on the GPU)
+- **Paint**: ⚠️ **does not draw pixels**. It produces a **display list of draw commands** ("rounded rect here, line of text there"). Cost grows with the number and complexity of display items
+- **Layerize**: decides how many compositing layers to cut. ⚠️ **Layers are not produced by Paint — this is its own step.** Since CompositeAfterPaint (around Chromium 90) the order is: paint the whole document into one display list, then decide the layers from it
+- **Raster**: actually executes the draw commands into **bitmap tiles**, on raster threads or the GPU. **Text rasterisation, shadows and rounded corners are slow here, not in paint**
+- **Composite**: the compositor thread turns the rastered tiles into **draw quads**, packs them into a compositor frame and hands it to the GPU process to put on screen
+
+**The one sentence to memorise**: Paint records draw commands, Raster rasterises them into bitmap tiles, and Composite has the compositor thread assemble the tiles into a frame for the GPU. **"Paint draws the pixels" and "Paint produces the layers" are both wrong, and they are the two lines interviewers use to tell whether you memorised this or understand it.**
 
 **Where 500 nodes hurt**:
 - First render: Style + Layout + Paint all multiplied by 500, so the first screen can take hundreds of milliseconds
@@ -106,7 +111,9 @@ The answer: **set the outer container's height to `1000 × itemHeight`** (the to
 
 Scrolling means hundreds of position changes; with `top` each one is a layout plus a paint, and it locks up. With `transform` it's composite only, done on the GPU, with no pressure on the main thread.
 
-**The mechanism**: `transform` creates a GPU compositor layer, the browser renders that element into its own GPU texture, and scrolling just moves the texture — no pixels are redrawn.
+**The mechanism**: `transform` creates a GPU compositor layer, the browser rasters that element into its own GPU texture, and scrolling just changes that layer's transform matrix and reassembles the frame — **no repaint and no re-raster**.
+
+⭐ **The half-sentence that scores**: a `transform` change can run **entirely on the compositor thread, with no main-thread involvement** — so when the main thread is blocked by a long task, a transform animation on a composited layer keeps running smoothly. Most candidates never get this far; add it when asked "why does transform only hit composite".
 
 **The downside**: many layers also cost memory, so don't scatter `will-change: transform` everywhere.
 
