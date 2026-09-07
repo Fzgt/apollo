@@ -63,6 +63,8 @@ A browser frame goes through five steps, and **that pipeline is the foundation o
 
 **That is why 500 nodes drops frames: not memory, but recomputing layout for all 500 every single frame.**
 
+⚠️ **State the causality as accumulation, not as a first-render problem.** The first screen mounts nine cards and a hundred-odd nodes — identical to the optimised version, and perfectly smooth. It is infinite scroll appending without ever unmounting: DOM count grows without bound as pages load, per-frame Style/Layout cost grows linearly with it, and frames only start missing 16.7ms once it has grown enough — **the user's experience is "smooth on open, stuttery after two or three minutes", not broken on arrival.** Framing it as a first-render problem gives you away.
+
 ## Why exactly 30
 
 **This number is not a shrug, and being able to derive it raises your credibility noticeably.**
@@ -113,12 +115,16 @@ Because changing `top` changes the element's **position in document flow, which 
 ## Where "100" comes from
 
 ```
-rendered rows = ceil(viewport height / item height) + overscan × 2 + 1
+rendered cards = cards visible on screen + overscan × 2
 ```
 
-With typical mobile values — viewport 600, item 80, overscan 3 — that is **8 + 6 + 1 ≈ 15 rows**.
+This feed fits four to six cards on a screen; call it 5, with 2 buffered on each side — **5 + 4 ≈ 9 cards**.
 
-**Note those are rows, not nodes.** One feed card is an outer container, an image container, the image, a duration badge, a right column, a title, a footer, an author and a play count — **eight or nine elements minimum.** 15 rows × 8–9 elements ≈ **110**, which is the 100 on the resume.
+**Use "how many fit on a screen" as the input, not a card height in pixels.** The interviewer will ask how many items fit on a screen, never how tall a card is; a specific px is just one more number you have to defend.
+
+**Note those are cards, not nodes.** One feed card is an outer container, a cover container, the cover image, a badge, a title, an author row, an avatar, the author name, a play/like count and an overflow button — **about ten elements minimum.** 9 cards × ~10 elements ≈ **100**, which is the 100 on the resume.
+
+**Fixed height is the premise.** Article cards and video cards share one height, which is what lets the offset be a straight multiplication. Asked "what if heights vary": place with an estimated height, measure the real height once the card mounts, cache it and backfill the offsets below — at the cost of a jittering scrollbar length.
 
 **Overscan is a trade-off, not a "smaller is better".** At 0 or 1 you get fewer nodes but fast scrolling outruns mounting and **the user sees a blank flash.** At 5–10 scrolling is smooth but node count and memory climb back.
 
@@ -194,7 +200,7 @@ One honest addition: **the card heights were never uniform** — some have cover
 
 ## The 30-second answer
 
-> It is a feed page in the range of five million daily page views. The problem is that infinite scroll grows the DOM without bound — ten screens is two hundred-odd items, and after a while five hundred or more, and scrolling drops to thirty frames. The key realisation is that the user can only see about a dozen items at once, and the rest only have to pretend to exist. So I wrote a useVirtualList that renders the visible window plus a few items of overscan, with an outer spacer holding the scrollbar honest and each item positioned by a transform translate. The real win is not the node count, it is the change in growth: before, DOM count grew with how much had been loaded; after, it is a function of viewport height and independent of data volume, so ten thousand items still means the same dozen-odd rows, around a hundred nodes. Scrolling returned to a stable sixty.
+> It is a feed page in the range of five million daily page views. The problem is that infinite scroll grows the DOM without bound — ten screens is two hundred-odd items, and after a while five hundred or more, and scrolling drops to thirty frames. The key realisation is that the user can only see four to six cards at once, and the rest only have to pretend to exist. So I wrote a useVirtualList that renders the visible window plus a few items of overscan, with an outer spacer holding the scrollbar honest and each item positioned by a transform translate. The real win is not the node count, it is the change in growth: before, DOM count grew with how much had been loaded; after, it is a function of viewport height and independent of data volume, so ten thousand items still means the same nine cards, around a hundred nodes. Scrolling returned to a stable sixty.
 
 ## Self-check
 

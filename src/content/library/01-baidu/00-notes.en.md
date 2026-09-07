@@ -48,47 +48,57 @@ Every frame (16.67ms if you want to hold 60 FPS) has to get through the whole pi
 
 **The one sentence to memorise**: Paint records draw commands, Raster rasterises them into bitmap tiles, and Composite has the compositor thread assemble the tiles into a frame for the GPU. **"Paint draws the pixels" and "Paint produces the layers" are both wrong, and they are the two lines interviewers use to tell whether you memorised this or understand it.**
 
-**Where 500 nodes hurt**:
-- First render: Style + Layout + Paint all multiplied by 500, so the first screen can take hundreds of milliseconds
-- Scrolling: each scroll may trigger layout (`sticky`, `getBoundingClientRect`), and with 500 nodes a single layout stutters
-- Memory: each node costs kilobytes, so 500 of them can be several MB
+**⚠️ This is not a first-render problem, it is an accumulation problem — getting the causality wrong gives you away.**
+
+The first screen mounts about a dozen cards and a hundred-odd nodes — **no different from the optimised version, and perfectly smooth.** The dropped frames are scrolled into existence:
+
+1. **The DOM only grows** — infinite scroll appends a page at a time and never unmounts the cards that scrolled away. Ten screens is two hundred-odd items; a few minutes of flicking is five hundred or more.
+2. **Per-frame cost grows linearly with node count** — Style has to compute styles for every node and Layout has to compute geometry for every node. At 500 nodes a single layout is 5–10ms, and with JS and raster on top the 16.7ms frame budget is gone.
+3. **So it feels gradual** — the user's experience is "smooth when I open it, stuttery after two or three minutes, unusable after that", **not broken on arrival**. Say this line; it shows you watched the problem happen rather than memorised it.
+4. **Memory climbs with it** — kilobytes per node, and five hundred cards plus their images is tens of MB, which on low-end devices adds GC pauses on top.
+
+**The causality in one line**: DOM count grows without bound as more pages load → per-frame Style/Layout cost grows linearly → a frame exceeds 16.7ms → the further you scroll, the worse it gets. **What a virtualized list changes is that growth relationship, not any single number.**
 
 #### ② The core idea of a virtualized list
-**A user can only see a dozen or so rows in the viewport at once**, so keep only those in the DOM and let the rest merely "pretend" to exist.
+**A user can only see four to six cards on screen at once**, so keep only those in the DOM and let the rest merely "pretend" to exist.
 
 ```
-data (1000 rows)
+data (1000+ items, unbounded)
     ↓
-visible region (0–800px) ← what the user sees
+visible region ← the user sees 4–6 cards at a time
     ↓
-the DOM holds the visible rows + a few overscan rows above and below = about 15 rows
+the DOM holds the visible cards + a few overscan cards above and below ≈ 9
 ```
 
-The number of rendered rows is computed:
+The number of rendered cards is computed:
 
 ```
-rendered rows = ceil(viewport height / row height) + overscan × 2 + 1
+rendered cards = cards visible on screen + overscan × 2
 ```
 
-With typical mobile values — viewport 600, row 80, overscan 3 — that is `8 + 6 + 1 = 15 rows`.
+Five on screen and two buffered on each side is `5 + 4 = 9 cards`.
 
-⚠️ **A "row" is not a "node", and the 100 on your résumé counts nodes.** One feed card contains an outer wrapper, a thumbnail wrapper, the image itself, a duration badge, a right-hand column, the title, a footer, the author and the view count — **eight or nine elements at a minimum**. So **15 rows × 8–9 elements ≈ 110 nodes**, and that is what `live DOM nodes stay near 100` refers to.
+⚠️ **Use "how many fit on a screen" as the input, not a pixel value.** The interviewer will ask how many cards fit on a screen, never how tall a card is; quoting a specific px only makes you accountable for it.
 
-**Three numbers that matter**:
-- rows of data: 1000
-- rendered rows: ~15
-- **DOM nodes: ~100 (= 15 rows × eight or nine elements each)**
+⚠️ **"Cards" are not "nodes", and the 100 on your résumé counts nodes.** One feed card contains an outer wrapper, a thumbnail wrapper, the cover image, a badge, the title, an author row, the avatar, the author name, a play/like count and an overflow button — **about ten elements at a minimum**. So **9 cards × ~10 elements ≈ 100 nodes**, and that is what `live DOM nodes stay near 100` refers to.
 
-**Overscan is a trade-off, not something to minimise**: drop it to 0 or 1 and you hold fewer nodes, but during a fast flick the new rows are not mounted yet and the user sees blank space first (a blank flash); push it to 5–10 and scrolling is smooth, but the node count and memory climb back up. When asked "why not set overscan to 0 and hold even fewer nodes", the answer is the blank flash.
+**Three numbers, do not mix them up**:
+- items of data: 1000+, **unbounded**
+- **cards mounted at once: ~9**
+- **DOM nodes: ~100 (= 9 cards × about ten elements each)**
+
+**Fixed height is the premise here.** In this feed the article cards and the video cards share one height, so each card's offset is a straight multiplication. Asked "what if heights vary": place cards using an estimated height, measure the real height once a card mounts, cache it, and backfill the offsets of the cards below — at the cost of a scrollbar length that jitters.
+
+**Overscan is a trade-off, not something to minimise**: drop it to 0 and you hold fewer nodes, but during a fast flick the next card is not mounted yet and the user sees blank space first (a blank flash); push it to 5–10 and scrolling is smooth, but the node count and memory climb back up. When asked "why not set overscan to 0 and hold even fewer nodes", the answer is the blank flash.
 
 While scrolling:
 1. Compute the scroll position
-2. Work out that rows 300–314 should be showing
-3. Remove the DOM for the previously shown rows 280–294 and insert 300–314
-4. Use `translateY` to put the new items at the right scroll offset
+2. Work out that cards 300–308 should be showing
+3. Unmount the cards that have scrolled out of the buffer and mount the ones coming in
+4. Use `translateY` to put each card at the scroll offset it belongs to
 
 #### ③ The spacer trick that keeps the scrollbar honest
-The problem: there are only a dozen or so rows in the DOM, so how does the browser know the scrollbar should be as long as 1000 rows?
+The problem: there are only nine cards in the DOM, so how does the browser know the scrollbar should be as long as 1000 rows?
 
 The answer: **set the outer container's height to `1000 × itemHeight`** (the total height of every row) and position the inner items with `position: absolute` plus `translateY`.
 
@@ -248,7 +258,7 @@ The `passive: true` in `el.addEventListener('scroll', fn, { passive: true })`:
 
 #### Attributing 30 FPS → 60 FPS to specific changes
 An interviewer may ask "which step actually raised the frame rate?":
-1. **Fewer DOM nodes**: from over five hundred down to a constant hundred or so (14–15 rows rendered × eight or nine elements per card), so layout time falls from ~10ms to ~0.5ms and the JS/Layout part of the frame is freed
+1. **Fewer DOM nodes**: from over five hundred down to a constant hundred or so (9 cards rendered × about ten elements per card), so layout time falls from ~10ms to ~0.5ms and the JS/Layout part of the frame is freed
 2. **`translateY` instead of `top`**: each scroll is composite only, done on the GPU, with no main-thread cost
 3. **`passive: true`**: the scroll event no longer blocks compositing
 4. **IntersectionObserver instead of scroll checks**: no `getBoundingClientRect` per scroll, so no forced synchronous layout (FSL)
