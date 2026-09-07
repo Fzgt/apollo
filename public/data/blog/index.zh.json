@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-07T14:23:02.039Z",
+  "syncedAt": "2026-09-07T14:26:33.040Z",
   "translated": [
     77,
     76,
@@ -228,7 +228,7 @@
   "posts": [
     {
       "number": 77,
-      "title": "Next.js 与 SPA 的性能账 —— 赚首屏和 bundle，赔 TTFB 和服务器成本，交互没变",
+      "title": "Next.js 与 SPA 的性能差异 —— 首屏、bundle、数据瀑布更优，TTFB、跳转下限、服务端成本更差，INP 不变",
       "labels": [
         {
           "name": "React",
@@ -244,7 +244,7 @@
         }
       ],
       "createdAt": "2026-09-07T14:18:59Z",
-      "updatedAt": "2026-09-07T14:22:47Z",
+      "updatedAt": "2026-09-07T14:26:13Z",
       "url": "https://github.com/Fzgt/Blog/issues/77",
       "excerpt": "问：那 Next.js 玩的这一套，与常规 SPA 相比，性能更好了吗？ 分指标看，不是一句「更好」能概括的。 明确变好的 首屏可见速度（FCP/LCP）。 这是最确定的收益。SPA 要等 HTML → JS bundle → 执行 → 请求数据 → 渲染，首屏至少三个串行往返。…",
       "headings": [

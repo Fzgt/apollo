@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-07T14:23:02.039Z",
+  "syncedAt": "2026-09-07T14:26:33.040Z",
   "translated": [
     77,
     76,
@@ -228,7 +228,7 @@
   "posts": [
     {
       "number": 77,
-      "title": "The Next.js vs SPA Performance Ledger: Gains in First Paint and Bundle Size, Losses in TTFB and Server Cost, Interaction Unchanged",
+      "title": "Next.js vs SPA Performance: First Paint, Bundle Size and Data Waterfalls Improve; TTFB, Navigation Floor and Server Cost Regress; INP Unchanged",
       "labels": [
         {
           "name": "React",
@@ -244,7 +244,7 @@
         }
       ],
       "createdAt": "2026-09-07T14:18:59Z",
-      "updatedAt": "2026-09-07T14:22:47Z",
+      "updatedAt": "2026-09-07T14:26:13Z",
       "url": "https://github.com/Fzgt/Blog/issues/77",
       "excerpt": "Q: Everything Next.js does — is it actually faster than a regular SPA? Metric by metric. \"Faster\" is not a single answer. Clearly better Tim…",
       "headings": [
