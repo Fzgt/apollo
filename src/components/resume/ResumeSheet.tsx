@@ -70,10 +70,11 @@ function Bullet({
 /** 中文补在英文后面，跟原句同一行——地点、职位这类短语这样读最省地方 */
 function Inline({ zh, bilingual }: { zh?: string; bilingual: boolean }) {
   if (!bilingual || !zh) return null;
+  // 中文不跟着斜：无衬线中文没有真正的斜体，浏览器只会硬拉一个伪斜体
   return (
     <span
       lang="zh-CN"
-      className="ml-1.5 font-sans text-[12.5px] text-[#6b6b6b]"
+      className="ml-1.5 font-sans text-[12.5px] not-italic text-[#6b6b6b]"
     >
       {zh}
     </span>
@@ -100,8 +101,9 @@ function Entry({
         </span>
       </div>
 
+      {/* 职位和地点这行在 PDF 里是 Times-Italic + #5C5C5C，纸面照抄 */}
       {(entry.subtitle || entry.subMeta) && (
-        <div className="flex items-baseline justify-between gap-4 text-[13.5px] text-[#5b5b5b]">
+        <div className="flex items-baseline justify-between gap-4 text-[13.5px] italic text-[#5b5b5b]">
           <span>
             {entry.subtitle?.en}
             <Inline zh={entry.subtitle?.zh} bilingual={bilingual} />
