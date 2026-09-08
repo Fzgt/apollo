@@ -58,5 +58,8 @@ export function headingIdByLine(markdown: string): Map<number, string> {
 
 /** 目录条目显示用的文本：把行内 markdown 标记剥掉 */
 export function plainHeadingText(text: string): string {
-  return text.replace(/`([^`]*)`/g, '$1').replace(/\*\*?([^*]*)\*?\*/g, '$1');
+  return text
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/~~([^~]*)~~/g, '$1')
+    .replace(/\*\*?([^*]*)\*?\*/g, '$1');
 }
