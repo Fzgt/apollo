@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-07T14:33:49.137Z",
+  "syncedAt": "2026-09-08T05:47:14.492Z",
   "translated": [
     77,
     76,
@@ -1605,9 +1605,9 @@
         }
       ],
       "createdAt": "2025-08-17T15:50:34Z",
-      "updatedAt": "2026-07-29T01:52:46Z",
+      "updatedAt": "2026-09-08T05:45:27Z",
       "url": "https://github.com/Fzgt/Blog/issues/14",
-      "excerpt": "https://ke.qq.com/webcourse/1647350/103691469#taid=12145403010556662&vid=387702293148710449 Video playback engines are all WebAssembly now. …",
+      "excerpt": "Before you read (corrected 2026-09): these are course notes from the webpack 4 → 5 era; the frame of reference stops around 2021. Back then …",
       "headings": [
         "I/O",
         "Tooling",

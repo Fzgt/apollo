@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-07T14:33:49.137Z",
+  "syncedAt": "2026-09-08T05:47:14.492Z",
   "translated": [
     77,
     76,
@@ -1606,9 +1606,9 @@
         }
       ],
       "createdAt": "2025-08-17T15:50:34Z",
-      "updatedAt": "2026-07-29T01:52:46Z",
+      "updatedAt": "2026-09-08T05:45:27Z",
       "url": "https://github.com/Fzgt/Blog/issues/14",
-      "excerpt": "https://ke.qq.com/webcourse/1647350/103691469#taid=12145403010556662&vid=387702293148710449 现在视频的播放引擎里面都是webAssembly。 Webpack的软肋是JS，JS运行在JIT…",
+      "excerpt": "阅读前提（2026-09 订正）：本文是 webpack 4 → 5 时代的课程笔记，坐标系停在 2021 年左右。 当时的现实：webpack 是默认选择，讨论的是「4 还是 5」。 2026 年的现实：webpack 仍在维护（5.110.3，2026-09-01 发版），但…",
       "headings": []
     },
     {
