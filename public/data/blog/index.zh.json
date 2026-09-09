@@ -1,7 +1,8 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-09T08:51:30.098Z",
+  "syncedAt": "2026-09-09T09:07:54.655Z",
   "translated": [
+    84,
     77,
     76,
     62,
@@ -142,6 +143,16 @@
       ]
     },
     {
+      "name": "图形学",
+      "hint": "WebGL/WebGPU、Three.js、react-three-fiber、3D 资源",
+      "numbers": [
+        86,
+        85,
+        84,
+        87
+      ]
+    },
+    {
       "name": "部署与云",
       "hint": "Serverless、边缘计算、去中心化部署",
       "numbers": [
@@ -238,6 +249,116 @@
     }
   ],
   "posts": [
+    {
+      "number": 87,
+      "title": "3D 资源管线 —— glTF / USDZ、Draco、KTX2 与 gzip 的冲突，以及底层的 WASM",
+      "labels": [
+        {
+          "name": "性能优化",
+          "color": "ffffff"
+        },
+        {
+          "name": "图形学",
+          "color": "5319e7"
+        }
+      ],
+      "createdAt": "2026-09-09T09:06:19Z",
+      "updatedAt": "2026-09-09T09:06:19Z",
+      "url": "https://github.com/Fzgt/Blog/issues/87",
+      "excerpt": "3D 项目的体积大头不是代码，是资源——模型和纹理。这一篇讲格式怎么选、怎么压，以及为什么这些压缩工具底层全是 WebAssembly。 --- 一、模型格式 glTF —— 事实标准 Khronos Group 推行的格式，被称为「3D 界的 JPEG」。Blender 等主流…",
+      "headings": [
+        "一、模型格式",
+        "二、模型压缩：Draco",
+        "三、纹理格式：KTX2 才是正解",
+        "四、PBR 材质",
+        "五、加载策略",
+        "六、这些工具底层全是 WebAssembly",
+        "相关"
+      ]
+    },
+    {
+      "number": 86,
+      "title": "前端图形学全景 —— 引擎分层、Three.js 在哪一层、WebGL 为什么要被 WebGPU 取代",
+      "labels": [
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        },
+        {
+          "name": "图形学",
+          "color": "5319e7"
+        }
+      ],
+      "createdAt": "2026-09-09T09:06:17Z",
+      "updatedAt": "2026-09-09T09:06:17Z",
+      "url": "https://github.com/Fzgt/Blog/issues/86",
+      "excerpt": "前端做 3D，第一个要回答的问题不是\"用哪个库\"，而是你要做的这件事在图形学的哪一层。这一篇从引擎分层讲起，然后是 WebGL 到 WebGPU 的换代原因，最后是渲染管线本身。 --- 一、先看清楚 Three.js 在哪一层 一个游戏引擎大致分四层，从下往上： | 层 | 内…",
+      "headings": [
+        "一、先看清楚 Three.js 在哪一层",
+        "二、选型",
+        "三、为什么要有 WebGPU",
+        "四、渲染管线",
+        "五、离线渲染 vs 实时渲染",
+        "六、其他值得知道的",
+        "相关"
+      ]
+    },
+    {
+      "number": 85,
+      "title": "Three.js 与 react-three-fiber —— 对象模型、交互、custom renderer 原理与生态",
+      "labels": [
+        {
+          "name": "React",
+          "color": "0075ca"
+        },
+        {
+          "name": "图形学",
+          "color": "5319e7"
+        }
+      ],
+      "createdAt": "2026-09-09T09:06:15Z",
+      "updatedAt": "2026-09-09T09:06:15Z",
+      "url": "https://github.com/Fzgt/Blog/issues/85",
+      "excerpt": "这一篇讲 Three.js 的对象模型、交互怎么做，以及为什么在 React 项目里应该直接上 react-three-fiber。 --- 一、Three.js 的对象模型 四个核心对象，装配关系是固定的： - 场景（Scene）挂到渲染器（Renderer）上 - 相机挂在场…",
+      "headings": [
+        "一、Three.js 的对象模型",
+        "二、动画",
+        "三、交互：这是 r3f 价值最明显的地方",
+        "四、react-three-fiber 的原理",
+        "五、r3f 生态（pmndrs 团队）",
+        "六、物理引擎：别用裸 Three.js 硬顶",
+        "七、r3f 和 Three.js 怎么选",
+        "八、一个实战例子：Cuberun"
+      ]
+    },
+    {
+      "number": 84,
+      "title": "Three.js 性能优化 —— 39 条，按监控 / 场景 / 资源 / 渲染器 / 着色器分层",
+      "labels": [
+        {
+          "name": "性能优化",
+          "color": "ffffff"
+        },
+        {
+          "name": "图形学",
+          "color": "5319e7"
+        }
+      ],
+      "createdAt": "2026-09-09T09:06:13Z",
+      "updatedAt": "2026-09-09T09:06:13Z",
+      "url": "https://github.com/Fzgt/Blog/issues/84",
+      "excerpt": "整理自课程笔记与 Three.js Journey 的性能优化章节，参考 discoverthreejs.com。原始笔记基于较早的 three.js 版本，其中几条 API 已经变了，本文按当前版本订正过，订正点在文末列出。 目标是 60fps，游戏玩家的设备可能要求更高。瓶颈…",
+      "headings": [
+        "一、监控",
+        "二、基础",
+        "三、灯光",
+        "四、阴影",
+        "五、纹理",
+        "六、几何体",
+        "七、材质",
+        "八、Mesh"
+      ]
+    },
     {
       "number": 83,
       "title": "组件库开发体验 —— Storybook、Tailwind 原子化的真实收益与代价、MSW",
