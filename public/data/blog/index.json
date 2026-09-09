@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-09T06:19:39.723Z",
+  "syncedAt": "2026-09-09T06:24:25.227Z",
   "translated": [
     77,
     76,
@@ -1385,15 +1385,16 @@
         }
       ],
       "createdAt": "2026-07-27T01:53:05Z",
-      "updatedAt": "2026-07-28T00:07:53Z",
+      "updatedAt": "2026-09-09T06:24:01Z",
       "url": "https://github.com/Fzgt/Blog/issues/25",
-      "excerpt": "How useState and useReducer relate The short answer useState is sugar over useReducer. Same dispatch machinery underneath; React just suppli…",
+      "excerpt": "How useState and useReducer relate The short answer useState is a special case of useReducer. Same hook list and dispatch machinery undernea…",
       "headings": [
         "The short answer",
         "React's built-in default reducer (it really is in the source)",
         "The core difference: action means different things",
         "Side by side",
-        "Which one to reach for"
+        "Which one to reach for",
+        "Where they actually differ: eager state"
       ]
     },
     {

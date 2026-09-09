@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-09T06:19:39.723Z",
+  "syncedAt": "2026-09-09T06:24:25.227Z",
   "translated": [
     77,
     76,
@@ -1389,15 +1389,16 @@
         }
       ],
       "createdAt": "2026-07-27T01:53:05Z",
-      "updatedAt": "2026-07-28T00:07:53Z",
+      "updatedAt": "2026-09-09T06:24:01Z",
       "url": "https://github.com/Fzgt/Blog/issues/25",
-      "excerpt": "useState 与 useReducer 的关系 一句话结论 useState 是 useReducer 的语法糖 —— 底层走同一套 dispatch 机制，只是 React 内置了一个超简单的默认 reducer，你不用自己写。 --- React内置的那个默认reduce…",
+      "excerpt": "useState 与 useReducer 的关系 一句话结论 useState 是 useReducer 的一个特殊情况 —— 走同一套 hook 链表和 dispatch 机制，React 内置了一个超简单的默认 reducer，你不用自己写。 别把「语法糖」这个词说死：源码…",
       "headings": [
         "一句话结论",
         "React内置的那个默认reducer（源码里真实存在）",
         "核心区别：两者的 action 含义完全不同",
         "用法对比",
-        "什么时候用哪个"
+        "什么时候用哪个",
+        "实现上的差别：eager state"
       ]
     },
     {
