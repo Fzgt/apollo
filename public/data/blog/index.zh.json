@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-08T05:47:14.492Z",
+  "syncedAt": "2026-09-09T06:19:39.723Z",
   "translated": [
     77,
     76,
@@ -1743,7 +1743,7 @@
         }
       ],
       "createdAt": "2025-08-11T10:32:38Z",
-      "updatedAt": "2026-09-06T10:36:27Z",
+      "updatedAt": "2026-09-09T06:18:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/6",
       "excerpt": "为什么会有hooks？解决了什么问题 历史背景：hooks出现前的最佳实践是 class组件做容器组件 + function组件做UI组件， 因为function组件不能定义state，只能通过props传值，组件能力很薄弱。 痛点1：状态逻辑很难在组件间复用——只能靠HOC或r…",
       "headings": [

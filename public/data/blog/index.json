@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-08T05:47:14.492Z",
+  "syncedAt": "2026-09-09T06:19:39.723Z",
   "translated": [
     77,
     76,
@@ -1749,7 +1749,7 @@
         }
       ],
       "createdAt": "2025-08-11T10:32:38Z",
-      "updatedAt": "2026-09-06T10:36:27Z",
+      "updatedAt": "2026-09-09T06:18:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/6",
       "excerpt": "Why hooks exist, and what they fixed Some history. Before hooks, the accepted pattern was class components as containers and function compon…",
       "headings": [
