@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-09T06:24:25.227Z",
+  "syncedAt": "2026-09-09T06:58:17.673Z",
   "translated": [
     77,
     76,
@@ -1274,15 +1274,15 @@
         }
       ],
       "createdAt": "2026-07-28T00:01:50Z",
-      "updatedAt": "2026-07-28T00:07:55Z",
+      "updatedAt": "2026-09-09T06:58:04Z",
       "url": "https://github.com/Fzgt/Blog/issues/30",
       "excerpt": "The basics - isPending: a boolean saying whether this transition is still in flight - startTransition: a function that marks a state update …",
       "headings": [
         "The basics",
-        "⚠️ The core rule: the function you pass must be synchronous",
-        "❌ The common mistake: putting an async .then() callback inside",
+        "⚠️ The core rule: the function may be async, but a set after an await needs another wrap",
+        "❌ Two things that still do not work",
         "✅ The right way: wrap again after the await",
-        "While we are here: isPending and Suspense are two separate loading mechanisms",
+        "While we are here: three loading mechanisms, do not blur them",
         "In one sentence"
       ]
     },
@@ -1343,7 +1343,7 @@
         }
       ],
       "createdAt": "2026-07-27T04:38:01Z",
-      "updatedAt": "2026-08-23T11:48:48Z",
+      "updatedAt": "2026-09-09T06:58:02Z",
       "url": "https://github.com/Fzgt/Blog/issues/27",
       "excerpt": "1. createContext + useContext + useReducer ≈ hand-rolled Redux 1. What createContext and useContext solve Prop drilling. Instead of forwardi…",
       "headings": [
@@ -1362,7 +1362,7 @@
         }
       ],
       "createdAt": "2026-07-27T03:33:25Z",
-      "updatedAt": "2026-07-28T00:07:54Z",
+      "updatedAt": "2026-09-09T06:58:00Z",
       "url": "https://github.com/Fzgt/Blog/issues/26",
       "excerpt": "Notes on closures and the captured-value trap 1. The strict definition (from MDN) A closure is the combination of a function bundled togethe…",
       "headings": [
@@ -1371,7 +1371,7 @@
         "3. Captured values — one specific symptom of closures",
         "4. The root cause is not \"useEffect is asynchronous\", it is the empty dependency array",
         "5. setInterval is not required — it is just the easiest demonstration",
-        "6. Fixing it with a ref",
+        "6. Three fixes, in the order you should reach for them",
         "The whole thing in one sentence"
       ]
     },
@@ -1407,7 +1407,7 @@
         }
       ],
       "createdAt": "2026-07-25T10:10:22Z",
-      "updatedAt": "2026-07-28T00:07:53Z",
+      "updatedAt": "2026-09-09T06:57:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/24",
       "excerpt": "Notes on useLayoutEffect What it is, in one sentence useLayoutEffect is the last chance to change the DOM before the page is painted. Where …",
       "headings": [
@@ -1415,6 +1415,7 @@
         "Where it sits in the pipeline",
         "Why it is synchronous",
         "The common question: \"does changing the DOM in here re-run the diff?\"",
+        "The one you will definitely hit: it does not run during SSR",
         "Compared with getSnapshotBeforeUpdate"
       ]
     },

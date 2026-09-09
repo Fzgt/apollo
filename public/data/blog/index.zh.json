@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-09T06:24:25.227Z",
+  "syncedAt": "2026-09-09T06:58:17.673Z",
   "translated": [
     77,
     76,
@@ -1276,15 +1276,15 @@
         }
       ],
       "createdAt": "2026-07-28T00:01:50Z",
-      "updatedAt": "2026-07-28T00:07:55Z",
+      "updatedAt": "2026-09-09T06:58:04Z",
       "url": "https://github.com/Fzgt/Blog/issues/30",
-      "excerpt": "基本用法 - isPending：布尔值，标记这次transition是否还在进行中 - startTransition：函数，把一次状态更新标记成\"低优先级、可被打断\" --- ⚠️ 核心规则：传给 startTransition 的函数必须是同步的 React官方文档原文： …",
+      "excerpt": "基本用法 - isPending：布尔值，标记这次transition是否还在进行中 - startTransition：函数，把一次状态更新标记成\"低优先级、可被打断\" --- ⚠️ 核心规则：函数可以是异步的，但 await 之后的 set 要再包一层 React 19 里，…",
       "headings": [
         "基本用法",
-        "⚠️ 核心规则：传给 startTransition 的函数必须是同步的",
-        "❌ 常见误用：把异步的 .then() 回调塞进 startTransition",
-        "✅ 正确写法：await/then之后的更新，要再包一层 startTransition",
-        "附带澄清：useTransition/isPending 和 Suspense 是两套独立的loading机制",
+        "⚠️ 核心规则：函数可以是异步的，但 await 之后的 set 要再包一层",
+        "❌ 两种仍然会失效的写法",
+        "✅ 正确写法：await 之后再包一层 startTransition",
+        "附带澄清：三套 loading 机制，别混着说",
         "一句话总结"
       ]
     },
@@ -1347,7 +1347,7 @@
         }
       ],
       "createdAt": "2026-07-27T04:38:01Z",
-      "updatedAt": "2026-08-23T11:48:48Z",
+      "updatedAt": "2026-09-09T06:58:02Z",
       "url": "https://github.com/Fzgt/Blog/issues/27",
       "excerpt": "一、createContext + useContext + useReducer ≈ 手搓Redux 1. createContext / useContext 解决什么问题 解决 props层层传递（prop drilling） 的问题——不用一层层手动转发，跳过中间所有层级…",
       "headings": [
@@ -1366,7 +1366,7 @@
         }
       ],
       "createdAt": "2026-07-27T03:33:25Z",
-      "updatedAt": "2026-07-28T00:07:54Z",
+      "updatedAt": "2026-09-09T06:58:00Z",
       "url": "https://github.com/Fzgt/Blog/issues/26",
       "excerpt": "闭包 与 Capture Value（捕获值陷阱）笔记 一、闭包的严格定义（MDN权威说法） A closure is the combination of a function bundled together with references to its surroundin…",
       "headings": [
@@ -1375,7 +1375,7 @@
         "三、Capture Value（捕获值陷阱）—— 闭包机制在特定场景下的一个具体现象",
         "四、根本原因：不是\"useEffect是异步\"，而是\"依赖数组为空导致只创建一次闭包\"",
         "五、setInterval不是必要条件，只是最常见的演示方式",
-        "六、怎么用ref解决",
+        "六、三个解法，按该用的顺序",
         "一句话总结全部"
       ]
     },
@@ -1411,7 +1411,7 @@
         }
       ],
       "createdAt": "2026-07-25T10:10:22Z",
-      "updatedAt": "2026-07-28T00:07:53Z",
+      "updatedAt": "2026-09-09T06:57:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/24",
       "excerpt": "useLayoutEffect 理解笔记 一句话定位 useLayoutEffect 是\"页面画出来之前，最后一次能改DOM\"的机会。 在整个流程里卡在哪 为什么它是\"同步\"的 它会阻塞浏览器绘制——浏览器要等它跑完，才会把这次DOM改动画到屏幕上。 正因为阻塞，才能做到：用户在…",
       "headings": [
@@ -1419,6 +1419,7 @@
         "在整个流程里卡在哪",
         "为什么它是\"同步\"的",
         "常见疑问：\"在里面改DOM，会不会重新走一遍diff？\"",
+        "必踩的一条：SSR 里它根本不执行",
         "和 getSnapshotBeforeUpdate 的对照"
       ]
     },
