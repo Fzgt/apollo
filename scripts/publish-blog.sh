@@ -38,8 +38,15 @@ fi
 echo "▸ 同步 Blog issues …"
 node scripts/sync-blog.mjs
 
-if git diff --quiet -- public/data/blog; then
-  echo "✓ 快照没有变化，无需发布"
+# index.json 里的 syncedAt 每次同步都会变，只有它变说明内容其实没动。
+# 这种情况把改动丢掉，保持工作区干净，也别推一个空内容的提交。
+UNTRACKED="$(git status --porcelain -- public/data/blog | grep '^??' || true)"
+REAL_DIFF="$(git diff -U0 -- public/data/blog \
+  | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | grep -v '"syncedAt"' || true)"
+
+if [ -z "$UNTRACKED" ] && [ -z "$REAL_DIFF" ]; then
+  git checkout -- public/data/blog
+  echo "✓ 内容没有变化，无需发布"
   exit 0
 fi
 
