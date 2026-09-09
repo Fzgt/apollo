@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-09T10:12:30.447Z",
+  "syncedAt": "2026-09-09T10:17:39.490Z",
   "translated": [
     84,
     77,
@@ -1757,7 +1757,7 @@
     },
     {
       "number": 21,
-      "title": "useVirtualList",
+      "title": "Virtual list, addenda — index as key, forced sync layout, the RAIL budget",
       "labels": [
         {
           "name": "React",
@@ -1765,16 +1765,10 @@
         }
       ],
       "createdAt": "2026-07-24T04:22:39Z",
-      "updatedAt": "2026-09-09T10:11:56Z",
+      "updatedAt": "2026-09-09T10:16:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/21",
-      "excerpt": "Bullet 1 ⭐ Virtual list — DOM nodes constant at 100, 30 FPS → 60 FPS Built a virtualized React feed serving 5M+ daily page views on a custom…",
-      "headings": [
-        "Bullet 1 ⭐ Virtual list — DOM nodes constant at 100, 30 FPS → 60 FPS",
-        "Debounce in depth — leading, trailing, and cancel",
-        "The toolchain for diagnosing production problems",
-        "Reviewing a full-stack project's choices — tRPC, Zod, React Hook Form",
-        "In summary"
-      ]
+      "excerpt": "The main write-up is here: The virtualized list — Baidu bullet 1 That one covers the full mechanism and how to answer for it: why 500 DOM no…",
+      "headings": []
     },
     {
       "number": 20,

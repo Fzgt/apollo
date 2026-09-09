@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-09T10:12:30.447Z",
+  "syncedAt": "2026-09-09T10:17:39.490Z",
   "translated": [
     84,
     77,
@@ -1761,7 +1761,7 @@
     },
     {
       "number": 21,
-      "title": "虚拟列表 —— DOM 节点恒定 ~100，30 到 60 FPS",
+      "title": "虚拟列表补遗 —— index 当 key、强制同步布局、RAIL 预算、怎么验证节点真被销毁",
       "labels": [
         {
           "name": "React",
@@ -1769,11 +1769,10 @@
         }
       ],
       "createdAt": "2026-07-24T04:22:39Z",
-      "updatedAt": "2026-09-09T10:11:56Z",
+      "updatedAt": "2026-09-09T10:16:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/21",
-      "excerpt": "Bullet 1 ⭐ 虚拟列表 —— DOM 节点恒定 100,30 FPS → 60 FPS Built a virtualized React feed serving 5M+ daily page views on a custom useVirtualList hook …",
+      "excerpt": "主篇在这里:虚拟列表 —— 百度 Bullet 1 那边讲完整的原理和面试怎么答:为什么 500 个 DOM 节点会掉帧、虚拟列表的核心思想、撑开滚动条的 spacer、transform vs top、IntersectionObserver 与哨兵模式、useVirtualL…",
       "headings": [
-        "Bullet 1 ⭐ 虚拟列表 —— DOM 节点恒定 100,30 FPS → 60 FPS",
         "小结"
       ]
     },
