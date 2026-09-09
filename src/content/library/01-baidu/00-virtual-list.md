@@ -23,6 +23,12 @@ icon: landmark
 
 **这是你简历上技术密度最高的一条,面试官会往死里问。这一节我讲最深。**
 
+> 📄 **技术细节的完整版在博客:[虚拟列表 —— 500+ DOM 到恒定,30 到 60 FPS](https://apollo-five-omega.vercel.app/blog?post=21)**
+> 
+> 那边额外讲了这几点,这里不重复:为什么 `index` 可以直接当 key、`getBoundingClientRect` 强制同步布局的「写-读交替」陷阱、怎么验证划出屏幕的节点真的被销毁、RAIL 模型下 JS 的实际预算。
+> 
+> 这一篇侧重**怎么answer**——选型理由、两个难点、预期追问、面试前 Checklist。
+
 ### 核心技术点
 
 #### ① 为什么 500 个 DOM 节点会掉帧

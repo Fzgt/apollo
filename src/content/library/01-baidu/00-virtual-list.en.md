@@ -18,6 +18,12 @@ icon: landmark
 
 
 > Older resume text: Built a virtualized React feed serving 5M+ daily page views on a custom useVirtualList hook over IntersectionObserver: live DOM nodes stay near 100 at any scroll depth, scroll from 30 to a stable 60 FPS.
+
+> 📄 **The full technical write-up lives on the blog: [Virtualized list — 500+ DOM nodes to a constant, 30 to 60 FPS](https://apollo-five-omega.vercel.app/blog?post=21)**
+> 
+> It additionally covers, and this note does not repeat: why `index` is a valid key here, the "write-then-read" forced-synchronous-layout trap around `getBoundingClientRect`, how to verify that off-screen nodes are really destroyed, and the real JS budget under the RAIL model.
+> 
+> This note is about **how to answer** — the build-vs-buy reasoning, the two hard parts, expected follow-ups, and the pre-interview checklist.
 >
 > (React 16.8 / Webpack 4 and Haokan Video are not on the resume. You can still add them when talking, but the paper does not promise them.)
 
