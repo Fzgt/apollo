@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-09T08:09:41.272Z",
+  "syncedAt": "2026-09-09T08:35:34.008Z",
   "translated": [
     77,
     76,
@@ -98,7 +98,8 @@
       "hint": "同构、Hydrate、Qwik",
       "numbers": [
         34,
-        35
+        35,
+        82
       ]
     },
     {
@@ -115,7 +116,8 @@
       "hint": "React-Query 三层架构、tRPC / Zod / RHF",
       "numbers": [
         20,
-        54
+        54,
+        78
       ]
     },
     {
@@ -137,6 +139,13 @@
         10,
         52,
         16
+      ]
+    },
+    {
+      "name": "部署与云",
+      "hint": "Serverless、边缘计算、去中心化部署",
+      "numbers": [
+        79
       ]
     },
     {
@@ -171,7 +180,10 @@
         14,
         42,
         53,
-        15
+        15,
+        80,
+        81,
+        83
       ]
     },
     {
@@ -226,6 +238,161 @@
     }
   ],
   "posts": [
+    {
+      "number": 83,
+      "title": "组件库开发体验 —— Storybook、Tailwind 原子化的真实收益与代价、MSW",
+      "labels": [
+        {
+          "name": "前端工程化",
+          "color": "d894f2"
+        }
+      ],
+      "createdAt": "2026-09-09T08:34:46Z",
+      "updatedAt": "2026-09-09T08:34:46Z",
+      "url": "https://github.com/Fzgt/Blog/issues/83",
+      "excerpt": "组件库开发的三件套：Storybook 做展示与调试，Tailwind 做样式，MSW 做数据 mock。这一篇讲它们各自解决什么问题、以及几个不太有人讲的细节。 --- 一、Storybook 什么时候值得起 判断标准只有一条：这套组件给几个团队用。 - 一个项目自己用 → 组…",
+      "headings": [
+        "一、Storybook",
+        "二、Tailwind",
+        "三、MSW（Mock Service Worker）",
+        "四、顺带记几个工具",
+        "相关"
+      ]
+    },
+    {
+      "number": 82,
+      "title": "React 18 并发特性与现代 SSR —— useTransition、RSC、流式渲染、预加载",
+      "labels": [
+        {
+          "name": "React",
+          "color": "0075ca"
+        },
+        {
+          "name": "性能优化",
+          "color": "ffffff"
+        }
+      ],
+      "createdAt": "2026-09-09T08:34:44Z",
+      "updatedAt": "2026-09-09T08:34:44Z",
+      "url": "https://github.com/Fzgt/Blog/issues/82",
+      "excerpt": "这一篇把 React 18 的并发能力和它带来的架构变化串起来：并发到底给开发者提供了什么、SSR 因此发生了什么变化、Next.js 和 Remix 怎么选，以及预加载这类手段落在哪一层。 --- 一、并发渲染：开发者视角只有一件事 抛开源码，对开发者来说 React 18 只…",
+      "headings": [
+        "一、并发渲染：开发者视角只有一件事",
+        "二、两个典型场景",
+        "三、React 18 Hooks 速查",
+        "四、状态撕裂",
+        "五、RSC：给客户端发\"已经算好的\"东西",
+        "六、SSR 与框架选择",
+        "七、SSR 下的路由懒加载",
+        "八、预加载：把等待藏起来"
+      ]
+    },
+    {
+      "number": 81,
+      "title": "Webpack 拆包实战 —— runtime、cacheGroups，以及 SplitChunks 为什么对单 entry 无效",
+      "labels": [
+        {
+          "name": "性能优化",
+          "color": "ffffff"
+        },
+        {
+          "name": "前端工程化",
+          "color": "d894f2"
+        }
+      ],
+      "createdAt": "2026-09-09T08:34:42Z",
+      "updatedAt": "2026-09-09T08:34:42Z",
+      "url": "https://github.com/Fzgt/Blog/issues/81",
+      "excerpt": "如果你没有配置过 SplitChunksPlugin，就说明你从来没有关心过项目的性能。因为不配的话，Webpack 默认没什么分包机制，全部塞进 main.js，体积轻易到 4MB+——那些所谓的性能指标就已经炸了，还有什么可度量的。 这句话是这一章的起点。下面按\"为什么拆 →…",
+      "headings": [
+        "一、先看 Webpack 打包出来是什么",
+        "二、Webpack Runtime：第一个该抽出去的东西",
+        "三、cacheGroups：拆包配置的核心",
+        "四、单 entry 和多 entry，拆包效果完全不同",
+        "五、多大算大：一个可执行的判断标准",
+        "六、开发期的编译速度",
+        "七、总结",
+        "相关"
+      ]
+    },
+    {
+      "number": 80,
+      "title": "Monorepo 与私仓 —— pnpm 软硬链、workspace、Lerna/Nx/Rush 分工、verdaccio 踩坑",
+      "labels": [
+        {
+          "name": "前端工程化",
+          "color": "d894f2"
+        }
+      ],
+      "createdAt": "2026-09-09T08:34:40Z",
+      "updatedAt": "2026-09-09T08:34:40Z",
+      "url": "https://github.com/Fzgt/Blog/issues/80",
+      "excerpt": "Monorepo 这套工具链的关系经常被讲乱：pnpm、Lerna、Nx、Rush、verdaccio 各自管什么，谁能替代谁。这篇按\"解决什么问题\"重新排一遍。 --- 一、Monorepo 解决的到底是什么问题 场景：项目 A 依赖组件库 B，两者是独立仓库。 B 改了一行代…",
+      "headings": [
+        "一、Monorepo 解决的到底是什么问题",
+        "二、各工具的分工",
+        "三、pnpm 的核心：软链 + 硬链",
+        "四、workspace 的实际配置",
+        "五、lockfile 的取舍（一个真实的坑）",
+        "六、verdaccio 私仓",
+        "七、Lerna 发包",
+        "相关"
+      ]
+    },
+    {
+      "number": 79,
+      "title": "Serverless 与边缘部署 —— BFF/SFF、Cloudflare Workers vs AWS Lambda、IPFS、Service Worker 遗产",
+      "labels": [
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        },
+        {
+          "name": "前端工程化",
+          "color": "d894f2"
+        }
+      ],
+      "createdAt": "2026-09-09T08:34:38Z",
+      "updatedAt": "2026-09-09T08:34:38Z",
+      "url": "https://github.com/Fzgt/Blog/issues/79",
+      "excerpt": "这一篇把 Serverless 相关的内容串起来：BFF/SFF 的定位、Cloudflare Workers 和 AWS Lambda 的实际差别、IPFS 这类去中心化部署的坑，以及 Service Worker 留下的遗产。 --- 一、BFF 与 SFF：一层给谁用的问题…",
+      "headings": [
+        "一、BFF 与 SFF：一层给谁用的问题",
+        "二、Cloudflare Workers vs AWS Lambda",
+        "三、IPFS 与去中心化部署",
+        "四、Service Worker 与 PWA 的遗产",
+        "五、SSR 走到边缘",
+        "六、一个可以写进简历的架构",
+        "相关"
+      ]
+    },
+    {
+      "number": 78,
+      "title": "React 状态管理库全景 —— 两条轴看懂 Redux / Jotai / Zustand / Valtio / XState 的分野",
+      "labels": [
+        {
+          "name": "React",
+          "color": "0075ca"
+        },
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        }
+      ],
+      "createdAt": "2026-09-09T08:34:36Z",
+      "updatedAt": "2026-09-09T08:34:36Z",
+      "url": "https://github.com/Fzgt/Blog/issues/78",
+      "excerpt": "市面上讲状态库的文章大多是并列式的：Redux 怎么用、Zustand 怎么用、Jotai 怎么用，然后给一张\"体积对比表\"。这种排法记不住，因为它没有回答为什么会有这么多库。 真正的分类只有两条轴，Jotai / Zustand / Valtio 的作者 Daishi Kato…",
+      "headings": [
+        "一、横轴：组件内状态 vs 组件外状态",
+        "二、纵轴：三种控制重渲染的机制",
+        "三、逐个库（附 2026 年的现状修正）",
+        "四、怎么选",
+        "五、状态撕裂（tearing）—— 组件外状态的共性问题",
+        "六、这份笔记里需要修正的说法汇总",
+        "相关"
+      ]
+    },
     {
       "number": 77,
       "title": "Next.js 与 SPA 的性能差异 —— 首屏、bundle、数据瀑布更优，TTFB、跳转下限、服务端成本更差，INP 不变",
