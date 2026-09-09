@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-09T09:59:14.088Z",
+  "syncedAt": "2026-09-09T10:12:30.447Z",
   "translated": [
     84,
     77,
@@ -1765,11 +1765,11 @@
         }
       ],
       "createdAt": "2026-07-24T04:22:39Z",
-      "updatedAt": "2026-09-09T09:59:10Z",
+      "updatedAt": "2026-09-09T10:11:56Z",
       "url": "https://github.com/Fzgt/Blog/issues/21",
-      "excerpt": "Bullet 3 ⭐ Virtual list — 500+ DOM nodes → 20/30 FPS → 60 FPS Built the infinite scroll Feed for the Xiaodu App homepage (daily PV 5M+) base…",
+      "excerpt": "Bullet 1 ⭐ Virtual list — DOM nodes constant at 100, 30 FPS → 60 FPS Built a virtualized React feed serving 5M+ daily page views on a custom…",
       "headings": [
-        "Bullet 3 ⭐ Virtual list — 500+ DOM nodes → 20/30 FPS → 60 FPS",
+        "Bullet 1 ⭐ Virtual list — DOM nodes constant at 100, 30 FPS → 60 FPS",
         "Debounce in depth — leading, trailing, and cancel",
         "The toolchain for diagnosing production problems",
         "Reviewing a full-stack project's choices — tRPC, Zod, React Hook Form",
