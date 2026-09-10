@@ -54,27 +54,18 @@ JD 里写的是 "make the app feel fast"——这句话直接回答了它。
 ## 开场自我介绍（30 秒，别超过）
 
 ```text
-I'm a frontend engineer — React and TypeScript day to day, and a lot of Vue before that.
-I've been doing frontend for six years, three of them professionally,
-including time at Baidu, one of the largest internet companies in China.
-Most of what I did there came down to making things feel fast.
-Those six years gave me broad technical exposure — I know the frontend ecosystem well,
-I'm comfortable across the stack, and I pick up new tools quickly.
+I've been doing frontend for six years, three of them professionally.
+I have broad technical exposure and I know the frontend ecosystem well —
+mainly React, Vue and frontend engineering, and I'm comfortable across the stack.
+I spent about ___ years at ___ — one of the largest internet companies in China —
+working on ___, and most of what I did there came down to making things feel fast.
 More recently I've been building ___.
-And just so it's out of the way: I'm on a 485 graduate visa with full working rights,
+And just so it's out of the way: I'm on a graduate visa with full working rights,
 no restrictions, no sponsorship needed.
 ```
 
 **最后那句必须说**：他们手上是 v42 简历，抬头上没有签证行，从 PDF 上看不出你有工作权。
 自己第一分钟讲掉，比让他们心里挂一个问号强。
-
-**六年和三年必须分开说。** 「六年」是从接触前端算起，「三年」是三段职业经历（小猪民宿 → 百度 → BioMap）。
-说成 "six years of experience" 会被简历上的三段经历当场戳穿——句式固定成
-`six years, three of them professionally`，别改。
-
-**别给百度加年限。** 这一段刻意不写「在百度几年」：说不出能核对的数字就不报数字，
-`including time at Baidu` 已经把分量带到了。同理 "broad technical exposure" 不要说成
-"technical vision"——后者在英文里指技术方向的规划能力，是 CTO 层面的词，一说就会被追问你定过什么方向。
 
 ## 讲项目时的三个禁忌
 
