@@ -55,11 +55,9 @@ JD 里写的是 "make the app feel fast"——这句话直接回答了它。
 
 ```text
 I've been doing frontend for six years, three of them professionally.
-I have broad technical exposure and I know the frontend ecosystem well —
-mainly React, Vue and frontend engineering, and I'm comfortable across the stack.
-I spent about ___ years at ___ — one of the largest internet companies in China —
-working on ___, and most of what I did there came down to making things feel fast.
-More recently I've been building ___.
+I have broad technical exposure and I am familiar with the frontend ecosystem.
+I'm skilled in React, Vue and frontend engineering.
+I also have full-stack development capability. I'm happy to take on new technologies.
 And just so it's out of the way: I'm on a graduate visa with full working rights,
 no restrictions, no sponsorship needed.
 ```
