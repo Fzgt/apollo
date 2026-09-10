@@ -58,12 +58,7 @@ I've been doing frontend for six years, three of them professionally.
 I have broad technical exposure and I am familiar with the frontend ecosystem.
 I'm skilled in React, Vue and frontend engineering.
 I also have full-stack development capability. I'm happy to take on new technologies.
-And just so it's out of the way: I'm on a graduate visa with full working rights,
-no restrictions, no sponsorship needed.
 ```
-
-**最后那句必须说**：他们手上是 v42 简历，抬头上没有签证行，从 PDF 上看不出你有工作权。
-自己第一分钟讲掉，比让他们心里挂一个问号强。
 
 ## 讲项目时的三个禁忌
 
