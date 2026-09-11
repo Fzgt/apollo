@@ -321,6 +321,24 @@ function rewriteImages(body, mapping) {
   return out;
 }
 
+/**
+ * 正文里指向本仓库其它 issue 的链接换成站内地址。
+ *
+ * Blog 仓库是私有的，站点是公开的——访客点 `github.com/<owner>/<repo>/issues/N`
+ * 只会拿到 404。站内跳转既能用，也不会把人送出站。
+ * 只重写这次同步里确实存在的编号；指向别处或已删除 issue 的链接原样保留。
+ */
+function rewriteIssueLinks(body, knownNumbers) {
+  if (!body) return body ?? '';
+  const pattern = new RegExp(
+    `https?://github\\.com/${REPO}/issues/(\\d+)`.replace(/\//g, '\\/'),
+    'g'
+  );
+  return body.replace(pattern, (whole, num) =>
+    knownNumbers.has(Number(num)) ? `${BASE}blog?post=${num}` : whole
+  );
+}
+
 function githubHeaders(accept) {
   const headers = { Accept: accept, 'User-Agent': 'apollo-blog-sync' };
   if (process.env.GITHUB_TOKEN) {
@@ -451,12 +469,17 @@ async function main() {
   };
   await fs.writeFile(INDEX_ZH_FILE, `${JSON.stringify(indexZh, null, 2)}\n`, 'utf8');
 
+  const knownNumbers = new Set(issues.map((i) => i.number));
+
   for (const issue of issues) {
     const translation = translations.get(issue.number);
     const post = {
       number: issue.number,
       title: translation?.title || issue.title,
-      body: rewriteImages(translation?.body ?? issue.body ?? '', assets.mapping),
+      body: rewriteIssueLinks(
+        rewriteImages(translation?.body ?? issue.body ?? '', assets.mapping),
+        knownNumbers
+      ),
       updatedAt: issue.updated_at,
     };
     await fs.writeFile(
@@ -473,7 +496,10 @@ async function main() {
         {
           number: issue.number,
           title: issue.title,
-          body: rewriteImages(issue.body ?? '', assets.mapping),
+          body: rewriteIssueLinks(
+            rewriteImages(issue.body ?? '', assets.mapping),
+            knownNumbers
+          ),
           updatedAt: issue.updated_at,
         },
         null,
