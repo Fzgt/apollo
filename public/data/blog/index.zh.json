@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-11T06:24:19.397Z",
+  "syncedAt": "2026-09-11T06:38:17.936Z",
   "translated": [
     84,
     77,
@@ -1943,7 +1943,7 @@
     },
     {
       "number": 16,
-      "title": "性能监控 SDK：打包工具选型",
+      "title": "性能监控 SDK 的打包与工程化 —— 为什么不用 Webpack、输出格式、体积约束",
       "labels": [
         {
           "name": "性能优化",
@@ -1951,10 +1951,18 @@
         }
       ],
       "createdAt": "2025-08-21T11:08:42Z",
-      "updatedAt": "2026-08-23T11:48:43Z",
+      "updatedAt": "2026-09-11T06:38:01Z",
       "url": "https://github.com/Fzgt/Blog/issues/16",
-      "excerpt": "前置准备 - 使用webpack就没有那么多优势了，因为作为SDK就是个JS或TS文件，而webpack的优势在于他的loader和插件。 - 所以首选Rollup专门用于JS打包的，还有 esbuild(golang) 和 swc (rust、对标babel、构建速度对标esb…",
-      "headings": []
+      "excerpt": "接着 #70 往下：决定自建之后，这一层怎么打包。结论基于 Performance-SDK 的实际配置。 监控 SDK 的打包和业务项目不是一回事。业务项目求\"跑得起来\"，SDK 求的是别人怎么引都能用，而且尽可能小 —— 因为它就在首屏阻塞路径上，#70 里说的\"监控本身在拖它…",
+      "headings": [
+        "一、为什么不用 Webpack",
+        "二、输出格式要覆盖哪些",
+        "三、体积是硬约束",
+        "四、类型与文档",
+        "五、测试环境",
+        "六、本地验证",
+        "总结"
+      ]
     },
     {
       "number": 15,
@@ -1987,7 +1995,7 @@
     },
     {
       "number": 13,
-      "title": "如何优化各性能指标",
+      "title": "如何优化各性能指标 —— INP / LCP / FCP / TTFB，以及退役的 FID 和 TTI",
       "labels": [
         {
           "name": "性能优化",
@@ -1995,10 +2003,19 @@
         }
       ],
       "createdAt": "2025-08-17T13:45:13Z",
-      "updatedAt": "2026-07-28T00:08:30Z",
+      "updatedAt": "2026-09-11T06:37:11Z",
       "url": "https://github.com/Fzgt/Blog/issues/13",
-      "excerpt": "FID (首次输入延迟) - 减少主线程阻塞。所以说React18的concurrent模式，能优化FID。 - 拆包，代码分割，避免大bundle。 - 路由级别拆分，lazy(() => import('./Home'))，wepack会去自动拆异步包，通过懒加载，首次的体积…",
-      "headings": []
+      "excerpt": "指标各自该怎么治。指标本身是什么、怎么测在 #63 Web Vitals 排查笔记;该先动哪一层在 #90 接到一个慢的项目，从哪下手。 --- INP（交互到下一帧绘制） 2024 年 3 月起 INP 正式取代 FID 成为核心 Web 指标。 下面这些手段以前挂在 FID …",
+      "headings": [
+        "INP（交互到下一帧绘制）",
+        "LCP（最大内容绘制）",
+        "FCP（首次内容绘制）",
+        "TTFB",
+        "关于 TTI：已经退役了",
+        "长任务（LongTask）",
+        "预渲染与 SSR",
+        "路由级懒加载的写法"
+      ]
     },
     {
       "number": 12,
@@ -2040,7 +2057,7 @@
         }
       ],
       "createdAt": "2025-08-14T07:04:32Z",
-      "updatedAt": "2026-07-28T08:19:15Z",
+      "updatedAt": "2026-09-11T06:36:10Z",
       "url": "https://github.com/Fzgt/Blog/issues/10",
       "excerpt": "前端像素与视口知识点整理 1. 物理像素 vs CSS 像素 | 概念 | 说明 | |---|---| | 物理像素 | 屏幕上真实存在的发光小点,硬件层面固定不变(如 iPhone 6 屏幕分辨率 750×1334) | | CSS 像素 | 我们写代码时用的逻辑单位(如 w…",
       "headings": [

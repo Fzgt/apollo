@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-11T06:24:19.397Z",
+  "syncedAt": "2026-09-11T06:38:17.936Z",
   "translated": [
     84,
     77,
@@ -1945,7 +1945,7 @@
         }
       ],
       "createdAt": "2025-08-21T11:08:42Z",
-      "updatedAt": "2026-08-23T11:48:43Z",
+      "updatedAt": "2026-09-11T06:38:01Z",
       "url": "https://github.com/Fzgt/Blog/issues/16",
       "excerpt": "Groundwork - Webpack does not buy you much here. An SDK is a single JS or TS file, and Webpack's strength is its loaders and plugins. - Roll…",
       "headings": []
@@ -1998,7 +1998,7 @@
         }
       ],
       "createdAt": "2025-08-17T13:45:13Z",
-      "updatedAt": "2026-07-28T00:08:30Z",
+      "updatedAt": "2026-09-11T06:37:11Z",
       "url": "https://github.com/Fzgt/Blog/issues/13",
       "excerpt": "FID (First Input Delay) - Block the main thread less. This is why React 18's concurrent mode helps FID. - Split the bundle. Avoid one huge f…",
       "headings": []
@@ -2043,7 +2043,7 @@
         }
       ],
       "createdAt": "2025-08-14T07:04:32Z",
-      "updatedAt": "2026-07-28T08:19:15Z",
+      "updatedAt": "2026-09-11T06:36:10Z",
       "url": "https://github.com/Fzgt/Blog/issues/10",
       "excerpt": "Pixels and the viewport 1. Physical pixels vs CSS pixels | Concept | What it is | |---|---| | Physical pixel | A real light-emitting dot on …",
       "headings": [
