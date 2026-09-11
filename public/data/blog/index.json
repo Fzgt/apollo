@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-11T06:38:17.936Z",
+  "syncedAt": "2026-09-11T06:40:16.157Z",
   "translated": [
     84,
     77,
@@ -1937,7 +1937,7 @@
     },
     {
       "number": 16,
-      "title": "A Performance Monitoring SDK",
+      "title": "Bundling a performance monitoring SDK — why not Webpack, output formats, size budget",
       "labels": [
         {
           "name": "性能优化",
@@ -1947,8 +1947,16 @@
       "createdAt": "2025-08-21T11:08:42Z",
       "updatedAt": "2026-09-11T06:38:01Z",
       "url": "https://github.com/Fzgt/Blog/issues/16",
-      "excerpt": "Groundwork - Webpack does not buy you much here. An SDK is a single JS or TS file, and Webpack's strength is its loaders and plugins. - Roll…",
-      "headings": []
+      "excerpt": "Following on from #70: once you have decided to build your own, this is how that layer gets bundled. The conclusions come from the actual co…",
+      "headings": [
+        "1. Why not Webpack",
+        "2. Which output formats to cover",
+        "3. Size is a hard constraint",
+        "4. Types and documentation",
+        "5. Test environment",
+        "6. Verifying locally",
+        "Summary"
+      ]
     },
     {
       "number": 15,
@@ -1990,7 +1998,7 @@
     },
     {
       "number": 13,
-      "title": "Optimising Each Performance Metric",
+      "title": "Optimising each performance metric — INP / LCP / FCP / TTFB, and the retired FID and TTI",
       "labels": [
         {
           "name": "性能优化",
@@ -2000,8 +2008,17 @@
       "createdAt": "2025-08-17T13:45:13Z",
       "updatedAt": "2026-09-11T06:37:11Z",
       "url": "https://github.com/Fzgt/Blog/issues/13",
-      "excerpt": "FID (First Input Delay) - Block the main thread less. This is why React 18's concurrent mode helps FID. - Split the bundle. Avoid one huge f…",
-      "headings": []
+      "excerpt": "How to treat each metric. What the metrics are and how to measure them is in #63; which layer to touch first is in #90. --- INP (Interaction…",
+      "headings": [
+        "INP (Interaction to Next Paint)",
+        "LCP (Largest Contentful Paint)",
+        "FCP (First Contentful Paint)",
+        "TTFB",
+        "On TTI: it has been retired",
+        "Long tasks",
+        "Pre-rendering and SSR",
+        "Route-level lazy loading"
+      ]
     },
     {
       "number": 12,
