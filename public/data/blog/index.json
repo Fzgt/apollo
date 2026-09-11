@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-11T05:06:34.461Z",
+  "syncedAt": "2026-09-11T05:22:18.689Z",
   "translated": [
     84,
     77,
@@ -118,7 +118,8 @@
       "numbers": [
         20,
         54,
-        78
+        78,
+        88
       ]
     },
     {
@@ -249,6 +250,32 @@
     }
   ],
   "posts": [
+    {
+      "number": 88,
+      "title": "Redux Toolkit —— 不只是少写样板，以及 react-redux / thunk / saga 的现状",
+      "labels": [
+        {
+          "name": "React",
+          "color": "0075ca"
+        },
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        }
+      ],
+      "createdAt": "2026-09-11T05:21:43Z",
+      "updatedAt": "2026-09-11T05:21:43Z",
+      "url": "https://github.com/Fzgt/Blog/issues/88",
+      "excerpt": "RTK 不只是简化样板 —— 它把 Redux 变成了一个「全家桶」,有几项是真正的新能力。 RTK 实际带来的东西 | | 性质 | |---|---| | createSlice | 少写样板 ✅,但内置 Immer 让你能写\"看起来可变\"的代码而产出不可变结果 —— 这是行…",
+      "headings": [
+        "RTK 实际带来的东西",
+        "三个库的现状",
+        "2026 年新项目怎么选",
+        "总结",
+        "参考",
+        "相关"
+      ]
+    },
     {
       "number": 87,
       "title": "3D 资源管线 —— glTF / USDZ、Draco、KTX2 与 gzip 的冲突，以及底层的 WASM",
@@ -501,7 +528,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:36Z",
-      "updatedAt": "2026-09-11T05:06:31Z",
+      "updatedAt": "2026-09-11T05:22:03Z",
       "url": "https://github.com/Fzgt/Blog/issues/78",
       "excerpt": "市面上讲状态库的文章大多是并列式的：Redux 怎么用、Zustand 怎么用、Jotai 怎么用，然后给一张\"体积对比表\"。这种排法记不住，因为它没有回答为什么会有这么多库。 真正的分类只有两条轴，Jotai / Zustand / Valtio 的作者 Daishi Kato…",
       "headings": [
