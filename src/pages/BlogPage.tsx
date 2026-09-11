@@ -583,13 +583,14 @@ export default function BlogPage() {
                         {prevPost ? (
                           <button
                             onClick={() => openPost(prevPost.number)}
-                            className="group flex flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50"
+                            title={prevPost.title}
+                            className="group flex min-w-0 flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50"
                           >
                             <span className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
-                              <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                              <ChevronLeft className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-1" />
                               {t(UI.common.previous)}
                             </span>
-                            <span className="break-words font-medium text-foreground">
+                            <span className="line-clamp-2 w-full break-words font-medium text-foreground">
                               {prevPost.title}
                             </span>
                           </button>
@@ -600,13 +601,14 @@ export default function BlogPage() {
                         {nextPost ? (
                           <button
                             onClick={() => openPost(nextPost.number)}
-                            className="group flex flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50 sm:items-end sm:text-right"
+                            title={nextPost.title}
+                            className="group flex min-w-0 flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50 sm:items-end sm:text-right"
                           >
                             <span className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
                               {t(UI.common.next)}
-                              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                              <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
                             </span>
-                            <span className="break-words font-medium text-foreground">
+                            <span className="line-clamp-2 w-full break-words font-medium text-foreground">
                               {nextPost.title}
                             </span>
                           </button>
