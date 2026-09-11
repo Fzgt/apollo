@@ -588,7 +588,7 @@ export default function BlogPage() {
                           <button
                             onClick={() => openPost(prevPost.number)}
                             title={prevPost.title}
-                            className="group flex min-w-0 flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50"
+                            className="group flex min-w-0 max-w-full flex-col items-start justify-self-start rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:bg-muted/50"
                           >
                             <span className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
                               <ChevronLeft className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-1" />
@@ -606,7 +606,7 @@ export default function BlogPage() {
                           <button
                             onClick={() => openPost(nextPost.number)}
                             title={nextPost.title}
-                            className="group flex min-w-0 flex-col items-start rounded-xl border border-border bg-card p-4 text-left transition-colors hover:bg-muted/50 sm:items-end sm:text-right"
+                            className="group flex min-w-0 max-w-full flex-col items-start justify-self-start rounded-xl border border-border bg-card px-4 py-3 text-left transition-colors hover:bg-muted/50 sm:items-end sm:justify-self-end sm:text-right"
                           >
                             <span className="mb-1 flex items-center gap-1 text-sm text-muted-foreground">
                               {t(UI.common.next)}
