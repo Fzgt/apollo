@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-11T09:06:23.828Z",
+  "syncedAt": "2026-09-11T09:28:08.159Z",
   "translated": [
     84,
     77,
@@ -670,7 +670,7 @@
         }
       ],
       "createdAt": "2026-09-07T04:42:12Z",
-      "updatedAt": "2026-09-07T04:57:44Z",
+      "updatedAt": "2026-09-11T09:27:47Z",
       "url": "https://github.com/Fzgt/Blog/issues/75",
       "excerpt": "一张图把渲染流水线的四条线程排在同一条时间轴上：合成器线程、光栅线程、主线程、GPU 线程。下面按图里的顺序，逐个节点记它做了什么，以及和 React 有关的那几处。 ⚠️ 这张图画的是 CompositeAfterPaint 重构之前的 Blink。 四条泳道、时序、强制同步布…",
       "headings": [
@@ -1406,7 +1406,7 @@
         }
       ],
       "createdAt": "2026-08-06T03:51:35Z",
-      "updatedAt": "2026-09-01T15:18:17Z",
+      "updatedAt": "2026-09-11T09:27:51Z",
       "url": "https://github.com/Fzgt/Blog/issues/43",
       "excerpt": "整理于 2026-08-06。一手来源为主（react.dev / GitHub releases），二手来源已标注。 注意：搜索 \"React best practices 2026\" 出来的内容大量是 SEO 农场文 —— 互相抄袭、掺杂过时信息、把 2024 年的东西包装成…",
       "headings": [
@@ -1631,7 +1631,7 @@
         }
       ],
       "createdAt": "2026-07-28T00:38:17Z",
-      "updatedAt": "2026-09-06T10:18:35Z",
+      "updatedAt": "2026-09-11T09:27:53Z",
       "url": "https://github.com/Fzgt/Blog/issues/31",
       "excerpt": "一次完整更新全流程图PLUS版 0. 触发更新：setState被调用 → reconciler分配lane（requestUpdateLane） → 判断同步/异步 ┌─ 同步lane：直接调 performSyncWorkOnRoot，不进Scheduler，立即执行完 │ …",
       "headings": [
@@ -1671,7 +1671,7 @@
         }
       ],
       "createdAt": "2026-07-27T08:05:50Z",
-      "updatedAt": "2026-09-06T10:36:30Z",
+      "updatedAt": "2026-09-11T09:27:52Z",
       "url": "https://github.com/Fzgt/Blog/issues/29",
       "excerpt": "一、getDerivedStateFromProps 是什么：类组件专属的静态生命周期方法，作用是\"根据最新传进来的props，决定要不要更新state\"。 关键特点： - 静态方法，拿不到this，不能调用this.setState，只能通过return一个对象来更新state…",
       "headings": [
@@ -1698,7 +1698,7 @@
         }
       ],
       "createdAt": "2026-07-27T08:03:39Z",
-      "updatedAt": "2026-09-06T10:36:29Z",
+      "updatedAt": "2026-09-11T09:27:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/28",
       "excerpt": "解决什么问题 React.memo/PureComponent靠\"浅比较props/state\"来判断要不要跳过渲染，但有个隐蔽的坑：如果传的是对象/数组/函数，哪怕内容一样，只要不是同一个引用，浅比较就会判定\"变了\"，照样触发重渲染。 即使style内容永远一样，因为每次都是新…",
       "headings": [
@@ -1762,7 +1762,7 @@
         }
       ],
       "createdAt": "2026-07-27T01:53:05Z",
-      "updatedAt": "2026-09-09T06:24:01Z",
+      "updatedAt": "2026-09-11T09:27:59Z",
       "url": "https://github.com/Fzgt/Blog/issues/25",
       "excerpt": "useState 与 useReducer 的关系 一句话结论 useState 是 useReducer 的一个特殊情况 —— 走同一套 hook 链表和 dispatch 机制，React 内置了一个超简单的默认 reducer，你不用自己写。 别把「语法糖」这个词说死：源码…",
       "headings": [
@@ -1784,7 +1784,7 @@
         }
       ],
       "createdAt": "2026-07-25T10:10:22Z",
-      "updatedAt": "2026-09-09T06:57:58Z",
+      "updatedAt": "2026-09-11T09:28:00Z",
       "url": "https://github.com/Fzgt/Blog/issues/24",
       "excerpt": "useLayoutEffect 理解笔记 一句话定位 useLayoutEffect 是\"页面画出来之前，最后一次能改DOM\"的机会。 在整个流程里卡在哪 为什么它是\"同步\"的 它会阻塞浏览器绘制——浏览器要等它跑完，才会把这次DOM改动画到屏幕上。 正因为阻塞，才能做到：用户在…",
       "headings": [
@@ -1806,7 +1806,7 @@
         }
       ],
       "createdAt": "2026-07-25T06:19:52Z",
-      "updatedAt": "2026-09-06T10:18:34Z",
+      "updatedAt": "2026-09-11T09:27:50Z",
       "url": "https://github.com/Fzgt/Blog/issues/23",
       "excerpt": "区分React里有两种性质完全不同的\"暂停/打断\" | | Render阶段的\"可打断\" | Commit阶段的\"暂停\"（View Transition相关） | |---|---|---| | 打断原因 | 被更高优先级的任务抢占 | 要等浏览器把过渡动画播完 | | 打断的对…",
       "headings": [
@@ -1830,7 +1830,7 @@
         }
       ],
       "createdAt": "2026-07-24T23:54:57Z",
-      "updatedAt": "2026-09-06T10:18:32Z",
+      "updatedAt": "2026-09-11T09:27:48Z",
       "url": "https://github.com/Fzgt/Blog/issues/22",
       "excerpt": "Scheduler 调度流程 一句话总结：更新任务先按\"该不该现在处理\"分进两个队列（延时/及时）；及时任务通过 MessageChannel 被安排到下一个宏任务里去执行；执行时是一个循环，每处理一点就检查一下\"要不要让出主线程\"，让不完就先歇着，下轮宏任务接着干；而\"同步更新…",
       "headings": [
@@ -2027,9 +2027,9 @@
         }
       ],
       "createdAt": "2025-08-17T12:33:29Z",
-      "updatedAt": "2026-08-23T11:48:41Z",
+      "updatedAt": "2026-09-11T09:28:02Z",
       "url": "https://github.com/Fzgt/Blog/issues/12",
-      "excerpt": "- 放到CDN上的图片还会被优化 自动压缩、格式转换、尺寸调整。 - 即使不是网站首页公共访问的图片，个人信息的图片也可能被别的用户多次查看，所以也是有必要放cdn的。特别热门用户。",
+      "excerpt": "- 普通 CDN 默认一个字节都不改你的文件，只做缓存分发和 gzip / brotli。自动压缩、格式转换、尺寸调整是图片 CDN（imgix、Cloudflare Images、阿里云 OSS 图片处理）单独提供的能力，通常另外收费——传上 CDN ≠ 图片被优化了，展开见 …",
       "headings": []
     },
     {
@@ -2102,7 +2102,7 @@
         }
       ],
       "createdAt": "2025-08-13T07:07:25Z",
-      "updatedAt": "2026-07-28T00:07:51Z",
+      "updatedAt": "2026-09-11T09:27:55Z",
       "url": "https://github.com/Fzgt/Blog/issues/8",
       "excerpt": "个人理解 - hoc就相当于把一个组件传到一个 中间件性质的组件里处理，给这个传进去的组件赋能，然后返回一个新组件。 - 所谓赋能 既可以是对这个组件数据上的赋能也可以是UI上的。 - 如果是 授权管理 和 数据获取 的应用场景，那就是在父组件完成逻辑的处理，然后通过组件的pro…",
       "headings": []
@@ -2134,7 +2134,7 @@
         }
       ],
       "createdAt": "2025-08-11T10:32:38Z",
-      "updatedAt": "2026-09-09T06:18:58Z",
+      "updatedAt": "2026-09-11T09:27:56Z",
       "url": "https://github.com/Fzgt/Blog/issues/6",
       "excerpt": "为什么会有hooks？解决了什么问题 历史背景：hooks出现前的最佳实践是 class组件做容器组件 + function组件做UI组件， 因为function组件不能定义state，只能通过props传值，组件能力很薄弱。 痛点1：状态逻辑很难在组件间复用——只能靠HOC或r…",
       "headings": [

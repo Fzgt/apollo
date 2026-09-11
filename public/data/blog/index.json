@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-11T09:06:23.828Z",
+  "syncedAt": "2026-09-11T09:28:08.159Z",
   "translated": [
     84,
     77,
@@ -670,7 +670,7 @@
         }
       ],
       "createdAt": "2026-09-07T04:42:12Z",
-      "updatedAt": "2026-09-07T04:57:44Z",
+      "updatedAt": "2026-09-11T09:27:47Z",
       "url": "https://github.com/Fzgt/Blog/issues/75",
       "excerpt": "一张图把渲染流水线的四条线程排在同一条时间轴上：合成器线程、光栅线程、主线程、GPU 线程。下面按图里的顺序，逐个节点记它做了什么，以及和 React 有关的那几处。 ⚠️ 这张图画的是 CompositeAfterPaint 重构之前的 Blink。 四条泳道、时序、强制同步布…",
       "headings": [
@@ -1406,7 +1406,7 @@
         }
       ],
       "createdAt": "2026-08-06T03:51:35Z",
-      "updatedAt": "2026-09-01T15:18:17Z",
+      "updatedAt": "2026-09-11T09:27:51Z",
       "url": "https://github.com/Fzgt/Blog/issues/43",
       "excerpt": "Compiled 2026-08-06. Primary sources where possible (react.dev, GitHub releases); secondary sources are marked. A warning: searching \"React …",
       "headings": [
@@ -1631,7 +1631,7 @@
         }
       ],
       "createdAt": "2026-07-28T00:38:17Z",
-      "updatedAt": "2026-09-06T10:18:35Z",
+      "updatedAt": "2026-09-11T09:27:53Z",
       "url": "https://github.com/Fzgt/Blog/issues/31",
       "excerpt": "One complete update, the fuller version 0. An update is triggered: setState is called → the reconciler assigns a lane (requestUpdateLane) → …",
       "headings": [
@@ -1671,7 +1671,7 @@
         }
       ],
       "createdAt": "2026-07-27T08:05:50Z",
-      "updatedAt": "2026-09-06T10:36:30Z",
+      "updatedAt": "2026-09-11T09:27:52Z",
       "url": "https://github.com/Fzgt/Blog/issues/29",
       "excerpt": "1. getDerivedStateFromProps What it is: a class-only static lifecycle method that decides whether the newest props should update state. The …",
       "headings": [
@@ -1698,7 +1698,7 @@
         }
       ],
       "createdAt": "2026-07-27T08:03:39Z",
-      "updatedAt": "2026-09-06T10:36:29Z",
+      "updatedAt": "2026-09-11T09:27:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/28",
       "excerpt": "What it solves React.memo and PureComponent decide whether to skip a render by shallow-comparing props and state. There is a quiet trap in t…",
       "headings": [
@@ -1762,7 +1762,7 @@
         }
       ],
       "createdAt": "2026-07-27T01:53:05Z",
-      "updatedAt": "2026-09-09T06:24:01Z",
+      "updatedAt": "2026-09-11T09:27:59Z",
       "url": "https://github.com/Fzgt/Blog/issues/25",
       "excerpt": "How useState and useReducer relate The short answer useState is a special case of useReducer. Same hook list and dispatch machinery undernea…",
       "headings": [
@@ -1784,7 +1784,7 @@
         }
       ],
       "createdAt": "2026-07-25T10:10:22Z",
-      "updatedAt": "2026-09-09T06:57:58Z",
+      "updatedAt": "2026-09-11T09:28:00Z",
       "url": "https://github.com/Fzgt/Blog/issues/24",
       "excerpt": "Notes on useLayoutEffect What it is, in one sentence useLayoutEffect is the last chance to change the DOM before the page is painted. Where …",
       "headings": [
@@ -1806,7 +1806,7 @@
         }
       ],
       "createdAt": "2026-07-25T06:19:52Z",
-      "updatedAt": "2026-09-06T10:18:34Z",
+      "updatedAt": "2026-09-11T09:27:50Z",
       "url": "https://github.com/Fzgt/Blog/issues/23",
       "excerpt": "Two completely different kinds of \"pause\" in React | | Interruptible render phase | Commit-phase pause (View Transitions) | |---|---|---| | …",
       "headings": [
@@ -1830,7 +1830,7 @@
         }
       ],
       "createdAt": "2026-07-24T23:54:57Z",
-      "updatedAt": "2026-09-06T10:18:32Z",
+      "updatedAt": "2026-09-11T09:27:48Z",
       "url": "https://github.com/Fzgt/Blog/issues/22",
       "excerpt": "How scheduling works In one sentence: update tasks are sorted into two queues by whether they should be handled now (delayed vs ready); read…",
       "headings": [
@@ -2034,9 +2034,9 @@
         }
       ],
       "createdAt": "2025-08-17T12:33:29Z",
-      "updatedAt": "2026-08-23T11:48:41Z",
+      "updatedAt": "2026-09-11T09:28:02Z",
       "url": "https://github.com/Fzgt/Blog/issues/12",
-      "excerpt": "- Images on a CDN still get optimised: automatic compression, format conversion, resizing. - Even images that are not public front-page asse…",
+      "excerpt": "- A plain CDN does not touch a single byte of your files by default: it caches, distributes, and applies gzip / brotli. Automatic compressio…",
       "headings": []
     },
     {
@@ -2109,7 +2109,7 @@
         }
       ],
       "createdAt": "2025-08-13T07:07:25Z",
-      "updatedAt": "2026-07-28T00:07:51Z",
+      "updatedAt": "2026-09-11T09:27:55Z",
       "url": "https://github.com/Fzgt/Blog/issues/8",
       "excerpt": "How I think about it - An HOC is like passing a component through a piece of middleware: it takes a component, gives it something extra, and…",
       "headings": []
@@ -2141,7 +2141,7 @@
         }
       ],
       "createdAt": "2025-08-11T10:32:38Z",
-      "updatedAt": "2026-09-09T06:18:58Z",
+      "updatedAt": "2026-09-11T09:27:56Z",
       "url": "https://github.com/Fzgt/Blog/issues/6",
       "excerpt": "Why hooks exist, and what they fixed Some history. Before hooks, the accepted pattern was class components as containers and function compon…",
       "headings": [
