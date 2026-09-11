@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-11T06:40:16.157Z",
+  "syncedAt": "2026-09-11T08:17:51.957Z",
   "translated": [
     84,
     77,
@@ -1575,7 +1575,8 @@
         "3. Streaming SSR, in detail",
         "4. Which performance metrics isomorphic rendering helps",
         "5. What changes on serverless",
-        "Everything in one sentence"
+        "Everything in one sentence",
+        "6. RSC (React Server Components) is not SSR"
       ]
     },
     {
@@ -1634,7 +1635,8 @@
       "url": "https://github.com/Fzgt/Blog/issues/31",
       "excerpt": "One complete update, the fuller version 0. An update is triggered: setState is called → the reconciler assigns a lane (requestUpdateLane) → …",
       "headings": [
-        "One complete update, the fuller version"
+        "One complete update, the fuller version",
+        "⚠️ The link people get wrong: going through the Scheduler ≠ being time-sliced"
       ]
     },
     {
@@ -1678,7 +1680,8 @@
         "3. \"Jotai is fully concurrent-friendly\" — a claim that needs qualifying",
         "4. Portals",
         "5. What react.d.ts is",
-        "6. FID has been replaced by INP (since March 2024)"
+        "6. FID has been replaced by INP (since March 2024)",
+        "7. Suspense and error boundaries — the same entry point"
       ]
     },
     {
@@ -1703,7 +1706,8 @@
         "How to use it, in three steps",
         "Two ways to track specific components",
         "What you get",
-        "In one sentence"
+        "In one sentence",
+        "Addendum: React's own three gates — bailout at the source level"
       ]
     },
     {
@@ -1810,10 +1814,10 @@
         "1. What the reconciler is",
         "2. Double buffering",
         "3. Building the fiber tree (the render phase)",
+        "3b. The two workLoops of the render phase — \"interruptible\" is not \"will be interrupted\"",
         "4. The React diff algorithm",
         "Tying it together",
-        "getSnapshotBeforeUpdate and componentDidUpdate",
-        "The commit phase"
+        "getSnapshotBeforeUpdate and componentDidUpdate"
       ]
     },
     {
@@ -2123,7 +2127,9 @@
       "updatedAt": "2026-09-06T10:44:54Z",
       "url": "https://github.com/Fzgt/Blog/issues/7",
       "excerpt": "The approach that generalises well: separate container components from UI components. Extract only the genuinely reusable part into a UI com…",
-      "headings": []
+      "headings": [
+        "Forwarding refs: handing a child's DOM node to the parent"
+      ]
     },
     {
       "number": 6,
@@ -2144,7 +2150,8 @@
         "Understanding useState",
         "Understanding useEffect",
         "React.memo vs PureComponent vs shouldComponentUpdate",
-        "A minimal useState"
+        "A minimal useState",
+        "What useState really looks like — the hook linked list"
       ]
     },
     {
