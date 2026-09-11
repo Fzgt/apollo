@@ -212,6 +212,10 @@ export default function BlogPage() {
   );
 
   const activeIndexInList = activePost ? posts.indexOf(activePost) : -1;
+  // 上下篇卡片只有半行宽，带副标题的长标题会折成两行、行尾还吊着破折号。
+  // 站里的标题统一是「主标题 —— 副标题」，导航里只显示破折号前面那截，完整标题走 title 属性。
+  const navTitle = (title: string) => title.split(/\s*——\s*|\s+—\s+/)[0].trim() || title;
+
   const prevPost = activeIndexInList > 0 ? posts[activeIndexInList - 1] : null;
   const nextPost =
     activeIndexInList >= 0 && activeIndexInList < posts.length - 1
@@ -591,7 +595,7 @@ export default function BlogPage() {
                               {t(UI.common.previous)}
                             </span>
                             <span className="line-clamp-2 w-full break-words font-medium text-foreground">
-                              {prevPost.title}
+                              {navTitle(prevPost.title)}
                             </span>
                           </button>
                         ) : (
@@ -609,7 +613,7 @@ export default function BlogPage() {
                               <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
                             </span>
                             <span className="line-clamp-2 w-full break-words font-medium text-foreground">
-                              {nextPost.title}
+                              {navTitle(nextPost.title)}
                             </span>
                           </button>
                         ) : (
