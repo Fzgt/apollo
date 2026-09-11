@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-11T05:22:18.689Z",
+  "syncedAt": "2026-09-11T05:39:23.533Z",
   "translated": [
     84,
     77,
@@ -119,7 +119,8 @@
         20,
         54,
         78,
-        88
+        88,
+        89
       ]
     },
     {
@@ -250,6 +251,34 @@
     }
   ],
   "posts": [
+    {
+      "number": 89,
+      "title": "TanStack Query 的服务端状态模型 —— staleTime/gcTime、观察者、失效与结构共享",
+      "labels": [
+        {
+          "name": "React",
+          "color": "0075ca"
+        },
+        {
+          "name": "知识体系",
+          "color": "e4e669"
+        }
+      ],
+      "createdAt": "2026-09-11T05:38:51Z",
+      "updatedAt": "2026-09-11T05:38:51Z",
+      "url": "https://github.com/Fzgt/Blog/issues/89",
+      "excerpt": "核心哲学一句话:服务端状态不属于你,你手里只是一份可能已经过期的副本。 所以它管的不是\"值是多少\",而是\"这份副本有多可信、什么时候该去对齐\"。 queryKey 只解决了\"这是哪份数据\"(用法和三层架构见 #20),下面这些才是它作为\"服务端状态管理库\"的主体。 --- 一、两…",
+      "headings": [
+        "一、两个时间,正交的",
+        "二、三组独立的状态",
+        "三、观察者模型",
+        "四、自动对齐的时机",
+        "五、失效,而不是手动改缓存",
+        "六、结构共享(structural sharing)",
+        "七、其他几件",
+        "总结"
+      ]
+    },
     {
       "number": 88,
       "title": "Redux Toolkit —— 不只是少写样板，以及 react-redux / thunk / saga 的现状",
@@ -421,7 +450,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:44Z",
-      "updatedAt": "2026-09-10T11:32:43Z",
+      "updatedAt": "2026-09-11T05:39:09Z",
       "url": "https://github.com/Fzgt/Blog/issues/82",
       "excerpt": "这一篇把 React 18 的并发能力和它带来的架构变化串起来：并发到底给开发者提供了什么、SSR 因此发生了什么变化、Next.js 和 Remix 怎么选，以及预加载这类手段落在哪一层。 --- 一、并发渲染：开发者视角只有一件事 抛开源码，对开发者来说 React 18 只…",
       "headings": [
@@ -528,7 +557,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:36Z",
-      "updatedAt": "2026-09-11T05:22:03Z",
+      "updatedAt": "2026-09-11T05:39:07Z",
       "url": "https://github.com/Fzgt/Blog/issues/78",
       "excerpt": "市面上讲状态库的文章大多是并列式的：Redux 怎么用、Zustand 怎么用、Jotai 怎么用，然后给一张\"体积对比表\"。这种排法记不住，因为它没有回答为什么会有这么多库。 真正的分类只有两条轴，Jotai / Zustand / Valtio 的作者 Daishi Kato…",
       "headings": [
@@ -1807,7 +1836,7 @@
         }
       ],
       "createdAt": "2026-07-24T03:11:29Z",
-      "updatedAt": "2026-07-28T00:07:51Z",
+      "updatedAt": "2026-09-11T05:39:06Z",
       "url": "https://github.com/Fzgt/Blog/issues/20",
       "excerpt": "React Query The API - queryKey decides which slot in the cache this data occupies. Two places using the same queryKey share one cache entry.…",
       "headings": [
