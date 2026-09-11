@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-10T11:32:46.719Z",
+  "syncedAt": "2026-09-11T05:06:34.461Z",
   "translated": [
     84,
     77,
@@ -501,7 +501,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:36Z",
-      "updatedAt": "2026-09-09T08:34:36Z",
+      "updatedAt": "2026-09-11T05:06:31Z",
       "url": "https://github.com/Fzgt/Blog/issues/78",
       "excerpt": "市面上讲状态库的文章大多是并列式的：Redux 怎么用、Zustand 怎么用、Jotai 怎么用，然后给一张\"体积对比表\"。这种排法记不住，因为它没有回答为什么会有这么多库。 真正的分类只有两条轴，Jotai / Zustand / Valtio 的作者 Daishi Kato…",
       "headings": [
