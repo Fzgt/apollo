@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-12T03:49:15.479Z",
+  "syncedAt": "2026-09-12T03:59:59.952Z",
   "translated": [
     84,
     77,
@@ -447,7 +447,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:46Z",
-      "updatedAt": "2026-09-09T08:34:46Z",
+      "updatedAt": "2026-09-12T03:59:49Z",
       "url": "https://github.com/Fzgt/Blog/issues/83",
       "excerpt": "组件库开发的三件套：Storybook 做展示与调试，Tailwind 做样式，MSW 做数据 mock。这一篇讲它们各自解决什么问题、以及几个不太有人讲的细节。 --- 一、Storybook 什么时候值得起 判断标准只有一条：这套组件给几个团队用。 - 一个项目自己用 → 组…",
       "headings": [
@@ -500,7 +500,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:42Z",
-      "updatedAt": "2026-09-11T09:06:17Z",
+      "updatedAt": "2026-09-12T03:59:50Z",
       "url": "https://github.com/Fzgt/Blog/issues/81",
       "excerpt": "如果你没有配置过 SplitChunksPlugin，就说明你从来没有关心过项目的性能。因为不配的话，Webpack 默认没什么分包机制，全部塞进 main.js，体积轻易到 4MB+——那些所谓的性能指标就已经炸了，还有什么可度量的。 这句话是这一章的起点。下面按\"为什么拆 →…",
       "headings": [
@@ -524,7 +524,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:40Z",
-      "updatedAt": "2026-09-09T08:34:40Z",
+      "updatedAt": "2026-09-12T03:59:47Z",
       "url": "https://github.com/Fzgt/Blog/issues/80",
       "excerpt": "Monorepo 这套工具链的关系经常被讲乱：pnpm、Lerna、Nx、Rush、verdaccio 各自管什么，谁能替代谁。这篇按\"解决什么问题\"重新排一遍。 --- 一、Monorepo 解决的到底是什么问题 场景：项目 A 依赖组件库 B，两者是独立仓库。 B 改了一行代…",
       "headings": [
@@ -552,7 +552,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:38Z",
-      "updatedAt": "2026-09-09T08:34:38Z",
+      "updatedAt": "2026-09-12T03:59:34Z",
       "url": "https://github.com/Fzgt/Blog/issues/79",
       "excerpt": "这一篇把 Serverless 相关的内容串起来：BFF/SFF 的定位、Cloudflare Workers 和 AWS Lambda 的实际差别、IPFS 这类去中心化部署的坑，以及 Service Worker 留下的遗产。 --- 一、BFF 与 SFF：一层给谁用的问题…",
       "headings": [
@@ -1163,7 +1163,7 @@
       "title": "SSE（Server-Sent Events）—— 一个不结束的 HTTP 响应",
       "labels": [],
       "createdAt": "2026-08-23T13:15:36Z",
-      "updatedAt": "2026-09-01T15:18:21Z",
+      "updatedAt": "2026-09-12T03:59:35Z",
       "url": "https://github.com/Fzgt/Blog/issues/55",
       "excerpt": "一直觉得 SSE 很玄，其实它是这几种实时方案里最土的一个：就是一个不结束的 HTTP 响应。 把这一句吃透，剩下的全是细节。 一、它到底是什么 普通的 HTTP 请求是这样： SSE 只改了最后一步： ⭐ 服务器把响应体写了一半就停在那儿不关，隔一会儿再往里写一段。 浏览器这边…",
       "headings": [
@@ -1217,7 +1217,7 @@
         }
       ],
       "createdAt": "2026-08-21T03:25:46Z",
-      "updatedAt": "2026-08-21T03:25:46Z",
+      "updatedAt": "2026-09-12T03:59:39Z",
       "url": "https://github.com/Fzgt/Blog/issues/51",
       "excerpt": "从一行流式转发代码 for await (const text of textStream) stream.update(text); 展开的知识点。 --- 一、它解决什么问题 同步的 for...of 遍历数组、Set、Map 这类同步可迭代对象，每次立刻拿到下一个值。 但流…",
       "headings": [
@@ -1421,7 +1421,7 @@
         }
       ],
       "createdAt": "2026-08-06T00:39:45Z",
-      "updatedAt": "2026-08-06T05:24:01Z",
+      "updatedAt": "2026-09-12T03:59:46Z",
       "url": "https://github.com/Fzgt/Blog/issues/42",
       "excerpt": "cc-switch 执行以下命令添加CC Switch的Homebrew仓库： brew tap farion1231/ccswitch 然后执行以下命令安装CC Switch： brew install --cask cc-switch 不想老是点权限确认，可以在启动时添加这个…",
       "headings": [
@@ -1918,7 +1918,7 @@
         }
       ],
       "createdAt": "2025-09-06T03:33:32Z",
-      "updatedAt": "2026-07-29T02:33:34Z",
+      "updatedAt": "2026-09-12T03:59:37Z",
       "url": "https://github.com/Fzgt/Blog/issues/18",
       "excerpt": "问题:说一下 HTTP 缓存策略,有什么区别,分别解决了什么问题 答案: HTTP 缓存策略是一种用来提高网络应用性能的技术,主要目的是减少数据的重复传输,减轻服务器负担,加快客户端加载速度。不同的缓存策略有各自的特点和适用场景,主要包括: 1. 强缓存(Strong Cache…",
       "headings": [
@@ -1941,13 +1941,13 @@
         }
       ],
       "createdAt": "2025-09-06T01:57:38Z",
-      "updatedAt": "2026-07-28T08:13:40Z",
+      "updatedAt": "2026-09-12T03:59:41Z",
       "url": "https://github.com/Fzgt/Blog/issues/17",
       "excerpt": "泛型 Generic - 泛型就是类型的参数化。像函数可以接收参数一样，泛型允许你给类型定义参数，从而提高复用性和灵活性。 泛型约束 Generic Constraints - 有时我们希望限制泛型的范围，可以用 extends： 类型type - type 关键字可以给一个类型…",
       "headings": [
         "泛型 Generic",
         "类型type",
-        "五种常用映射类型 Mapped Types",
+        "常用内置工具类型",
         "补充"
       ]
     },
@@ -1998,7 +1998,7 @@
         }
       ],
       "createdAt": "2025-08-17T15:50:34Z",
-      "updatedAt": "2026-09-08T05:45:27Z",
+      "updatedAt": "2026-09-12T03:59:45Z",
       "url": "https://github.com/Fzgt/Blog/issues/14",
       "excerpt": "阅读前提（2026-09 订正）：本文是 webpack 4 → 5 时代的课程笔记，坐标系停在 2021 年左右。 当时的现实：webpack 是默认选择，讨论的是「4 还是 5」。 2026 年的现实：webpack 仍在维护（5.110.3，2026-09-01 发版），但…",
       "headings": []
@@ -2052,7 +2052,7 @@
         }
       ],
       "createdAt": "2025-08-17T11:27:16Z",
-      "updatedAt": "2026-07-28T00:11:56Z",
+      "updatedAt": "2026-09-12T03:59:38Z",
       "url": "https://github.com/Fzgt/Blog/issues/11",
       "excerpt": "- Cookie是用来保存sessionId httpOnly secure等信息，保存用户登陆态的，避免用户每次都要重新登陆，账号和密码是不会存在Cookie里的。Cookie发送和存储都是浏览器自动完成的。且每次http请求会自动发送Cookie。且响应中设置set-cook…",
       "headings": []
@@ -2167,7 +2167,7 @@
         }
       ],
       "createdAt": "2025-08-09T01:35:01Z",
-      "updatedAt": "2026-07-28T00:11:39Z",
+      "updatedAt": "2026-09-12T03:59:44Z",
       "url": "https://github.com/Fzgt/Blog/issues/5",
       "excerpt": "研究with的背景 Vue2的Compiler在编译模版时，会将 template -> ast -> render函数 -> VNode。生成的render函数中用到了 with 导致了性能问题。 为什么Vue2用with with能够扩展作用域链，让其内部作用域能够轻松访问其…",
       "headings": []
@@ -2206,7 +2206,7 @@
         }
       ],
       "createdAt": "2025-08-03T14:09:41Z",
-      "updatedAt": "2026-09-01T15:18:12Z",
+      "updatedAt": "2026-09-12T03:59:42Z",
       "url": "https://github.com/Fzgt/Blog/issues/3",
       "excerpt": "垃圾回收机制 问题：V8 下的垃圾回收机制是怎么样的？ （1）垃圾回收概述 垃圾回收机制(GC:Garbage Collection),执行环境负责管理代码执行过程中使用的内存。垃圾收集器会定期（周期性）找出那些不在继续使用的变量，然后释放其内存。但是这个过程不是实时的，因为其开…",
       "headings": [

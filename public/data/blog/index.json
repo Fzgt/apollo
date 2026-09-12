@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-12T03:49:15.479Z",
+  "syncedAt": "2026-09-12T03:59:59.952Z",
   "translated": [
     84,
     77,
@@ -447,7 +447,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:46Z",
-      "updatedAt": "2026-09-09T08:34:46Z",
+      "updatedAt": "2026-09-12T03:59:49Z",
       "url": "https://github.com/Fzgt/Blog/issues/83",
       "excerpt": "组件库开发的三件套：Storybook 做展示与调试，Tailwind 做样式，MSW 做数据 mock。这一篇讲它们各自解决什么问题、以及几个不太有人讲的细节。 --- 一、Storybook 什么时候值得起 判断标准只有一条：这套组件给几个团队用。 - 一个项目自己用 → 组…",
       "headings": [
@@ -500,7 +500,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:42Z",
-      "updatedAt": "2026-09-11T09:06:17Z",
+      "updatedAt": "2026-09-12T03:59:50Z",
       "url": "https://github.com/Fzgt/Blog/issues/81",
       "excerpt": "如果你没有配置过 SplitChunksPlugin，就说明你从来没有关心过项目的性能。因为不配的话，Webpack 默认没什么分包机制，全部塞进 main.js，体积轻易到 4MB+——那些所谓的性能指标就已经炸了，还有什么可度量的。 这句话是这一章的起点。下面按\"为什么拆 →…",
       "headings": [
@@ -524,7 +524,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:40Z",
-      "updatedAt": "2026-09-09T08:34:40Z",
+      "updatedAt": "2026-09-12T03:59:47Z",
       "url": "https://github.com/Fzgt/Blog/issues/80",
       "excerpt": "Monorepo 这套工具链的关系经常被讲乱：pnpm、Lerna、Nx、Rush、verdaccio 各自管什么，谁能替代谁。这篇按\"解决什么问题\"重新排一遍。 --- 一、Monorepo 解决的到底是什么问题 场景：项目 A 依赖组件库 B，两者是独立仓库。 B 改了一行代…",
       "headings": [
@@ -552,7 +552,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:38Z",
-      "updatedAt": "2026-09-09T08:34:38Z",
+      "updatedAt": "2026-09-12T03:59:34Z",
       "url": "https://github.com/Fzgt/Blog/issues/79",
       "excerpt": "这一篇把 Serverless 相关的内容串起来：BFF/SFF 的定位、Cloudflare Workers 和 AWS Lambda 的实际差别、IPFS 这类去中心化部署的坑，以及 Service Worker 留下的遗产。 --- 一、BFF 与 SFF：一层给谁用的问题…",
       "headings": [
@@ -1163,7 +1163,7 @@
       "title": "SSE (Server-Sent Events) — an HTTP Response That Never Ends",
       "labels": [],
       "createdAt": "2026-08-23T13:15:36Z",
-      "updatedAt": "2026-09-01T15:18:21Z",
+      "updatedAt": "2026-09-12T03:59:35Z",
       "url": "https://github.com/Fzgt/Blog/issues/55",
       "excerpt": "SSE always felt mysterious to me. It is actually the crudest of the real-time options: an HTTP response that never ends. Absorb that sentenc…",
       "headings": [
@@ -1217,7 +1217,7 @@
         }
       ],
       "createdAt": "2026-08-21T03:25:46Z",
-      "updatedAt": "2026-08-21T03:25:46Z",
+      "updatedAt": "2026-09-12T03:59:39Z",
       "url": "https://github.com/Fzgt/Blog/issues/51",
       "excerpt": "Everything that unfolded out of one line of streaming code: for await (const text of textStream) stream.update(text); --- 1. What it solves …",
       "headings": [
@@ -1421,7 +1421,7 @@
         }
       ],
       "createdAt": "2026-08-06T00:39:45Z",
-      "updatedAt": "2026-08-06T05:24:01Z",
+      "updatedAt": "2026-09-12T03:59:46Z",
       "url": "https://github.com/Fzgt/Blog/issues/42",
       "excerpt": "cc-switch Add the CC Switch Homebrew tap: brew tap farion1231/ccswitch Then install it: brew install --cask cc-switch If you are tired of co…",
       "headings": [
@@ -1916,7 +1916,7 @@
         }
       ],
       "createdAt": "2025-09-06T03:33:32Z",
-      "updatedAt": "2026-07-29T02:33:34Z",
+      "updatedAt": "2026-09-12T03:59:37Z",
       "url": "https://github.com/Fzgt/Blog/issues/18",
       "excerpt": "Question: explain the HTTP caching strategies — how do they differ, and what does each one solve? Answer: HTTP caching is a technique for ma…",
       "headings": [
@@ -1939,13 +1939,13 @@
         }
       ],
       "createdAt": "2025-09-06T01:57:38Z",
-      "updatedAt": "2026-07-28T08:13:40Z",
+      "updatedAt": "2026-09-12T03:59:41Z",
       "url": "https://github.com/Fzgt/Blog/issues/17",
       "excerpt": "Generics A generic is a parameterised type. Just as a function takes arguments, generics let you give a type parameters, which makes it reus…",
       "headings": [
         "Generics",
         "type",
-        "Five groups of mapped types",
+        "Common built-in utility types",
         "Extras"
       ]
     },
@@ -1996,7 +1996,7 @@
         }
       ],
       "createdAt": "2025-08-17T15:50:34Z",
-      "updatedAt": "2026-09-08T05:45:27Z",
+      "updatedAt": "2026-09-12T03:59:45Z",
       "url": "https://github.com/Fzgt/Blog/issues/14",
       "excerpt": "Before you read (corrected 2026-09): these are course notes from the webpack 4 → 5 era; the frame of reference stops around 2021. Back then …",
       "headings": [
@@ -2059,7 +2059,7 @@
         }
       ],
       "createdAt": "2025-08-17T11:27:16Z",
-      "updatedAt": "2026-07-28T00:11:56Z",
+      "updatedAt": "2026-09-12T03:59:38Z",
       "url": "https://github.com/Fzgt/Blog/issues/11",
       "excerpt": "- A cookie holds things like the session ID, httpOnly, and secure. It keeps the user logged in so they do not have to sign in again on every…",
       "headings": []
@@ -2174,7 +2174,7 @@
         }
       ],
       "createdAt": "2025-08-09T01:35:01Z",
-      "updatedAt": "2026-07-28T00:11:39Z",
+      "updatedAt": "2026-09-12T03:59:44Z",
       "url": "https://github.com/Fzgt/Blog/issues/5",
       "excerpt": "Why look at with at all Vue 2's compiler turns a template into an AST, then a render function, then VNodes. The generated render function us…",
       "headings": []
@@ -2213,7 +2213,7 @@
         }
       ],
       "createdAt": "2025-08-03T14:09:41Z",
-      "updatedAt": "2026-09-01T15:18:12Z",
+      "updatedAt": "2026-09-12T03:59:42Z",
       "url": "https://github.com/Fzgt/Blog/issues/3",
       "excerpt": "Garbage collection Interview question this covers: how does garbage collection work in V8? (1) Overview Garbage collection (GC) means the ru…",
       "headings": [
