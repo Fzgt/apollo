@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-12T03:01:26.776Z",
+  "syncedAt": "2026-09-12T03:49:15.479Z",
   "translated": [
     84,
     77,
@@ -341,7 +341,7 @@
         }
       ],
       "createdAt": "2026-09-09T09:06:19Z",
-      "updatedAt": "2026-09-09T09:06:19Z",
+      "updatedAt": "2026-09-12T03:49:02Z",
       "url": "https://github.com/Fzgt/Blog/issues/87",
       "excerpt": "3D 项目的体积大头不是代码，是资源——模型和纹理。这一篇讲格式怎么选、怎么压，以及为什么这些压缩工具底层全是 WebAssembly。 --- 一、模型格式 glTF —— 事实标准 Khronos Group 推行的格式，被称为「3D 界的 JPEG」。Blender 等主流…",
       "headings": [
@@ -368,7 +368,7 @@
         }
       ],
       "createdAt": "2026-09-09T09:06:17Z",
-      "updatedAt": "2026-09-09T09:06:17Z",
+      "updatedAt": "2026-09-12T03:48:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/86",
       "excerpt": "前端做 3D，第一个要回答的问题不是\"用哪个库\"，而是你要做的这件事在图形学的哪一层。这一篇从引擎分层讲起，然后是 WebGL 到 WebGPU 的换代原因，最后是渲染管线本身。 --- 一、先看清楚 Three.js 在哪一层 一个游戏引擎大致分四层，从下往上： | 层 | 内…",
       "headings": [
@@ -395,9 +395,9 @@
         }
       ],
       "createdAt": "2026-09-09T09:06:15Z",
-      "updatedAt": "2026-09-09T09:06:15Z",
+      "updatedAt": "2026-09-12T03:48:59Z",
       "url": "https://github.com/Fzgt/Blog/issues/85",
-      "excerpt": "这一篇讲 Three.js 的对象模型、交互怎么做，以及为什么在 React 项目里应该直接上 react-three-fiber。 --- 一、Three.js 的对象模型 四个核心对象，装配关系是固定的： - 场景（Scene）挂到渲染器（Renderer）上 - 相机挂在场…",
+      "excerpt": "这一篇讲 Three.js 的对象模型、交互怎么做，以及为什么在 React 项目里应该直接上 react-three-fiber。 --- 一、Three.js 的对象模型 四个核心对象，装配关系是固定的： - 场景（Scene）挂到渲染器（Renderer）上 - 相机不必加…",
       "headings": [
         "一、Three.js 的对象模型",
         "二、动画",
@@ -423,7 +423,7 @@
         }
       ],
       "createdAt": "2026-09-09T09:06:13Z",
-      "updatedAt": "2026-09-09T09:06:13Z",
+      "updatedAt": "2026-09-12T03:49:01Z",
       "url": "https://github.com/Fzgt/Blog/issues/84",
       "excerpt": "整理自课程笔记与 Three.js Journey 的性能优化章节，参考 discoverthreejs.com。原始笔记基于较早的 three.js 版本，其中几条 API 已经变了，本文按当前版本订正过，订正点在文末列出。 目标是 60fps，游戏玩家的设备可能要求更高。瓶颈…",
       "headings": [
@@ -1058,7 +1058,7 @@
         }
       ],
       "createdAt": "2026-09-02T09:19:33Z",
-      "updatedAt": "2026-09-02T09:22:28Z",
+      "updatedAt": "2026-09-12T03:49:04Z",
       "url": "https://github.com/Fzgt/Blog/issues/60",
       "excerpt": "症状：卡死精确落在换关那一帧 WinterFell 每跑 1800 个世界单位换一次调色板，其中一项是雾色。这个「只改一个颜色」的动作，曾经稳定地在换关那一帧把主线程打死。 - 雾在渲染里不是一层贴上去的滤镜，是编进每个材质着色器里的一段混色代码——所以「有没有雾」是源码差异，必…",
       "headings": [
@@ -1081,9 +1081,9 @@
         }
       ],
       "createdAt": "2026-09-02T02:00:42Z",
-      "updatedAt": "2026-09-02T09:22:27Z",
+      "updatedAt": "2026-09-12T03:49:12Z",
       "url": "https://github.com/Fzgt/Blog/issues/59",
-      "excerpt": "一行参数引出来的故障 #57 讲 bloom 为什么必须走 TSL 节点管线时，留了一句没展开的话：后处理组件把 renderPriority 设成大于零。这一行参数背后是一整套因果。 - 后处理的输入是「一整张已经渲完的画面」，所以它在渲染管线里只能排最后一步——它的原料是别人…",
+      "excerpt": "一行参数引出来的故障 #57 讲了 bloom 为什么必须走 TSL 节点管线。本篇补它在 r3f 里怎么接管渲染循环：后处理组件把 renderPriority 设成大于零。这一行参数背后是一整套因果。 - 后处理的输入是「一整张已经渲完的画面」，所以它在渲染管线里只能排最后一…",
       "headings": [
         "一行参数引出来的故障",
         "一、为什么后处理不能边渲边做",
@@ -1284,7 +1284,7 @@
       "title": "WinterFell 项目说明（WebGPU 渲染与基准测试）",
       "labels": [],
       "createdAt": "2026-08-18T05:04:08Z",
-      "updatedAt": "2026-08-23T12:46:21Z",
+      "updatedAt": "2026-09-12T03:49:05Z",
       "url": "https://github.com/Fzgt/Blog/issues/48",
       "excerpt": "WinterFell A WebGPU neon runner: twenty scenes, three and a half kilometres of track, and somewhere to arrive. Play the live demo · Steer wi…",
       "headings": [
