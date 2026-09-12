@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-12T02:49:09.325Z",
+  "syncedAt": "2026-09-12T03:01:26.776Z",
   "translated": [
     84,
     77,
@@ -853,7 +853,7 @@
         }
       ],
       "createdAt": "2026-09-05T12:54:41Z",
-      "updatedAt": "2026-09-05T14:44:03Z",
+      "updatedAt": "2026-09-12T03:01:16Z",
       "url": "https://github.com/Fzgt/Blog/issues/68",
       "excerpt": "上一篇把格式排在优先级第 4 位。这篇专门讲这一位怎么选,以及为什么「选格式」这件事在正经项目里根本不该由人来做。 --- 一、结论先放 | 内容 | 用什么 | |---|---| | 图标、logo、示意图、图表 | SVG | | 照片、截图、插画 | AVIF 优先,We…",
       "headings": [
@@ -929,7 +929,7 @@
         }
       ],
       "createdAt": "2026-09-05T12:28:37Z",
-      "updatedAt": "2026-09-05T12:28:37Z",
+      "updatedAt": "2026-09-12T03:01:15Z",
       "url": "https://github.com/Fzgt/Blog/issues/65",
       "excerpt": "起因:博客正文的图原来直连 GitHub 图床,仓库转私有之后全部 404。改成构建期镜像到本地,一跑发现 58 张图 23.7 MB,平均 410 KB,最大 2.2 MB。一篇讲性能的博客,正文挂着两 MB 的截图,说不过去。 转完 WebP 是 2.4 MB,省了 90%。…",
       "headings": [
@@ -1202,7 +1202,7 @@
       "title": "Debounce in Depth — leading / trailing / cancel",
       "labels": [],
       "createdAt": "2026-08-23T12:45:53Z",
-      "updatedAt": "2026-08-23T12:45:53Z",
+      "updatedAt": "2026-09-12T03:01:19Z",
       "url": "https://github.com/Fzgt/Blog/issues/52",
       "excerpt": "Earlier I only wrote the most basic form: run n milliseconds after the last trigger. Real situations usually need a more flexible combinatio…",
       "headings": []
@@ -1864,7 +1864,7 @@
         }
       ],
       "createdAt": "2026-07-24T04:22:39Z",
-      "updatedAt": "2026-09-09T10:16:58Z",
+      "updatedAt": "2026-09-12T03:01:18Z",
       "url": "https://github.com/Fzgt/Blog/issues/21",
       "excerpt": "The main write-up is here: The virtualized list — Baidu bullet 1 That one covers the full mechanism and how to answer for it: why 500 DOM no…",
       "headings": []
