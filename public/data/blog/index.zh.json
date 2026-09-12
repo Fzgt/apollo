@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-12T03:59:59.952Z",
+  "syncedAt": "2026-09-12T04:11:06.910Z",
   "translated": [
     84,
     77,
@@ -1245,7 +1245,7 @@
         }
       ],
       "createdAt": "2026-08-18T11:25:29Z",
-      "updatedAt": "2026-08-18T11:30:32Z",
+      "updatedAt": "2026-09-12T04:10:57Z",
       "url": "https://github.com/Fzgt/Blog/issues/50",
       "excerpt": "目录 - 一、MCP（Model Context Protocol） - 二、Agent 沙箱隔离 - 三、SWE-bench 跑分水平 - 四、机器学习基础：过拟合与数据集划分 - 五、附：grep --- 一、MCP（Model Context Protocol） 1.0 概…",
       "headings": [
@@ -1267,7 +1267,7 @@
         }
       ],
       "createdAt": "2026-08-18T07:48:00Z",
-      "updatedAt": "2026-08-18T07:48:00Z",
+      "updatedAt": "2026-09-12T04:10:56Z",
       "url": "https://github.com/Fzgt/Blog/issues/49",
       "excerpt": "2026-08-18 校到 v40：条目本身与 v40 的 22 条 bullet 一一对得上，无需增删；改的是下面三处「本机零代码」的过时判断。 只列概念名，不解释。先自己过一遍，会的划掉，不会的留着——留下来的才是后面要 focus 的。 标记 - ★ 简历原文出现，追问几乎…",
       "headings": [
@@ -1332,7 +1332,7 @@
         }
       ],
       "createdAt": "2026-08-11T05:41:37Z",
-      "updatedAt": "2026-08-11T05:41:48Z",
+      "updatedAt": "2026-09-12T04:10:54Z",
       "url": "https://github.com/Fzgt/Blog/issues/46",
       "excerpt": "LangChain vs LangGraph 差异对比 一、基本定位 | | LangChain | LangGraph | |---|---|---| | 定位 | 高层开发框架，快速搭建 LLM 应用 | 底层执行引擎，编排有状态、可控的 agent | | 类比 | 预制零…",
       "headings": [
@@ -2093,7 +2093,7 @@
         }
       ],
       "createdAt": "2025-08-14T07:01:17Z",
-      "updatedAt": "2026-07-28T08:06:34Z",
+      "updatedAt": "2026-09-12T04:10:53Z",
       "url": "https://github.com/Fzgt/Blog/issues/9",
       "excerpt": "阿里P8资深前端架构师1面 （我在从老家回来高速上全程聊了48分钟） 1.简单做个自我介绍 开始打断了我，嗯。百度的经历你不用介绍了，我在lBS6年，你的老大我很熟。 2.我也来自我介绍下，我是阿里支付宝大前端负责人，我们的团队分工很多，你看你喜欢哪一个类型的。 3.聊一下近一年…",
       "headings": [
@@ -2182,7 +2182,7 @@
         }
       ],
       "createdAt": "2025-08-07T08:56:24Z",
-      "updatedAt": "2026-07-28T00:11:38Z",
+      "updatedAt": "2026-09-12T04:10:51Z",
       "url": "https://github.com/Fzgt/Blog/issues/4",
       "excerpt": "区分Vue2离线编译和在线编译 - 在线编译 runtime + compiler 即使用 vue/dist/vue.esm.js - 离线编译 runtime 即使用 vue/dist/vue.runtime.esm.js 如果要性能优化，就把 compiler拆出去 节省线上…",
       "headings": [
