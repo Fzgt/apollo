@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-11T10:04:40.707Z",
+  "syncedAt": "2026-09-12T02:49:09.325Z",
   "translated": [
     84,
     77,
@@ -472,7 +472,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:44Z",
-      "updatedAt": "2026-09-11T05:39:09Z",
+      "updatedAt": "2026-09-12T02:48:55Z",
       "url": "https://github.com/Fzgt/Blog/issues/82",
       "excerpt": "这一篇把 React 18 的并发能力和它带来的架构变化串起来：并发到底给开发者提供了什么、SSR 因此发生了什么变化、Next.js 和 Remix 怎么选，以及预加载这类手段落在哪一层。 --- 一、并发渲染：开发者视角只有一件事 抛开源码，对开发者来说 React 18 只…",
       "headings": [
@@ -579,7 +579,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:36Z",
-      "updatedAt": "2026-09-11T05:39:07Z",
+      "updatedAt": "2026-09-12T02:49:02Z",
       "url": "https://github.com/Fzgt/Blog/issues/78",
       "excerpt": "市面上讲状态库的文章大多是并列式的：Redux 怎么用、Zustand 怎么用、Jotai 怎么用，然后给一张\"体积对比表\"。这种排法记不住，因为它没有回答为什么会有这么多库。 真正的分类只有两条轴，Jotai / Zustand / Valtio 的作者 Daishi Kato…",
       "headings": [
@@ -745,7 +745,7 @@
         }
       ],
       "createdAt": "2026-09-06T10:56:57Z",
-      "updatedAt": "2026-09-07T14:33:42Z",
+      "updatedAt": "2026-09-12T02:48:58Z",
       "url": "https://github.com/Fzgt/Blog/issues/72",
       "excerpt": "整理于 2026-09-06，基准 Next.js 16.3。上一篇 #71 Next.js API 用法汇总 讲怎么写，这篇讲为什么这么设计、它换来什么、赔上什么。 末尾第八节是问答速查：面试官随手抛一个 Next.js 小问题，那一节里基本都有一句话答案。 --- 一、Nex…",
       "headings": [
@@ -773,7 +773,7 @@
         }
       ],
       "createdAt": "2026-09-06T10:56:55Z",
-      "updatedAt": "2026-09-06T10:57:05Z",
+      "updatedAt": "2026-09-12T02:48:56Z",
       "url": "https://github.com/Fzgt/Blog/issues/71",
       "excerpt": "整理于 2026-09-06。基准版本：Next.js 16.3（文档标注 16.3.4，16.3.3 是 Active LTS，15.5.24 是 Maintenance LTS，16.4 还在 canary）。 一手来源：nextjs.org 官方文档与 release bl…",
       "headings": [
@@ -1550,7 +1550,7 @@
         }
       ],
       "createdAt": "2026-07-28T03:36:40Z",
-      "updatedAt": "2026-07-28T03:36:40Z",
+      "updatedAt": "2026-09-12T02:48:53Z",
       "url": "https://github.com/Fzgt/Blog/issues/35",
       "excerpt": "1. What hydration is actually for The HTML a server renders is just static markup that looks right. It has no event listeners attached. Clic…",
       "headings": [
@@ -1879,7 +1879,7 @@
         }
       ],
       "createdAt": "2026-07-24T03:11:29Z",
-      "updatedAt": "2026-09-11T05:39:06Z",
+      "updatedAt": "2026-09-12T02:49:00Z",
       "url": "https://github.com/Fzgt/Blog/issues/20",
       "excerpt": "React Query The API - queryKey decides which slot in the cache this data occupies. Two places using the same queryKey share one cache entry.…",
       "headings": [
