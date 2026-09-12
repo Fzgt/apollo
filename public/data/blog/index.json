@@ -1,7 +1,8 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-12T04:11:06.910Z",
+  "syncedAt": "2026-09-12T04:16:40.160Z",
   "translated": [
+    90,
     84,
     77,
     76,
@@ -24,6 +25,7 @@
     41,
     40,
     39,
+    38,
     37,
     36,
     35,
@@ -247,7 +249,7 @@
   "posts": [
     {
       "number": 90,
-      "title": "接到一个慢的项目，从哪下手 —— 性能优化的项目级框架与 15 篇索引",
+      "title": "Handed a slow project — where to start: a project-level framework for performance work, and an index of 15 posts",
       "labels": [
         {
           "name": "知识体系",
@@ -261,16 +263,16 @@
       "createdAt": "2026-09-11T06:23:54Z",
       "updatedAt": "2026-09-11T09:06:15Z",
       "url": "https://github.com/Fzgt/Blog/issues/90",
-      "excerpt": "#73 讲的是代码层的顺序——加载、请求、节点数、状态位置、重渲染。但接到一个\"页面很慢\"的项目时，第一步不是打开编辑器。 这一篇站在项目维度，把入口补上。整条流程是： 每一步对应站里哪篇笔记，文末有完整顺序。 --- 先分清两件事：步骤和作用域 多数\"性能优化清单\"把\"该做什么…",
+      "excerpt": "#73 is about the order of work at the code level — loading, requests, node count, where state lives, re-renders. But when you are handed a p…",
       "headings": [
-        "先分清两件事：步骤和作用域",
-        "第 0 步：留基线，把 RUM 接上",
-        "第 1 步：卫生清单，不需要测量",
-        "第 2 步：诊断，先 field 后 lab",
-        "第 3 步：按诊断结论分流",
-        "第 4 步：修，代码层这才轮到 #73",
-        "第 5 步：验证，然后固化",
-        "一分钟版本"
+        "First, separate two things: steps and scopes",
+        "Step 0: take a baseline and turn on RUM",
+        "Step 1: the hygiene checklist — no measurement needed",
+        "Step 2: diagnose — field first, lab second",
+        "Step 3: route by the diagnosis",
+        "Step 4: fix — now the code layer, and now #73",
+        "Step 5: verify, then lock it in",
+        "The one-minute version"
       ]
     },
     {
@@ -1477,7 +1479,7 @@
     },
     {
       "number": 38,
-      "title": "性能优化面试冲刺卡 —— 30 秒版、必背数字与追问预案",
+      "title": "Performance interview sprint card — the 30-second answer, the numbers to memorise, and follow-up prep",
       "labels": [
         {
           "name": "知识体系",
@@ -1491,15 +1493,15 @@
       "createdAt": "2026-07-31T04:51:08Z",
       "updatedAt": "2026-09-11T10:04:29Z",
       "url": "https://github.com/Fzgt/Blog/issues/38",
-      "excerpt": "这是 #90 的袖珍版：面试前一晚看的，不讲道理只给结论。每条后面的编号是展开阅读。 30 秒版 先留基线、接上 RUM；卫生清单无条件做；诊断先 field 后 lab，产出一句\"哪个页面、哪类人、哪个指标、卡在哪一段\"；按结论选层——交付层、服务层还是代码层；进了代码层再按加…",
+      "excerpt": "This is the pocket version of #90: the thing to read the night before an interview — conclusions only, no reasoning. The number after each l…",
       "headings": [
-        "30 秒版",
-        "五步，每步一个关键词",
-        "必背数字",
-        "追问预案",
-        "五个错答，别踩",
-        "\"做过没有\"这一维",
-        "相关"
+        "The 30-second version",
+        "Five steps, one keyword each",
+        "Numbers to memorise",
+        "Follow-up prep",
+        "Five wrong answers to avoid",
+        "The \"have you done it\" dimension",
+        "Related"
       ]
     },
     {
