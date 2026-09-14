@@ -326,7 +326,6 @@ export default function BlogPage() {
     'container mx-auto px-4 sm:px-6 lg:px-4',
     activeNumber ? 'max-w-[1400px]' : 'max-w-7xl'
   );
-  const showSidebars = !immersive;
 
   return (
     <div className="min-h-screen bg-background">
@@ -544,14 +543,9 @@ export default function BlogPage() {
             {/* 正文 */}
             {index && activeNumber && (
               // 左栏同分类文章、右栏本页目录，两栏等宽，正文始终落在页面中线上；窄屏两栏都收起，正文自己 mx-auto
-              // 沉浸模式两栏都不渲染、网格也撤掉，正文照样 mx-auto 居中
-              <div
-                className={cn(
-                  showSidebars &&
-                    'xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)_minmax(0,1fr)] xl:gap-8'
-                )}
-              >
-                <aside className={showSidebars ? 'hidden xl:block' : 'hidden'}>
+              // 沉浸模式只把两栏藏起来（visibility），网格不撤：撤了中间栏会从 52rem 变宽，正文重排、跳一下
+              <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)_minmax(0,1fr)] xl:gap-8">
+                <aside className={cn('hidden xl:block', immersive && 'invisible')}>
                   <nav
                     className="sticky top-40 ml-auto max-w-56"
                     aria-label={sidebarCategory ? categoryText(sidebarCategory.name, lang) : t(UI.blog.allPosts)}
@@ -724,8 +718,8 @@ export default function BlogPage() {
                   </motion.article>
                 </main>
 
-                {body && showSidebars && (
-                  <div className="hidden max-w-56 xl:block">
+                {body && (
+                  <div className={cn('hidden max-w-56 xl:block', immersive && 'invisible')}>
                     <div className="sticky top-40">
                       <Suspense fallback={null}>
                         <TableOfContents content={body} offset={STICKY_OFFSET} />
