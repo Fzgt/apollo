@@ -487,14 +487,16 @@ export default function BlogPage() {
 
             {/* 正文 */}
             {index && activeNumber && (
-              <div className="flex gap-8">
-                <main className="min-w-0 flex-1">
+              // 两侧等宽留白、目录放右边那栏，正文始终落在页面中线上；窄屏没有目录，正文自己 mx-auto
+              <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)_minmax(0,1fr)] xl:gap-8">
+                <div className="hidden xl:block" aria-hidden />
+                <main className="min-w-0">
                   <motion.article
                     key={activeNumber}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="max-w-none xl:max-w-4xl"
+                    className="mx-auto max-w-4xl"
                   >
                     <button
                       onClick={() => openPost(null)}
@@ -625,7 +627,7 @@ export default function BlogPage() {
                 </main>
 
                 {body && (
-                  <div className="hidden w-56 shrink-0 xl:block">
+                  <div className="hidden max-w-56 xl:block">
                     <div className="sticky top-36">
                       <Suspense fallback={null}>
                         <TableOfContents content={body} />
