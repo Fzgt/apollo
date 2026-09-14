@@ -7,9 +7,11 @@ import { UI } from '@/content/ui';
 interface TableOfContentsProps {
   content: string;
   className?: string;
+  /** 页面顶部被固定元素占掉的高度：跳转停在它下面，读到哪一节也按它算 */
+  offset?: number;
 }
 
-export function TableOfContents({ content, className }: TableOfContentsProps) {
+export function TableOfContents({ content, className, offset = 100 }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>('');
   const { t } = useLang();
 
@@ -40,7 +42,7 @@ export function TableOfContents({ content, className }: TableOfContentsProps) {
     const update = () => {
       frame = 0;
       // 略低于固定导航栏：标题滚到这条线以上就算「已经读到」
-      const line = 100;
+      const line = offset;
       let current = headings[0].id;
 
       for (const heading of headings) {
@@ -67,9 +69,9 @@ export function TableOfContents({ content, className }: TableOfContentsProps) {
       window.removeEventListener('resize', onScroll);
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [headings]);
+  }, [headings, offset]);
 
-  const handleClick = (id: string) => scrollToAnchor(id);
+  const handleClick = (id: string) => scrollToAnchor(id, offset);
 
   if (headings.length === 0) {
     return null;

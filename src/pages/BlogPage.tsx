@@ -6,6 +6,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  Maximize2,
+  Minimize2,
   Search,
   SearchX,
 } from 'lucide-react';
@@ -37,6 +39,11 @@ const TableOfContents = lazy(() =>
 
 /** 入场动画只给首屏这些条，再往下滚出来的不抖 */
 const ENTRANCE_LIMIT = 20;
+
+const IMMERSIVE_KEY = 'apollo:blog:immersive';
+
+/** 固定导航栏（md 以上 80px）+ 吸顶页头（44px）再留一点：目录跳转停在这条线下面 */
+const STICKY_OFFSET = 140;
 
 function Chip({
   active,
@@ -131,6 +138,22 @@ export default function BlogPage() {
 
   const { readPosts, markRead, toggleRead } = useReadPosts();
   const entranceSettled = useRef(false);
+
+  // 沉浸阅读：记在本地，换一篇、刷新都还是这个模式
+  const [immersive, setImmersive] = useState(() => {
+    try {
+      return window.localStorage.getItem(IMMERSIVE_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(IMMERSIVE_KEY, immersive ? '1' : '0');
+    } catch {
+      // 存不下就只管这一次打开
+    }
+  }, [immersive]);
 
   // 数据只有构建期快照一份。换语言＝换一整套数据，重走一遍
   useEffect(() => {
@@ -299,38 +322,56 @@ export default function BlogPage() {
     ? `${t(UI.blog.syncedSnapshot)} · ${formatDate(index.syncedAt)}`
     : t(UI.common.loading);
 
+  const containerClass = cn(
+    'container mx-auto px-4 sm:px-6 lg:px-4',
+    activeNumber ? 'max-w-[1400px]' : 'max-w-7xl'
+  );
+  const showSidebars = !immersive;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="pt-20 md:pt-24">
-        <div
-          className={cn(
-            'container mx-auto px-4 sm:px-6 lg:px-4',
-            activeNumber ? 'max-w-[1400px]' : 'max-w-7xl'
-          )}
-        >
-          {/* 页头 */}
-          <div className="flex flex-col gap-3 border-b border-border py-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground md:text-3xl">{t(UI.blog.title)}</h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {t(UI.blog.sourceA)}{' '}
-                <a
-                  href={BLOG_ISSUES_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline underline-offset-4 hover:text-primary/80"
-                >
-                  {BLOG_REPO}
-                </a>
-                {t(UI.blog.sourceB(posts.length))}
-              </p>
-            </div>
+        {/* 页头：压成一行，吸在导航栏下面。整条铺满，跟导航栏一样宽 */}
+        <div className="sticky top-16 z-40 border-b border-border bg-background/80 backdrop-blur-xl md:top-20">
+          {!activeNumber && <h1 className="sr-only">{t(UI.blog.title)}</h1>}
+          <div className={cn(containerClass, 'flex h-11 items-center justify-between gap-4 text-xs text-muted-foreground')}>
+            <p className="truncate">
+              {t(UI.blog.sourceA)}{' '}
+              <a
+                href={BLOG_ISSUES_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-4 hover:text-primary/80"
+              >
+                {BLOG_REPO}
+              </a>
+              {t(UI.blog.sourceB(posts.length))}
+            </p>
 
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span>{syncedLabel}</span>
+            <div className="flex shrink-0 items-center gap-3">
+              <span className="hidden sm:inline">{syncedLabel}</span>
+              {/* 两侧栏只在 xl 以上才出现，窄屏上这个开关没东西可藏 */}
+              {activeNumber && (
+                <button
+                  onClick={() => setImmersive((prev) => !prev)}
+                  aria-pressed={immersive}
+                  title={t(UI.blog.immersiveHint)}
+                  className={cn(
+                    'hidden items-center gap-1.5 rounded-md border px-2.5 py-1 transition-colors xl:inline-flex',
+                    immersive
+                      ? 'border-primary/50 bg-primary/15 font-medium text-primary'
+                      : 'border-border bg-muted/50 hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  {immersive ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+                  {immersive ? t(UI.blog.exitImmersive) : t(UI.blog.immersive)}
+                </button>
+              )}
             </div>
           </div>
+        </div>
 
+        <div className={containerClass}>
           <div className="py-6">
             {indexError && !index && (
               <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
@@ -350,7 +391,7 @@ export default function BlogPage() {
                 {/* 左侧分类索引：分组照抄 Blog 仓库 README */}
                 {categories.length > 0 && (
                   <aside className="hidden w-52 shrink-0 lg:block">
-                    <nav className="sticky top-24" aria-label={t(UI.blog.categories)}>
+                    <nav className="sticky top-40" aria-label={t(UI.blog.categories)}>
                       <p className="px-3 pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                         {t(UI.blog.categories)}
                       </p>
@@ -513,10 +554,16 @@ export default function BlogPage() {
             {/* 正文 */}
             {index && activeNumber && (
               // 左栏同分类文章、右栏本页目录，两栏等宽，正文始终落在页面中线上；窄屏两栏都收起，正文自己 mx-auto
-              <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)_minmax(0,1fr)] xl:gap-8">
-                <aside className="hidden xl:block">
+              // 沉浸模式两栏都不渲染、网格也撤掉，正文照样 mx-auto 居中
+              <div
+                className={cn(
+                  showSidebars &&
+                    'xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)_minmax(0,1fr)] xl:gap-8'
+                )}
+              >
+                <aside className={showSidebars ? 'hidden xl:block' : 'hidden'}>
                   <nav
-                    className="sticky top-36 ml-auto max-w-56"
+                    className="sticky top-40 ml-auto max-w-56"
                     aria-label={sidebarCategory ? categoryText(sidebarCategory.name, lang) : t(UI.blog.allPosts)}
                   >
                     <p className="px-3 pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -687,11 +734,11 @@ export default function BlogPage() {
                   </motion.article>
                 </main>
 
-                {body && (
+                {body && showSidebars && (
                   <div className="hidden max-w-56 xl:block">
-                    <div className="sticky top-36">
+                    <div className="sticky top-40">
                       <Suspense fallback={null}>
-                        <TableOfContents content={body} />
+                        <TableOfContents content={body} offset={STICKY_OFFSET} />
                       </Suspense>
                     </div>
                   </div>

@@ -404,6 +404,12 @@ export const UI = {
     }),
     resetFilters: { en: "Reset filters", zh: "清空筛选" } satisfies Text,
     allPosts: { en: "All posts", zh: "全部文章" } satisfies Text,
+    immersive: { en: "Immersive", zh: "沉浸阅读" } satisfies Text,
+    exitImmersive: { en: "Exit immersive", zh: "退出沉浸" } satisfies Text,
+    immersiveHint: {
+      en: "Hide the post list and table of contents",
+      zh: "隐藏两侧的文章列表和目录",
+    } satisfies Text,
     written: { en: "Written", zh: "写于" } satisfies Text,
     bodyError: (reason: string): Text => ({
       en: `${reason}. You can open it`,
