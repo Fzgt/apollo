@@ -1,6 +1,6 @@
 {
   "repo": "Fzgt/Blog",
-  "syncedAt": "2026-09-12T04:16:40.160Z",
+  "syncedAt": "2026-09-14T15:08:29.641Z",
   "translated": [
     90,
     84,
@@ -502,7 +502,7 @@
         }
       ],
       "createdAt": "2026-09-09T08:34:42Z",
-      "updatedAt": "2026-09-12T03:59:50Z",
+      "updatedAt": "2026-09-14T08:34:05Z",
       "url": "https://github.com/Fzgt/Blog/issues/81",
       "excerpt": "如果你没有配置过 SplitChunksPlugin，就说明你从来没有关心过项目的性能。因为不配的话，Webpack 默认没什么分包机制，全部塞进 main.js，体积轻易到 4MB+——那些所谓的性能指标就已经炸了，还有什么可度量的。 这句话是这一章的起点。下面按\"为什么拆 →…",
       "headings": [
@@ -510,7 +510,7 @@
         "二、Webpack Runtime：第一个该抽出去的东西",
         "三、cacheGroups：拆包配置的核心",
         "四、单 entry 和多 entry，拆包效果不一样",
-        "五、多大算大：一个可执行的判断标准",
+        "五、多大算大：Webpack 自己的两条线",
         "六、开发期的编译速度",
         "七、总结",
         "相关"
@@ -1998,7 +1998,7 @@
         }
       ],
       "createdAt": "2025-08-17T15:50:34Z",
-      "updatedAt": "2026-09-12T03:59:45Z",
+      "updatedAt": "2026-09-14T15:06:01Z",
       "url": "https://github.com/Fzgt/Blog/issues/14",
       "excerpt": "Before you read (corrected 2026-09): these are course notes from the webpack 4 → 5 era; the frame of reference stops around 2021. Back then …",
       "headings": [
