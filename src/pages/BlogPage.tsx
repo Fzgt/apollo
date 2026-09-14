@@ -330,7 +330,8 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="pt-20 md:pt-24">
+      {/* 顶部留白正好等于导航栏高度：多留一截的话，页头会先跟着滚上去一段才吸住 */}
+      <div className="pt-16 md:pt-20">
         {/* 页头：压成一行，吸在导航栏下面。整条铺满，跟导航栏一样宽 */}
         <div className="sticky top-16 z-40 border-b border-border bg-background/80 backdrop-blur-xl md:top-20">
           {!activeNumber && <h1 className="sr-only">{t(UI.blog.title)}</h1>}
