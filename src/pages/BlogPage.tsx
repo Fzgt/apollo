@@ -211,6 +211,31 @@ export default function BlogPage() {
     [posts, activeNumber]
   );
 
+  /** 正文页左栏：当前这篇所在的分类，找不到就列全部 */
+  const sidebarCategory = useMemo(
+    () =>
+      activeNumber
+        ? categories.find((category) => category.numbers.includes(activeNumber)) ?? null
+        : null,
+    [categories, activeNumber]
+  );
+
+  const sidebarPosts = useMemo(() => {
+    if (!sidebarCategory) return posts;
+    const numbers = new Set(sidebarCategory.numbers);
+    return posts.filter((post) => numbers.has(post.number));
+  }, [posts, sidebarCategory]);
+
+  // 左栏自己会滚，换篇时把当前这条滚到中间；不用 scrollIntoView，那个会连整页一起滚
+  const sidebarListRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const list = sidebarListRef.current;
+    const current = list?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (list && current) {
+      list.scrollTop = current.offsetTop - list.clientHeight / 2 + current.offsetHeight / 2;
+    }
+  }, [activeNumber, sidebarPosts]);
+
   const activeIndexInList = activePost ? posts.indexOf(activePost) : -1;
   // 上下篇卡片只有半行宽，带副标题的长标题会折成两行、行尾还吊着破折号。
   // 站里的标题统一是「主标题 —— 副标题」，导航里只显示破折号前面那截，完整标题走 title 属性。
@@ -487,9 +512,45 @@ export default function BlogPage() {
 
             {/* 正文 */}
             {index && activeNumber && (
-              // 两侧等宽留白、目录放右边那栏，正文始终落在页面中线上；窄屏没有目录，正文自己 mx-auto
+              // 左栏同分类文章、右栏本页目录，两栏等宽，正文始终落在页面中线上；窄屏两栏都收起，正文自己 mx-auto
               <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,52rem)_minmax(0,1fr)] xl:gap-8">
-                <div className="hidden xl:block" aria-hidden />
+                <aside className="hidden xl:block">
+                  <nav
+                    className="sticky top-36 ml-auto max-w-56"
+                    aria-label={sidebarCategory ? categoryText(sidebarCategory.name, lang) : t(UI.blog.allPosts)}
+                  >
+                    <p className="px-3 pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {sidebarCategory ? categoryText(sidebarCategory.name, lang) : t(UI.blog.allPosts)}
+                      <span className="ml-1.5 tabular-nums opacity-60">{sidebarPosts.length}</span>
+                    </p>
+                    <div
+                      ref={sidebarListRef}
+                      className="relative max-h-[calc(100vh-12rem)] space-y-0.5 overflow-y-auto pr-1"
+                    >
+                      {sidebarPosts.map((post) => {
+                        const current = post.number === activeNumber;
+                        return (
+                          <button
+                            key={post.number}
+                            onClick={() => openPost(post.number)}
+                            title={post.title}
+                            aria-current={current ? 'page' : undefined}
+                            className={cn(
+                              'block w-full rounded-lg px-3 py-1.5 text-left text-sm leading-snug transition-colors',
+                              current
+                                ? 'bg-primary/10 font-medium text-primary'
+                                : readPosts.has(post.number)
+                                  ? 'text-muted-foreground/60 hover:bg-muted hover:text-foreground'
+                                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                            )}
+                          >
+                            <span className="line-clamp-2">{navTitle(post.title)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </nav>
+                </aside>
                 <main className="min-w-0">
                   <motion.article
                     key={activeNumber}
