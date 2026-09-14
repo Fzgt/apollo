@@ -101,6 +101,35 @@ resolve: {
 
 所以迁移是**把「我指定要哪些 chunk」重写成「我描述什么样的模块该被拆出去」**。
 
+### 当「最棘手的问题」讲
+
+**它比 polyfill 那个更适合当棘手问题。** polyfill 有报错、有官方提示，改一行 `resolve.fallback` 就好。这个难在**不报错**：新旧插件之间没有一一对应的配置，构建照样通过、页面照样能跑，但拆出来的 chunk 已经跟原来不一样了。问题不在构建时暴露，而是后来才冒出来：缓存莫名失效、首屏变大、某个页面白屏。
+
+**难点有三层：**
+
+1. **旧配置翻译不过去。** Webpack 3 的常见写法是两个 CommonsChunkPlugin 叠在一起：一个用 `minChunks` 函数把 `node_modules` 抽成 vendor，另一个用 `name: 'manifest', minChunks: Infinity` 把 runtime 单独剥出来。到了 Webpack 5，前者对应 `cacheGroups`，后者对应 `runtimeChunk`。**简历里的 `runtime chunks` 就是从这里来的。** 旧写法是一条条命令，新写法是一组规则，没法逐行翻，只能先弄清旧配置实际拆出了什么，再用规则重新描述一遍。
+2. **默认值会悄悄改结果。** `chunks` 默认 `'async'`，同步 import 完全不管；`minSize`、`maxInitialRequests` 的默认值也会让一部分规则不生效。**配置写对了，产物照样可能不对。**
+3. **文件名变了。** 以前固定叫 `vendor.js`、`manifest.js`，现在 chunk 的名字和个数都由规则决定。凡是写死文件名的地方都会断：HTML 模板、服务端模板、预加载列表。
+
+**怎么确认迁对了：不看配置，看产物。**
+
+- 迁移前后各导出一份构建统计（`--json`），或者用 bundle analyzer 对比，看每个 chunk 里的模块有没有变：vendor 有没有被拆散，业务代码有没有混进 vendor。
+- 改一行业务代码再构建，对比两次的文件名（下文「长效缓存」一节的方法），应该只有业务 chunk 的文件名变。
+
+**两分钟的讲法。** 【】里填你的真实经历，想不起来就删，**不要编**：
+
+1. **背景**：为什么非升不可【】，你负责哪一块【】。
+2. **难在哪**：新旧插件没有一一对应，而且迁错了**不会报错**。
+3. **怎么做**：先弄清旧配置实际拆出了什么，再用 `cacheGroups` 按变化频率分层，把 `manifest` 那段换成 `runtimeChunk: 'single'`。
+4. **卡住的那一刻**：【上面三层里真实踩到的那一处，只讲发生过的】。
+5. **怎么验证**：对比迁移前后的 chunk 组成，再做文件名 diff。
+6. **结果**：业务代码发版，vendor 和 runtime 的哈希不再跟着变。
+7. **复盘**：如果重来，动配置之前先把产物对比写成脚本，每改一步跑一次。
+
+**可以直接说出口的英文：**
+
+> The hardest part wasn't the errors. It was the part that didn't error. CommonsChunkPlugin and SplitChunks don't map one-to-one. The old config was two plugin instances: one pulled `node_modules` into a vendor chunk, and the other split the runtime out as a manifest chunk. In Webpack 5 those become `cacheGroups` and `runtimeChunk`. The build passed, but the chunks came out different, and nothing told us. 【what actually broke】 So I stopped trusting the config and compared the output instead: the chunk contents before and after, then a filename diff after a one-line change. In the end, only the business chunk's hash changed.
+
 至于「十几个」数的是什么，**建议口径是包数**，也就是 `package.json` 的 diff 里增删换掉的条目，**因为它是唯一有客观依据的算法**。
 
 ## SplitChunks 到底买到了什么
@@ -236,3 +265,4 @@ cache: {
 5. 能否说出体积口径的三个变量，并说明该报哪一个？
 6. 能否主动说出冷构建变慢，以及 CI 上默认拿不到这个收益？
 7. 能否指出简历那句话的因果错配，并给出改法？
+8. 能否把 CommonsChunkPlugin → SplitChunks 讲成两分钟的棘手问题，说清「难在不报错」和「怎么靠产物验证」？

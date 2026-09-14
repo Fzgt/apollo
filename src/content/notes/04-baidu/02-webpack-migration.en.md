@@ -92,6 +92,35 @@ resolve: {
 
 So the migration rewrites **"which chunks I want" into "what kind of module should be split out".**
 
+### Telling it as "the hardest problem"
+
+**This works better than the polyfill case.** The polyfill case has an error message and an official hint, and one line of `resolve.fallback` fixes it. This one is hard because **nothing errors**: the two plugins have no one-to-one config mapping, the build still passes and the pages still run, but the chunks that come out are no longer the same. The problem does not surface at build time. It shows up later: caches invalidating for no clear reason, a bigger first load, a page going blank.
+
+**The difficulty has three layers:**
+
+1. **The old config does not translate.** A typical Webpack 3 setup stacks two CommonsChunkPlugin instances: one uses a `minChunks` function to pull `node_modules` into vendor, the other uses `name: 'manifest', minChunks: Infinity` to split the runtime out. In Webpack 5 the first becomes `cacheGroups` and the second becomes `runtimeChunk`. **That is where `runtime chunks` on the resume comes from.** The old style is a list of commands and the new one is a set of rules, so you cannot convert it line by line. You have to work out what the old config actually produced, then describe it again as rules.
+2. **Defaults quietly change the result.** `chunks` defaults to `'async'`, which ignores synchronous imports entirely, and the defaults for `minSize` and `maxInitialRequests` can stop some rules from applying. **The config can be right and the output still wrong.**
+3. **File names change.** They used to be fixed as `vendor.js` and `manifest.js`. Now the rules decide how many chunks there are and what they are called. Anything that hard-codes a file name breaks: HTML templates, server templates, preload lists.
+
+**How to confirm the migration is right: check the output, not the config.**
+
+- Export build stats (`--json`) before and after, or compare in bundle analyzer, and check whether the modules in each chunk changed: whether vendor got broken up, whether business code leaked into vendor.
+- Change one line of business code, rebuild, and diff the two sets of file names (the method in the long-term caching section below). Only the business chunk's name should change.
+
+**The two-minute version.** Fill the 【】 slots with what really happened. If you cannot remember, drop it. **Do not invent.**
+
+1. **Context**: why the upgrade could not wait 【】, and which part you owned 【】.
+2. **Why it was hard**: no one-to-one mapping, and a wrong migration **does not error**.
+3. **What you did**: work out what the old config actually produced, regroup with `cacheGroups` by how often things change, and replace the manifest setup with `runtimeChunk: 'single'`.
+4. **Where you got stuck**: 【the layer above you actually hit; only what happened】.
+5. **How you verified**: compare chunk contents before and after, then the file-name diff.
+6. **Result**: when business code ships, the vendor and runtime hashes no longer change.
+7. **Looking back**: next time, script the output comparison before touching the config, and run it after every step.
+
+**Lines you can say as is:**
+
+> The hardest part wasn't the errors. It was the part that didn't error. CommonsChunkPlugin and SplitChunks don't map one-to-one. The old config was two plugin instances: one pulled `node_modules` into a vendor chunk, and the other split the runtime out as a manifest chunk. In Webpack 5 those become `cacheGroups` and `runtimeChunk`. The build passed, but the chunks came out different, and nothing told us. 【what actually broke】 So I stopped trusting the config and compared the output instead: the chunk contents before and after, then a filename diff after a one-line change. In the end, only the business chunk's hash changed.
+
 As for what "10+" counts, **use package count** — entries added, removed or replaced in the `package.json` diff — **because it is the only definition with an objective basis.**
 
 ## What SplitChunks actually buys
@@ -221,3 +250,4 @@ The recommended rewrite pairs each action with its own result and folds in the c
 5. Can you name the three variables in a size figure and say which one to report?
 6. Can you volunteer that the cold build got slower and that CI does not get the win by default?
 7. Can you point out the resume sentence's mis-pairing and offer the rewrite?
+8. Can you tell CommonsChunkPlugin → SplitChunks as a two-minute hardest-problem story, covering "the hard part is that nothing errors" and "verifying through the output"?
