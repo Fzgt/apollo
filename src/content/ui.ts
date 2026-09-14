@@ -370,14 +370,6 @@ export const UI = {
 
   blog: {
     title: { en: "Blog", zh: "博客" } satisfies Text,
-    sourceA: {
-      en: "Posts live in the issues of",
-      zh: "文章写在",
-    } satisfies Text,
-    sourceB: (count: number): Text => ({
-      en: `, synced at build time · ${count} posts`,
-      zh: ` 的 issues 里，构建时同步 · ${count} 篇`,
-    }),
     syncedSnapshot: { en: "Updated", zh: "更新于" } satisfies Text,
     categories: { en: "Categories", zh: "分类" } satisfies Text,
     allCategories: { en: "All posts", zh: "全部文章" } satisfies Text,

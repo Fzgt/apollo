@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { PostRow } from '@/components/blog/PostRow';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { BLOG_ISSUES_URL, BLOG_REPO } from '@/content/site';
+import { BLOG_ISSUES_URL } from '@/content/site';
 import { useReadPosts } from '@/hooks/use-read-posts';
 import type { Lang } from '@/lib/i18n';
 import {
@@ -333,23 +333,11 @@ export default function BlogPage() {
       {/* 顶部留白正好等于导航栏高度：多留一截的话，页头会先跟着滚上去一段才吸住 */}
       <div className="pt-16 md:pt-20">
         {/* 页头：压成一行，吸在导航栏下面。整条铺满，跟导航栏一样宽 */}
-        <div className="sticky top-16 z-40 border-b border-border bg-background/80 backdrop-blur-xl md:top-20">
+        {/* 整条透明、不接鼠标，底下滚过去的正文照样看得见、点得着；只有右边那组控件接点击 */}
+        <div className="pointer-events-none sticky top-16 z-40 md:top-20">
           {!activeNumber && <h1 className="sr-only">{t(UI.blog.title)}</h1>}
-          <div className={cn(containerClass, 'flex h-11 items-center justify-between gap-4 text-xs text-muted-foreground')}>
-            <p className="truncate">
-              {t(UI.blog.sourceA)}{' '}
-              <a
-                href={BLOG_ISSUES_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline underline-offset-4 hover:text-primary/80"
-              >
-                {BLOG_REPO}
-              </a>
-              {t(UI.blog.sourceB(posts.length))}
-            </p>
-
-            <div className="flex shrink-0 items-center gap-3">
+          <div className={cn(containerClass, 'flex h-11 items-center justify-end gap-4 text-xs text-muted-foreground')}>
+            <div className="pointer-events-auto flex shrink-0 items-center gap-3">
               <span className="hidden sm:inline">{syncedLabel}</span>
               {/* 两侧栏只在 xl 以上才出现，窄屏上这个开关没东西可藏 */}
               {activeNumber && (
@@ -358,10 +346,11 @@ export default function BlogPage() {
                   aria-pressed={immersive}
                   title={t(UI.blog.immersiveHint)}
                   className={cn(
-                    'hidden items-center gap-1.5 rounded-md border px-2.5 py-1 transition-colors xl:inline-flex',
+                    // 条是透明的，按钮自己带一层毛玻璃，压在正文上也读得清
+                    'hidden items-center gap-1.5 rounded-md border px-2.5 py-1 backdrop-blur-md transition-colors xl:inline-flex',
                     immersive
                       ? 'border-primary/50 bg-primary/15 font-medium text-primary'
-                      : 'border-border bg-muted/50 hover:bg-muted hover:text-foreground'
+                      : 'border-border bg-background/70 hover:bg-muted hover:text-foreground'
                   )}
                 >
                   {immersive ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
