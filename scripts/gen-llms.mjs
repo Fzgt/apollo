@@ -5,9 +5,11 @@
  * 站点是单页应用，Claude 之类的抓取工具不跑 JS，打开首页只看得到
  * 「这个站需要 JavaScript」。所以这里列一份目录，每条直接指向不用 JS 就能读的地方：
  *   - 笔记、题解：GitHub 上的原始 Markdown（raw.githubusercontent.com，仓库公开）；
- *   - 博客：本站的 /data/blog/<号>.json 快照（正文是 Markdown 字段）。
+ *   - 博客：仓库里的 public/data/blog/<号>.json 快照（正文是 Markdown 字段）。
  *
- * robots.txt 只放行 Claude-User，搜索引擎照旧挡在外面。
+ * 链接一律走 raw.githubusercontent.com，不指回本站：Claude 那边对本站的
+ * robots 判定有缓存，放行了也照样报「整站被拦」，GitHub raw 没有 robots 这一关。
+ * 同理这份文件本身也提交进仓库，raw 地址就能读到它。内容变了要重跑再提交。
  *
  * 用法：node scripts/gen-llms.mjs（build 前自动跑）
  */
@@ -17,7 +19,6 @@ import { join, relative } from 'node:path'
 const ROOT = new URL('..', import.meta.url).pathname
 const CONTENT = join(ROOT, 'src/content')
 const RAW = 'https://raw.githubusercontent.com/Fzgt/apollo/main/'
-const SITE = 'https://apollo-five-omega.vercel.app'
 
 function walk(dir) {
   return readdirSync(dir, { withFileTypes: true })
@@ -64,8 +65,8 @@ if (existsSync(join(blogDir, indexFile))) {
   out.push('## blog', '', '> JSON 快照，正文在 `body` 字段（Markdown）。', '')
   for (const p of posts) {
     const zh = existsSync(join(blogDir, `${p.number}.zh.json`))
-    out.push(`- [#${p.number} ${p.title}](${SITE}/data/blog/${p.number}${zh ? '.zh' : ''}.json)` +
-      (zh ? ` · [English](${SITE}/data/blog/${p.number}.json)` : ''))
+    out.push(`- [#${p.number} ${p.title}](${RAW}public/data/blog/${p.number}${zh ? '.zh' : ''}.json)` +
+      (zh ? ` · [English](${RAW}public/data/blog/${p.number}.json)` : ''))
   }
   out.push('')
 }
