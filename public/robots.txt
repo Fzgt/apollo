@@ -1,3 +1,7 @@
 # 私人复习笔记，不希望被任何搜索引擎收录
+# 例外：用户在 Claude 里主动让它读页面时（Claude-User），放行
+User-agent: Claude-User
+Allow: /
+
 User-agent: *
 Disallow: /

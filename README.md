@@ -164,4 +164,5 @@ router 的 `basename` 跟着 `import.meta.env.BASE_URL` 走，不用另外改。
 > [!WARNING]
 > 站点整体挂了 `noindex, nofollow` —— 这是私人笔记，不该被搜索引擎收录。
 > 三道防线：页面里的 `noindex` meta、`public/robots.txt`（根路径部署，对爬虫有效）、
-> 以及 `vercel.json` 里给所有响应加的 `X-Robots-Tag`。仓库本身也是 private。
+> 以及 `vercel.json` 里给所有响应加的 `X-Robots-Tag`。
+> robots.txt 唯一放行的是 `Claude-User` —— 在 Claude 里贴链接让它读笔记用，不是搜索爬虫。
