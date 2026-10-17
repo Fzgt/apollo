@@ -33,3 +33,6 @@ AGENTS.md
 
 # tsc -b 的增量缓存，每次 typecheck 都会变，不进仓库
 *.tsbuildinfo
+
+# 构建期生成，见 scripts/gen-llms.mjs
+public/llms.txt

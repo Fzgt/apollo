@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/gen-llms.mjs && vite build",
     "lint": "eslint .",
     "typecheck": "tsc -b --force",
     "check": "npm run lint && npm run typecheck && npm run build",
